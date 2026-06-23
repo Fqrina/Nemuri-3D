@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 167a824b67c0e7540b1ca8a87fb757fd
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305473
+  packageName: Stickman Hyper Casual Characters
+  packageVersion: 1.0
+  assetPath: Assets/Hyper Casual Characters/Animator controller/idle.controller
+  uploadId: 759220

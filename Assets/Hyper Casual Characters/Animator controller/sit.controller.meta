@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c3a2ffa52ba42b84fb0f5f215d193c09
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305473
+  packageName: Stickman Hyper Casual Characters
+  packageVersion: 1.0
+  assetPath: Assets/Hyper Casual Characters/Animator controller/sit.controller
+  uploadId: 759220

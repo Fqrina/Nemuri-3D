@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c649996c4bf17e04891b335be2c86e97
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 7400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 305473
+  packageName: Stickman Hyper Casual Characters
+  packageVersion: 1.0
+  assetPath: Assets/Hyper Casual Characters/Animations/root_walk_bot_remap.anim
+  uploadId: 759220
