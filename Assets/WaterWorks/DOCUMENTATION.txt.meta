@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cc73f27781c873d4b96c3e08e71a7efc
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 206909
+  packageName: WaterWorks - Simple water/ocean/river system for URP + reflection
+    + refraction
+  packageVersion: 1.0
+  assetPath: Assets/WaterWorks/DOCUMENTATION.txt
+  uploadId: 476381
