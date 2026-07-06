@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: edcfc5aaa4ab59e4cb087049354cfae3
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 206909
+  packageName: WaterWorks - Simple water/ocean/river system for URP + reflection
+    + refraction
+  packageVersion: 1.0
+  assetPath: Assets/WaterWorks/Materials/SSR_Water.mat
+  uploadId: 476381
