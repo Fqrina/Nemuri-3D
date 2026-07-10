@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _doorPivot: {instanceID: 0}
+  - _openSoundClip: {fileID: 8300000, guid: 721abe5ee62ff5d4cbf0c5181c81ad3d, type: 3}
+  - _closeSoundClip: {fileID: 8300000, guid: 5d19feab1f61d36478601796bf83fcd3, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
