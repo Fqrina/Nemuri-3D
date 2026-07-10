@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 32c4b34b5ba92984fb37aa677b3bb4e2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _pillsSoundClip: {fileID: 8300000, guid: 35463557239a09149a3a1338ef6d9b45, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
