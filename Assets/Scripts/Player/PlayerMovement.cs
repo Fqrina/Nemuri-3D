@@ -58,7 +58,7 @@ namespace Nemuri.Player
             _playerInput = GetComponent<PlayerInput>();
             CacheAnimatorParameters();
 
-            _rb.useGravity = false;
+            _rb.useGravity = true;
             _rb.freezeRotation = true;
         }
 
@@ -115,7 +115,9 @@ namespace Nemuri.Player
         private void Move()
         {
             Vector3 moveDirection = Vector3.ClampMagnitude(new Vector3(_moveInput.x, 0f, _moveInput.y), 1f);
-            _rb.MovePosition(_rb.position + moveDirection * _moveSpeed * Time.fixedDeltaTime);
+            Vector3 targetVelocity = moveDirection * _moveSpeed;
+            targetVelocity.y = _rb.linearVelocity.y;
+            _rb.linearVelocity = targetVelocity;
 
             if (moveDirection.sqrMagnitude > 0.001f)
             {
