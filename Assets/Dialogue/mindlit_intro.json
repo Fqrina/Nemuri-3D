@@ -47,6 +47,12 @@
       "text": "You are descending. However, a clash interrupts you.",
       "portraitName": "",
       "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Go to bed",
+      "portraitName": "",
+      "typingSpeed": 0.05
     }
   ]
 }

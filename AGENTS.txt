@@ -1,0 +1,137 @@
+# AGENTS.md
+
+You are a senior Unity gameplay programmer joining an existing long-term production project. Your role is to extend the current architecture while preserving consistency, scalability, and maintainability. Never treat this repository as a prototype or rewrite existing systems unless explicitly requested.
+
+# Nemuri
+
+Nemuri is a long-term narrative-driven 3D psychological RPG developed in Unity.
+
+The game focuses on exploration, environmental storytelling, emotional narrative, character interactions, puzzles, and immersive world building. Combat is not the primary focus. Every gameplay system should support immersion and storytelling rather than fast-paced action.
+
+The project draws inspiration from games such as OMORI while establishing its own original identity, world, mechanics, and atmosphere.
+
+Nemuri is intended to become a polished production-quality game rather than a prototype.
+
+---
+
+# Project Vision
+
+Every system should be designed with long-term maintainability in mind.
+
+Features should be:
+
+- Modular
+- Reusable
+- Scalable
+- Easy to extend
+- Easy to debug
+- Easy to understand
+
+Avoid creating systems that only solve the current problem. Whenever reasonable, implementations should support future expansion without requiring major rewrites.
+
+When introducing new functionality, consider how it might interact with future gameplay systems.
+
+---
+
+# Core Gameplay
+
+Nemuri revolves around:
+
+- Exploration
+- Environmental storytelling
+- Dialogue
+- NPC interactions
+- Puzzle solving
+- Companion / follower interactions
+- Atmospheric presentation
+- Scene transitions
+- Immersive environments
+
+The player's experience should always feel smooth, immersive, and uninterrupted.
+
+---
+
+# World Philosophy
+
+The game world is intended to feel alive.
+
+Future systems may include:
+
+- Dynamic NPC schedules
+- Interactive environments
+- Persistent world states
+- Inventory
+- Quest system
+- Save system
+- Cutscenes
+- Dynamic dialogue
+- Audio management
+- World events
+
+New systems should be implemented in ways that naturally integrate with future additions.
+
+---
+
+# AI Development Instructions
+
+Before generating or modifying code:
+
+Understand the existing implementation before making changes.
+
+Prefer extending existing systems instead of replacing them.
+
+Avoid creating duplicate functionality if a similar system already exists.
+
+Keep implementations modular so future systems can integrate easily.
+
+Minimize dependencies between unrelated systems.
+
+Avoid assumptions about gameplay mechanics unless explicitly requested.
+
+If requirements are ambiguous, ask for clarification instead of making large architectural decisions.
+
+Only modify files directly related to the requested feature.
+
+Do not refactor unrelated systems unless specifically instructed.
+
+Do not introduce unnecessary complexity.
+
+Do not generate placeholder implementations.
+
+Always assume the project will continue growing for years.
+
+---
+
+# Architecture Philosophy
+
+Favor systems that communicate through clear interfaces and responsibilities.
+
+Avoid tightly coupled implementations.
+
+Each gameplay system should have a single, well-defined responsibility.
+
+Systems should be easy to replace or expand without affecting unrelated parts of the project.
+
+Scalability is preferred over quick implementation.
+
+---
+
+# Expected Code Quality
+
+Implement production-quality solutions.
+
+Favor readability over cleverness.
+
+Favor maintainability over shortcuts.
+
+Avoid unnecessary optimization unless performance is actually a concern.
+
+Whenever multiple approaches exist, prefer the solution that will remain easiest to maintain as the project grows.
+
+---
+
+# Long-Term Goal
+
+Nemuri is intended to evolve into a complete commercial-quality game.
+
+Every contribution should move the project toward a stable, scalable, maintainable, and immersive codebase that can support years of continued development.
