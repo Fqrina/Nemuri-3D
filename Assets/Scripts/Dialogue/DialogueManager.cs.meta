@@ -1,2 +1,22 @@
 fileFormatVersion: 2
 guid: 03b5bc5b85bc23042a067e7622fef7a2
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _dialoguePanel: {instanceID: 0}
+  - _nameText: {instanceID: 0}
+  - _dialogueText: {instanceID: 0}
+  - _portraitImage: {instanceID: 0}
+  - _continueIndicator: {instanceID: 0}
+  - _dialogueSprite: {fileID: 21300000, guid: fcef237268c1e6341a85fd404db47c44, type: 3}
+  - _narrationSprite: {fileID: 21300000, guid: aa3aca68c7c72e84e927e27ddc75c1d3, type: 3}
+  - _objectiveSprite: {fileID: 21300000, guid: 658edb2b9d548964fb53b6db5e86dae2, type: 3}
+  - _panelBackgroundImage: {instanceID: 0}
+  - _playerDialogueClip: {fileID: 8300000, guid: 3e71bee668f44ce4baf1824cf074c9e1, type: 3}
+  - _animalDialogueClip: {fileID: 8300000, guid: c367f3048b976ca46abe1a0ab80df7f4, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
