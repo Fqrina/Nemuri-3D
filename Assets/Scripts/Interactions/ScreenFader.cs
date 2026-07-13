@@ -73,6 +73,18 @@ namespace Nemuri.UI
             return StartCoroutine(FadeRoutine(0f, duration));
         }
 
+        public void SetAlphaImmediate(float alpha)
+        {
+            StopAllCoroutines();
+            _currentAlpha = Mathf.Clamp01(alpha);
+
+            if (_fadeImage != null)
+            {
+                _fadeImage.color = new Color(0f, 0f, 0f, _currentAlpha);
+                _fadeImage.raycastTarget = _currentAlpha > 0.01f;
+            }
+        }
+
         private IEnumerator FadeRoutine(float targetAlpha, float duration)
         {
             float startAlpha = _currentAlpha;

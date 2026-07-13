@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using Nemuri.Player;
 using Nemuri.UI;
+using Nemuri.Dialogue;
 
 namespace Nemuri.Interactions
 {
@@ -43,8 +44,18 @@ namespace Nemuri.Interactions
         private void EatPills()
         {
             if (_isEaten) return;
-            _isEaten = true;
 
+            if (WalkingSceneObjectiveManager.Instance != null && 
+                WalkingSceneObjectiveManager.Instance.CurrentObjective != WalkingSceneObjectiveManager.WalkingObjective.DrinkPills)
+            {
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.ShowDialogue("Kael", "I shouldn't take these pills without a glass of water.");
+                }
+                return;
+            }
+
+            _isEaten = true;
             StartCoroutine(EatPillsRoutine());
         }
 
@@ -96,6 +107,12 @@ namespace Nemuri.Interactions
 
             // 6. Fast fade out black screen
             yield return ScreenFader.Instance.FadeToClear(_fadeToClearDuration);
+
+            // Complete the objective
+            if (WalkingSceneObjectiveManager.Instance != null)
+            {
+                WalkingSceneObjectiveManager.Instance.CompletePillsObjective();
+            }
 
             // 7. Enable player movement
             if (PlayerMovement.Instance != null)
