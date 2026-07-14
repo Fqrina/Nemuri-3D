@@ -11,12 +11,12 @@ public class Chapt1gatecontroller : MonoBehaviour
     public float activationDistance = 3.0f; 
 
     [Header("Target Character Settings")]
-    [SerializeField] private string[] targetCharacterNames = { "KEIKOCHARA", "Player2" };
+    [SerializeField] private string[] targetCharacterNames = { "MURIALCHARA" };
 
     [Header("Hold Interaction")]
     public float holdDuration = 3f;
 
-    [SerializeField] private string[] allCharacterNames = { "KEIKOCHARA", "Player2" };
+    [SerializeField] private string[] allCharacterNames = { "KAELCHARA", "RONACHARA", "MURIALCHARA", "KEIKOCHARA", "FEANORCHARA" };
 
     private Vector3 startPosition;
     private Vector3 targetPosition;
