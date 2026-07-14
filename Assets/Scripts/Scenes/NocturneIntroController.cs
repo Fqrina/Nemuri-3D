@@ -71,6 +71,18 @@ namespace Nemuri.Scenes
             new Vector2(-20.44f, 104.67f)
         };
 
+        // Keiko NPC Path movement variables
+        private int _keikoPathIndex = 0;
+        private List<Vector2> _keikoPath = new List<Vector2>()
+        {
+            new Vector2(-14.71f, 103.88f),
+            new Vector2(-11.92f, 99.92f),
+            new Vector2(-11.92f, 96.04f),
+            new Vector2(-18.44f, 92.19f),
+            new Vector2(-24.92f, 89.26f),
+            new Vector2(-27.61f, 84.22f)
+        };
+
         private void Start()
         {
             Debug.Log($"[NocturneIntroController] Start initialized. Rona NPC: {_ronaNpc != null}, Murial NPC: {_murialNpc != null}, Gate: {_gateController != null}");
@@ -123,7 +135,6 @@ namespace Nemuri.Scenes
             {
                 _gateController.enabled = false;
                 
-                // Disable the gate's Interactable component at start
                 var interactable = _gateController.GetComponent<Interactable>();
                 if (interactable != null)
                 {
@@ -212,7 +223,7 @@ namespace Nemuri.Scenes
                         if (activePlayer != null)
                         {
                             float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
-                            if (distToVines <= 4.0f) // Adjusted to exactly 4.0f units (approx. 4 studs)
+                            if (distToVines <= 4.0f)
                             {
                                 Debug.Log($"[NocturneIntroController] Player approached vines (Distance: {distToVines:F2}). Triggering 1b dialog.");
                                 SetNpcMoving(_ronaNpc, false);
@@ -230,7 +241,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForKeiko:
-                    // Rona NPC walks through 3 waypoints sequentially
                     if (_ronaNpc != null && _ronaPathIndex < _ronaPath.Count)
                     {
                         Vector2 target2D = _ronaPath[_ronaPathIndex];
@@ -269,7 +279,6 @@ namespace Nemuri.Scenes
                     }
                     else if (_ronaNpc != null)
                     {
-                        // Path completed, face the active player
                         SetNpcMoving(_ronaNpc, false);
                         Transform activePlayer = FindActivePlayerTransform();
                         if (activePlayer != null)
@@ -288,6 +297,59 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForFeanor:
+                    // Keiko NPC walks through 6 waypoints sequentially
+                    if (_keikoNpc != null && _keikoPathIndex < _keikoPath.Count)
+                    {
+                        Vector2 target2D = _keikoPath[_keikoPathIndex];
+                        float currentY = _keikoNpc.transform.position.y;
+                        Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            keikoTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_keikoNpc, true);
+                        }
+                        else
+                        {
+                            _keikoPathIndex++;
+                            if (_keikoPathIndex >= _keikoPath.Count)
+                            {
+                                SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                    }
+                    else if (_keikoNpc != null)
+                    {
+                        SetNpcMoving(_keikoNpc, false);
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            Vector3 toPlayer = (activePlayer.position - _keikoNpc.transform.position);
+                            toPlayer.y = 0f;
+                            toPlayer.Normalize();
+                            if (toPlayer != Vector3.zero)
+                            {
+                                _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                            }
+                        }
+                    }
+
                     CheckApproach(_feanorNpc, () => TriggerFourthDialogue());
                     break;
 
@@ -442,7 +504,6 @@ namespace Nemuri.Scenes
                     {
                         _gateController.enabled = true;
                         
-                        // Enable the gate's Interactable component ONLY when they need to clear it!
                         var interactable = _gateController.GetComponent<Interactable>();
                         if (interactable != null)
                         {
