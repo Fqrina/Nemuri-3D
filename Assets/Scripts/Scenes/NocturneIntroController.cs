@@ -83,12 +83,10 @@ namespace Nemuri.Scenes
             _dialogueJson4 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_4");
             _dialogueJson5 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_5");
 
-            // Unparent NPCs so they don't get deactivated if their parent player characters are disabled
-            if (_ronaNpc != null) { _ronaNpc.transform.SetParent(null); _ronaNpc.SetActive(true); }
-            if (_murialNpc != null) { _murialNpc.transform.SetParent(null); }
-            if (_keikoNpc != null) { _keikoNpc.transform.SetParent(null); _keikoNpc.SetActive(true); }
-            if (_feanorNpc != null) { _feanorNpc.transform.SetParent(null); _feanorNpc.SetActive(true); }
-            if (_ferryNpc != null) { _ferryNpc.transform.SetParent(null); _ferryNpc.SetActive(true); }
+            if (_ronaNpc != null) _ronaNpc.SetActive(true);
+            if (_keikoNpc != null) _keikoNpc.SetActive(true);
+            if (_feanorNpc != null) _feanorNpc.SetActive(true);
+            if (_ferryNpc != null) _ferryNpc.SetActive(true);
 
             SnapToGround(_ronaNpc);
             SnapToGround(_keikoNpc);
