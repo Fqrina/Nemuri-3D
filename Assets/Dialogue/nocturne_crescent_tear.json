@@ -1,0 +1,124 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Following the resonance, you arrive at a secluded chamber. At its center, the Crescent Tear hangs suspended within a cocoon of glowing black vines.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Is... that the Crescent Tear?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Yes! That's the resonance I've been hearing!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Finally. I'll rip those vines away.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Try to remove the vines.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "CRACK...",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "The Crescent Tear trembles as tiny cracks begin to spread across its surface. The vines tighten around it.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Stop! The vines are bound to the Crescent Tear. If you force them apart, you'll destroy it.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Then what are we supposed to do?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Leave this to me.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Feanor closes his eyes. A gentle blue aura surrounds him as the tangled vines dissolve into streams of luminous energy. Hidden threads of resonance become visible, each flowing with a different light.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I can perceive their resonance...",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Only a few of these threads sustain the Crescent Tear. The others are feeding on its energy.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Untangle only the parasitic threads. Leave the others untouched.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Use Feanor's Resonant Perception to identify and unravel the correct vines.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "As the final thread is released, the black vines wither away into glowing particles. The Crescent Tear gently descends into Kael's hands.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "A soft chime echoes throughout the chamber.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "The resonance... it's finally stable.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Good thing I didn't pull any harder...",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Obtain the Crescent Tear.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

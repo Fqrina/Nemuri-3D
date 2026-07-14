@@ -29,6 +29,12 @@ namespace Nemuri.Dialogue
 
         public static DialogueManager Instance { get; private set; }
 
+        public static System.Action OnConversationStart;
+        public static System.Action OnConversationEnd;
+        public static System.Action<DialogueNode> OnNodeDisplayed;
+
+        public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
+
         [Header("Prefab UI References")]
         [SerializeField] private GameObject _dialoguePanel;
         [SerializeField] private Text _nameText;
@@ -214,10 +220,8 @@ namespace Nemuri.Dialogue
                 _nodes.Enqueue(node);
             }
 
-            if (PlayerMovement.Instance != null)
-            {
-                PlayerMovement.Instance.SetCanMove(false);
-            }
+            SetPlayerMovementEnabled(false);
+            OnConversationStart?.Invoke();
 
             SetDialoguePanelActive(true);
             DisplayNextNode();
@@ -238,6 +242,7 @@ namespace Nemuri.Dialogue
             }
 
             _currentNode = _nodes.Dequeue();
+            OnNodeDisplayed?.Invoke(_currentNode);
 
             bool hideName = string.Equals(_currentNode.speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) ||
@@ -549,10 +554,7 @@ namespace Nemuri.Dialogue
             StopDialogueAudio();
             SetSkipPromptVisible(false);
 
-            if (PlayerMovement.Instance != null)
-            {
-                PlayerMovement.Instance.SetCanMove(true);
-            }
+            SetPlayerMovementEnabled(true);
 
             if (WalkingSceneObjectiveManager.Instance != null)
             {
@@ -562,10 +564,7 @@ namespace Nemuri.Dialogue
 
         public void ResumeConversation()
         {
-            if (PlayerMovement.Instance != null)
-            {
-                PlayerMovement.Instance.SetCanMove(false);
-            }
+            SetPlayerMovementEnabled(false);
 
             SetDialoguePanelActive(true);
             DisplayNextNode();
@@ -578,9 +577,19 @@ namespace Nemuri.Dialogue
             SetSkipPromptVisible(false);
             _activeSpeaker = "";
 
+            SetPlayerMovementEnabled(true);
+            OnConversationEnd?.Invoke();
+        }
+
+        private void SetPlayerMovementEnabled(bool enabled)
+        {
             if (PlayerMovement.Instance != null)
             {
-                PlayerMovement.Instance.SetCanMove(true);
+                PlayerMovement.Instance.SetCanMove(enabled);
+            }
+            if (PlayerMovementChapt1.Instance != null)
+            {
+                PlayerMovementChapt1.Instance.SetCanMove(enabled);
             }
         }
 

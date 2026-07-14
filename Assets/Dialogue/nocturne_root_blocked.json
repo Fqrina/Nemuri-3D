@@ -1,0 +1,28 @@
+{
+  "nodes": [
+    {
+      "speaker": "Murial",
+      "text": "Dang it! These collapsed veins are completely blocking the pathway.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Is there any way to clear them?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "I can lift them out of the way, but you need to summon my energy first. Press [3] to swap to me, then hold [E] to clear the roots!",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Press [3] to switch to Murial, then hold [E] to lift the collapsed veins.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

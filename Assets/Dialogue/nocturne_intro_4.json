@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "After walking for a while, the group meets a blue Energeon standing before an ancient shrine.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Feanor?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I think I found the Nocturne Heart.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Yes! The resonance is coming from here!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Before you stand three floating stone altars with empty crystal sockets. A cracked crystal lies on the ground beneath them.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I think this shrine is the key to restoring the Nocturne Heart.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I think I can do something with this!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Keiko concentrates her power, attempting to restore the shrine.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "???",
+      "text": "It can’t be fixed if the crystals are missing",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who is that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "A Rabbit is sitting at a floating table, it feels so familiar…",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}
