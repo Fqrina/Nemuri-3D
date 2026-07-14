@@ -42,7 +42,7 @@ namespace Nemuri.Core
         {
             if (index >= 0 && index < _unlockedCharacters.Length)
             {
-                _unlockedCharacters[index] = unlocked;
+                return _unlockedCharacters[index];
             }
             return false;
         }
