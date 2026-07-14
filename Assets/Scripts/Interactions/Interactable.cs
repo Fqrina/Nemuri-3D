@@ -138,6 +138,23 @@ namespace Nemuri.Interactions
             }
         }
 
+        public void DisplayInteraction(string promptText, float normalizedProgress)
+        {
+            if (_prompt == null)
+            {
+                _prompt = InteractionPrompt.Create();
+            }
+            _prompt.Show(this, promptText, Mathf.Clamp01(normalizedProgress));
+        }
+
+        public void DismissInteraction()
+        {
+            if (_prompt != null && _prompt.Owner == this)
+            {
+                _prompt.Hide(this);
+            }
+        }
+
         public bool IsPlayerInRange()
         {
             if (_player == null) return false;
