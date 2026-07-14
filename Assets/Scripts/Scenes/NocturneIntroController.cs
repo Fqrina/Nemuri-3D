@@ -4,6 +4,7 @@ using UnityEngine;
 using Nemuri.Dialogue;
 using Nemuri.Player;
 using Nemuri.Core;
+using Nemuri.Interactions;
 
 namespace Nemuri.Scenes
 {

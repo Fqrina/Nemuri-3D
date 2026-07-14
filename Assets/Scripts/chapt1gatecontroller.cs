@@ -20,7 +20,7 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     private Vector3 startPosition;
     private Vector3 targetPosition;
-    private bool isTriggered = false; 
+    public bool isTriggered = false; 
     private Transform activePlayerTransform;
     private float searchTimer = 0f;
     private float _holdTimer;
