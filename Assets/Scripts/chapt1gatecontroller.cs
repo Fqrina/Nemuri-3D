@@ -113,7 +113,7 @@ public class Chapt1gatecontroller : MonoBehaviour
                 if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                 {
                     string names = string.Join(" or ", targetCharacterNames);
-                    _interactable?.DisplayInteraction($"You must use {names} as player to interact", 0f);
+                    _interactable?.DisplayInteraction($"Use {names}", 0f);
                     _wrongPlayerTimer = 2.0f; // Show error message for 2 seconds
                     _holdTimer = 0f;
                 }
