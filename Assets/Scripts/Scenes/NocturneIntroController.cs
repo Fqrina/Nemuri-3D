@@ -62,6 +62,8 @@ namespace Nemuri.Scenes
         private float _currentShakeMagnitude = 0f;
         private Vector3 _shakeOffset = Vector3.zero;
 
+        private GameObject _portalObject;
+
         // Rona NPC Path movement variables
         private int _ronaPathIndex = 0;
         private List<Vector2> _ronaPath = new List<Vector2>()
@@ -136,9 +138,11 @@ namespace Nemuri.Scenes
             {
                 _gateController.enabled = false;
                 
-                var interactable = _gateController.GetComponent<Interactable>();
-                if (interactable != null)
+                // Disable all gate Interactable components (including in children) at start
+                var interactables = _gateController.GetComponentsInChildren<Interactable>(true);
+                foreach (var interactable in interactables)
                 {
+                    interactable.DismissInteraction();
                     interactable.enabled = false;
                 }
             }
@@ -153,6 +157,9 @@ namespace Nemuri.Scenes
                 CharacterSwapManager.Instance.SetCharacterUnlocked(3, false); // Keiko (Locked)
                 CharacterSwapManager.Instance.SetCharacterUnlocked(4, false); // Feanor (Locked)
             }
+
+            // Look up the portal GameObject cube.015 under PINEALGRAND
+            _portalObject = FindPortalObject();
 
             StartCoroutine(IntroStartRoutine());
         }
@@ -416,6 +423,23 @@ namespace Nemuri.Scenes
                 Debug.Log("[NocturneIntroController] Triggering camera pan to Rabbit.");
                 StartCoroutine(LookAtRabbitRoutine());
             }
+
+            // Align Feanor, Keiko, and Player to face the Portal on specific shrine restoration dialogue nodes
+            if (node.text.Contains("key to restoring the Nocturne Heart") ||
+                node.text.Contains("do something with this") ||
+                node.text.Contains("Keiko concentrates her power"))
+            {
+                if (_portalObject == null)
+                {
+                    _portalObject = FindPortalObject();
+                }
+                if (_portalObject != null)
+                {
+                    RotateNpcToFaceTarget(_feanorNpc, _portalObject);
+                    RotateNpcToFaceTarget(_keikoNpc, _portalObject);
+                    RotatePlayerToFaceTarget(_portalObject);
+                }
+            }
         }
 
         private void TriggerShake(float duration, float magnitude)
@@ -447,12 +471,18 @@ namespace Nemuri.Scenes
                 }
                 _murialNpc.transform.position = endPos;
                 Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
+                RotateNpcToFacePlayer(_murialNpc); // Face player after landing
             }
         }
 
         private IEnumerator LookAtRabbitRoutine()
         {
             if (_ferryNpc == null || Camera.main == null) yield break;
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.canProceed = false; // Lock progression during camera panning
+            }
 
             var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
             if (brain != null) brain.enabled = false;
@@ -481,6 +511,11 @@ namespace Nemuri.Scenes
 
             Camera.main.transform.position = targetPos;
             Camera.main.transform.rotation = targetRot;
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.canProceed = true; // Unlock progression
+            }
         }
 
         private void RestoreCameraToPlayer()
@@ -516,7 +551,12 @@ namespace Nemuri.Scenes
         private void TriggerFourthDialogue()
         {
             _state = IntroState.FourthDialogue;
+            
+            // Align characters: Feanor to face player, Keiko and Player to face Feanor
             RotateNpcToFacePlayer(_feanorNpc);
+            RotateNpcToFaceTarget(_keikoNpc, _feanorNpc);
+            RotatePlayerToFaceTarget(_feanorNpc);
+
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson4);
         }
@@ -549,8 +589,8 @@ namespace Nemuri.Scenes
                     {
                         _gateController.enabled = true;
                         
-                        var interactable = _gateController.GetComponent<Interactable>();
-                        if (interactable != null)
+                        var interactables = _gateController.GetComponentsInChildren<Interactable>(true);
+                        foreach (var interactable in interactables)
                         {
                             interactable.enabled = true;
                         }
@@ -695,8 +735,18 @@ namespace Nemuri.Scenes
 
             if (anim != null)
             {
-                try { anim.SetBool("IsMoving", moving); } catch {}
-                try { anim.SetFloat("Speed", moving ? 1f : 0f); } catch {}
+                // Safely verify if Animator parameters exist to prevent Unity Console spam warnings
+                foreach (AnimatorControllerParameter param in anim.parameters)
+                {
+                    if (param.name == "IsMoving")
+                    {
+                        anim.SetBool("IsMoving", moving);
+                    }
+                    if (param.name == "Speed")
+                    {
+                        anim.SetFloat("Speed", moving ? 1f : 0f);
+                    }
+                }
             }
         }
 
@@ -743,6 +793,53 @@ namespace Nemuri.Scenes
             {
                 npc.transform.rotation = Quaternion.LookRotation(toPlayer, Vector3.up);
             }
+        }
+
+        private void RotateNpcToFaceTarget(GameObject npc, GameObject target)
+        {
+            if (npc == null || target == null) return;
+            Vector3 dir = (target.transform.position - npc.transform.position);
+            dir.y = 0f;
+            dir.Normalize();
+            if (dir != Vector3.zero)
+            {
+                npc.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            }
+        }
+
+        private void RotatePlayerToFaceTarget(GameObject target)
+        {
+            if (target == null) return;
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer == null) return;
+            Vector3 dir = (target.transform.position - activePlayer.position);
+            dir.y = 0f;
+            dir.Normalize();
+            if (dir != Vector3.zero)
+            {
+                activePlayer.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            }
+        }
+
+        private GameObject FindPortalObject()
+        {
+            GameObject pg = GameObject.Find("PINEALGRAND");
+            if (pg != null)
+            {
+                return FindChildRecursive(pg.transform, "cube.015");
+            }
+            return GameObject.Find("cube.015");
+        }
+
+        private GameObject FindChildRecursive(Transform parent, string name)
+        {
+            if (parent.name == name) return parent.gameObject;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                GameObject result = FindChildRecursive(parent.GetChild(i), name);
+                if (result != null) return result;
+            }
+            return null;
         }
     }
 }

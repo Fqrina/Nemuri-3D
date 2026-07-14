@@ -167,10 +167,15 @@ public class Chapt1gatecontroller : MonoBehaviour
     void TriggerMovement()
     {
         HideInteraction();
-        if (_interactable != null)
+        
+        // Disable all Interactable components on this object and its children to clear the E prompt permanently
+        var interactables = GetComponentsInChildren<Interactable>(true);
+        foreach (var inter in interactables)
         {
-            _interactable.enabled = false;
+            inter.DismissInteraction();
+            inter.enabled = false;
         }
+
         StartCoroutine(MoveSmoothly());
     }
 

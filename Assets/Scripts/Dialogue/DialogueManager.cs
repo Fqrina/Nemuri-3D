@@ -49,6 +49,7 @@ namespace Nemuri.Dialogue
         public static System.Action<DialogueNode> OnNodeDisplayed;
 
         public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
+        public bool canProceed = true;
 
         [Header("Prefab UI References")]
         [SerializeField] private GameObject _dialoguePanel;
@@ -579,6 +580,16 @@ namespace Nemuri.Dialogue
 
         private void ProceedToNextNode()
         {
+            if (!canProceed)
+            {
+                if (_autoCloseCoroutine != null)
+                {
+                    StopCoroutine(_autoCloseCoroutine);
+                }
+                _autoCloseCoroutine = StartCoroutine(AutoCloseRoutine(0.5f));
+                return;
+            }
+
             if (_autoCloseCoroutine != null)
             {
                 StopCoroutine(_autoCloseCoroutine);
