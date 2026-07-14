@@ -57,6 +57,16 @@ namespace Nemuri.Scenes
 
         private void Start()
         {
+            if (DialogueManager.Instance == null)
+            {
+                DialogueManager existingManager = FindAnyObjectByType<DialogueManager>();
+                if (existingManager == null)
+                {
+                    GameObject dmGo = new GameObject("DialogueManager");
+                    dmGo.AddComponent<DialogueManager>();
+                }
+            }
+
             _dialogueJson1 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1");
             _dialogueJson2 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_2");
             _dialogueJson3 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_3");
