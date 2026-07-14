@@ -112,15 +112,15 @@ Material:
     - _EnvironmentReflections: 1
     - _FaceNormalFactor: 0
     - _FaceViewProdThresh: 1
-    - _FinJointNum: 8
-    - _FinLength: 1
+    - _FinJointNum: 1
+    - _FinLength: 0.382
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Metallic: 0
     - _NormalFactor: 0.196
     - _NormalScale: 0
-    - _Occlusion: 0.596
+    - _Occlusion: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -136,7 +136,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 0
     - _TessFactor: 5
-    - _TessMaxDist: 50
+    - _TessMaxDist: 25.1
     - _TessMinDist: 0.1
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
@@ -148,7 +148,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _WindFreq: {r: 1, g: 0.4, b: 0.2, a: 1}
+    - _WindFreq: {r: 0.4, g: 0.4, b: 0.2, a: 1}
     - _WindMove: {r: 0.5, g: 0.3, b: 0.2, a: 2}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

@@ -1,0 +1,7 @@
+LIGHTS SUMMARY:
+Light 1: Light (4) (GoID=550910518) | LightType=2 | ShadowType=0
+Light 2: Light (2) (GoID=563272938) | LightType=2 | ShadowType=0
+Light 3: Light (1) (GoID=877259483) | LightType=2 | ShadowType=0
+Light 4: Directional Light (GoID=1523880598) | LightType=1 | ShadowType=2
+Light 5: Light (3) (GoID=1618316097) | LightType=2 | ShadowType=0
+Light 6: Light (GoID=1859244334) | LightType=2 | ShadowType=0
