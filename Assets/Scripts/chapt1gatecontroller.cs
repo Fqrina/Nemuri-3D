@@ -131,11 +131,13 @@ public class Chapt1gatecontroller : MonoBehaviour
         if (PlayerMovementChapt1.Instance != null && PlayerMovementChapt1.Instance.gameObject.activeInHierarchy)
         {
             activePlayerTransform = PlayerMovementChapt1.Instance.transform;
+            Debug.Log($"[Chapt1GateController] Found active PlayerMovementChapt1: {activePlayerTransform.name}");
             return;
         }
         if (PlayerMovement.Instance != null && PlayerMovement.Instance.gameObject.activeInHierarchy)
         {
             activePlayerTransform = PlayerMovement.Instance.transform;
+            Debug.Log($"[Chapt1GateController] Found active PlayerMovement: {activePlayerTransform.name}");
             return;
         }
 
@@ -143,10 +145,12 @@ public class Chapt1gatecontroller : MonoBehaviour
         if (defaultPlayer != null && defaultPlayer.activeInHierarchy)
         {
             activePlayerTransform = defaultPlayer.transform;
+            Debug.Log($"[Chapt1GateController] Found active tag Player: {activePlayerTransform.name}");
         }
         else
         {
             activePlayerTransform = null;
+            Debug.Log("[Chapt1GateController] No active player found!");
         }
     }
 
