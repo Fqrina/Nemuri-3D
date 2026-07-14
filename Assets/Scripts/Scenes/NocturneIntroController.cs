@@ -82,11 +82,11 @@ namespace Nemuri.Scenes
 
             if (CharacterSwapManager.Instance != null)
             {
-                CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);
-                CharacterSwapManager.Instance.SetCharacterUnlocked(1, true);
-                CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);
-                CharacterSwapManager.Instance.SetCharacterUnlocked(3, false);
-                CharacterSwapManager.Instance.SetCharacterUnlocked(4, false);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);  // Kiel (Unlocked)
+                CharacterSwapManager.Instance.SetCharacterUnlocked(1, false); // Rona (Locked)
+                CharacterSwapManager.Instance.SetCharacterUnlocked(2, false); // Murial (Locked)
+                CharacterSwapManager.Instance.SetCharacterUnlocked(3, false); // Keiko (Locked)
+                CharacterSwapManager.Instance.SetCharacterUnlocked(4, false); // Feanor (Locked)
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -209,6 +209,11 @@ namespace Nemuri.Scenes
                     {
                         _gateController.enabled = true;
                     }
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(1, true); // Unlock Rona
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(2, true); // Unlock Murial
+                    }
                     _state = IntroState.WaitingForGate;
                     break;
 
@@ -219,11 +224,19 @@ namespace Nemuri.Scenes
 
                 case IntroState.ThirdDialogue:
                     SetPlayerMovementEnabled(true);
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(3, true); // Unlock Keiko
+                    }
                     _state = IntroState.WaitingForFeanor;
                     break;
 
                 case IntroState.FourthDialogue:
                     SetPlayerMovementEnabled(true);
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(4, true); // Unlock Feanor
+                    }
                     _state = IntroState.WaitingForFerry;
                     break;
 
