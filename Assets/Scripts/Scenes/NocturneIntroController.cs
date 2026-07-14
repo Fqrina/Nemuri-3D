@@ -101,7 +101,6 @@ namespace Nemuri.Scenes
 
             if (_murialNpc != null)
             {
-                // Preserve the exact rotation set by the user in the editor for Murial NPC
                 Quaternion originalRot = _murialNpc.transform.rotation;
                 if (_murialSpawnPoint != null)
                 {
@@ -149,7 +148,7 @@ namespace Nemuri.Scenes
                 case IntroState.WaitingForApproachVines:
                     if (_ronaNpc != null)
                     {
-                        Vector3 ronaTarget = new Vector3(-0.39f, 0f, 2.72f);
+                        Vector3 ronaTarget = new Vector3(-20.06f, 0f, 121.5f);
                         
                         Ray ray = new Ray(new Vector3(ronaTarget.x, 20f, ronaTarget.z), Vector3.down);
                         if (Physics.Raycast(ray, out RaycastHit hit, 50f))
@@ -162,10 +161,12 @@ namespace Nemuri.Scenes
                         {
                             _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
                             
-                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position).normalized;
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
                             if (dir != Vector3.zero)
                             {
-                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 10f * Time.deltaTime);
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
                             }
 
                             SetNpcMoving(_ronaNpc, true);
@@ -200,7 +201,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForKeiko:
-                    // Rona NPC walks towards Keiko's position
                     if (_ronaNpc != null && _keikoNpc != null)
                     {
                         Vector3 ronaTarget = _keikoNpc.transform.position + new Vector3(-3f, 0f, -3f);
@@ -216,10 +216,12 @@ namespace Nemuri.Scenes
                         {
                             _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
                             
-                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position).normalized;
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
                             if (dir != Vector3.zero)
                             {
-                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 10f * Time.deltaTime);
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
                             }
 
                             SetNpcMoving(_ronaNpc, true);
