@@ -55,6 +55,10 @@ namespace Nemuri.Scenes
         private IntroState _state = IntroState.InitialWait;
         private bool _isMurialFalling = false;
 
+        private float _currentShakeTime = 0f;
+        private float _currentShakeMagnitude = 0f;
+        private Vector3 _shakeOffset = Vector3.zero;
+
         private void Start()
         {
             if (DialogueManager.Instance == null)
@@ -143,6 +147,27 @@ namespace Nemuri.Scenes
             }
         }
 
+        private void LateUpdate()
+        {
+            if (_currentShakeTime > 0f)
+            {
+                _currentShakeTime -= Time.deltaTime;
+
+                float x = Random.Range(-1f, 1f) * _currentShakeMagnitude;
+                float y = Random.Range(-1f, 1f) * _currentShakeMagnitude;
+                _shakeOffset = new Vector3(x, y, 0f);
+
+                if (Camera.main != null)
+                {
+                    Camera.main.transform.position += _shakeOffset;
+                }
+            }
+            else
+            {
+                _shakeOffset = Vector3.zero;
+            }
+        }
+
         private IEnumerator IntroStartRoutine()
         {
             SetPlayerMovementEnabled(false);
@@ -153,11 +178,65 @@ namespace Nemuri.Scenes
 
         private void HandleNodeDisplayed(DialogueNode node)
         {
-            if (_state == IntroState.FirstDialogue && !_isMurialFalling &&
-                node.speaker == "SFX" && node.text.Contains("bushes rustle"))
+            if (node.speaker == "SFX")
             {
-                StartCoroutine(MurialFallRoutine());
+                if (node.text.Contains("Slight tremor"))
+                {
+                    TriggerShake(1.2f, 0.18f);
+                    TriggerRedFlash(0.8f);
+                }
+                else if (node.text.Contains("shakes violently") || node.text.Contains("violent quake"))
+                {
+                    TriggerShake(2.5f, 0.55f);
+                    TriggerRedFlash(1.8f);
+                }
+                else if (node.text.Contains("bushes rustle"))
+                {
+                    if (_state == IntroState.FirstDialogue && !_isMurialFalling)
+                    {
+                        StartCoroutine(MurialFallRoutine());
+                    }
+                }
             }
+        }
+
+        private void TriggerShake(float duration, float magnitude)
+        {
+            _currentShakeTime = duration;
+            _currentShakeMagnitude = magnitude;
+        }
+
+        private void TriggerRedFlash(float duration)
+        {
+            StartCoroutine(RedFlashRoutine(duration));
+        }
+
+        private IEnumerator RedFlashRoutine(float duration)
+        {
+            GameObject canvasGo = GameObject.Find("Dialogue Canvas");
+            if (canvasGo == null) yield break;
+
+            GameObject flashGo = new GameObject("RedFlash");
+            flashGo.transform.SetParent(canvasGo.transform, false);
+
+            var image = flashGo.AddComponent<UnityEngine.UI.Image>();
+            image.color = new Color(1f, 0f, 0f, 0.35f);
+
+            var rect = flashGo.GetComponent<RectTransform>();
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = Vector2.zero;
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                image.color = new Color(1f, 0f, 0f, Mathf.Lerp(0.35f, 0f, t));
+                yield return null;
+            }
+
+            Destroy(flashGo);
         }
 
         private IEnumerator MurialFallRoutine()
