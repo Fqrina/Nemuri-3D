@@ -35,7 +35,7 @@ namespace Nemuri.Interactions
                 // If interacted out of order, show feedback dialogue
                 if (DialogueManager.Instance != null)
                 {
-                    DialogueManager.Instance.ShowDialogue("Kael", "I'm not ready for bed yet. I should check the kitchen, get some water, and take my pills first.");
+                    DialogueManager.Instance.ShowFeedbackDialogue("Kael", "I'm not ready for bed yet. I should check the kitchen, get some water, and take my pills first.");
                 }
                 return;
             }
