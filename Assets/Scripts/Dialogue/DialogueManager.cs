@@ -625,6 +625,7 @@ namespace Nemuri.Dialogue
         {
             StopDialogueAudio();
             SetSkipPromptVisible(false);
+            SetDialoguePanelActive(false);
 
             SetPlayerMovementEnabled(true);
 
@@ -632,6 +633,8 @@ namespace Nemuri.Dialogue
             {
                 WalkingSceneObjectiveManager.Instance.SetActiveObjective(objectiveText);
             }
+
+            OnConversationEnd?.Invoke();
         }
 
         public void ResumeConversation()
