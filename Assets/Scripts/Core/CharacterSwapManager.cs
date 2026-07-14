@@ -184,7 +184,7 @@ namespace Nemuri.Core
             }
 
             // Try to find and update Cinemachine virtual cameras
-            var virtualCameras = FindObjectsByType<Cinemachine.CinemachineVirtualCamera>(FindObjectsSortMode.None);
+            var virtualCameras = FindObjectsByType<Cinemachine.CinemachineVirtualCamera>();
             foreach (var vCam in virtualCameras)
             {
                 if (vCam != null)
