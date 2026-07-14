@@ -40,24 +40,28 @@ namespace Nemuri.Scenes
         [Header("Trigger Settings")]
         [SerializeField, Min(0.1f)] private float _dialogueTriggerDistance = 3.5f;
 
-        [Header("Dialogue Assets (nocturne_intro_1 to 5)")]
-        [SerializeField] private TextAsset _dialogueJson1;
-        [SerializeField] private TextAsset _dialogueJson2;
-        [SerializeField] private TextAsset _dialogueJson3;
-        [SerializeField] private TextAsset _dialogueJson4;
-        [SerializeField] private TextAsset _dialogueJson5;
-
         [Header("Gate Settings")]
         [SerializeField] private Chapt1gatecontroller _gateController;
 
         [Header("Crystals to Unlock")]
         [SerializeField] private List<GameObject> _crystals = new List<GameObject>();
 
+        private TextAsset _dialogueJson1;
+        private TextAsset _dialogueJson2;
+        private TextAsset _dialogueJson3;
+        private TextAsset _dialogueJson4;
+        private TextAsset _dialogueJson5;
+
         private IntroState _state = IntroState.InitialWait;
         private bool _isMurialFalling = false;
 
         private void Start()
         {
+            _dialogueJson1 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1");
+            _dialogueJson2 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_2");
+            _dialogueJson3 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_3");
+            _dialogueJson4 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_4");
+            _dialogueJson5 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_5");
             if (_ronaNpc != null) _ronaNpc.SetActive(true);
             if (_keikoNpc != null) _keikoNpc.SetActive(true);
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
