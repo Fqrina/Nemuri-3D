@@ -360,6 +360,7 @@ namespace Nemuri.Scenes
         private void TriggerSecondIntroDialogue()
         {
             _state = IntroState.SecondIntroDialogue;
+            RotateNpcToFacePlayer(_ronaNpc);
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson1b);
         }
@@ -374,6 +375,7 @@ namespace Nemuri.Scenes
         private void TriggerThirdDialogue()
         {
             _state = IntroState.ThirdDialogue;
+            RotateNpcToFacePlayer(_keikoNpc);
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson3);
         }
@@ -381,6 +383,7 @@ namespace Nemuri.Scenes
         private void TriggerFourthDialogue()
         {
             _state = IntroState.FourthDialogue;
+            RotateNpcToFacePlayer(_feanorNpc);
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson4);
         }
@@ -388,6 +391,7 @@ namespace Nemuri.Scenes
         private void TriggerFifthDialogue()
         {
             _state = IntroState.FifthDialogue;
+            RotateNpcToFacePlayer(_ferryNpc);
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson5);
         }
@@ -583,6 +587,21 @@ namespace Nemuri.Scenes
             {
                 pos.y = hit.point.y;
                 npc.transform.position = pos;
+            }
+        }
+
+        private void RotateNpcToFacePlayer(GameObject npc)
+        {
+            if (npc == null) return;
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer == null) return;
+
+            Vector3 toPlayer = (activePlayer.position - npc.transform.position);
+            toPlayer.y = 0f;
+            toPlayer.Normalize();
+            if (toPlayer != Vector3.zero)
+            {
+                npc.transform.rotation = Quaternion.LookRotation(toPlayer, Vector3.up);
             }
         }
     }
