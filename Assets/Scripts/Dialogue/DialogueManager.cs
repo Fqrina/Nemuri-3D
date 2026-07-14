@@ -659,13 +659,16 @@ namespace Nemuri.Dialogue
 
         private void SetPlayerMovementEnabled(bool enabled)
         {
-            if (PlayerMovement.Instance != null)
+            var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
+            foreach (var m in move1)
             {
-                PlayerMovement.Instance.SetCanMove(enabled);
+                m.SetCanMove(enabled);
             }
-            if (PlayerMovementChapt1.Instance != null)
+
+            var move2 = FindObjectsByType<PlayerMovementChapt1>(FindObjectsInactive.Include);
+            foreach (var m in move2)
             {
-                PlayerMovementChapt1.Instance.SetCanMove(enabled);
+                m.SetCanMove(enabled);
             }
         }
 
