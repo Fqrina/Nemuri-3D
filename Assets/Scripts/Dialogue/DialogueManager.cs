@@ -8,6 +8,21 @@ using UnityEngine.UI;
 
 namespace Nemuri.Dialogue
 {
+    [System.Serializable]
+    public class DialogueNode
+    {
+        public string speaker;
+        public string text;
+        public float typingSpeed = 0.01f;
+        public string portraitName;
+    }
+
+    [System.Serializable]
+    public class DialogueSequence
+    {
+        public List<DialogueNode> nodes;
+    }
+
     public class DialogueManager : MonoBehaviour
     {
         [System.Serializable]
@@ -29,12 +44,6 @@ namespace Nemuri.Dialogue
 
         public static DialogueManager Instance { get; private set; }
 
-        public static System.Action OnConversationStart;
-        public static System.Action OnConversationEnd;
-        public static System.Action<DialogueNode> OnNodeDisplayed;
-
-        public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
-
         [Header("Prefab UI References")]
         [SerializeField] private GameObject _dialoguePanel;
         [SerializeField] private Text _nameText;
@@ -43,7 +52,7 @@ namespace Nemuri.Dialogue
         [SerializeField] private Text _skipPromptText;
 
         [Header("Settings")]
-        [SerializeField, Min(0f)] private float _defaultTypingSpeed = 0.05f;
+        [SerializeField, Min(0f)] private float _defaultTypingSpeed = 0.01f;
 
         [Header("Background Sprites")]
         [SerializeField] private Sprite _dialogueSprite;
@@ -75,12 +84,12 @@ namespace Nemuri.Dialogue
         [SerializeField, Min(0f)] private float _audioVolume = 1f;
 
         [Header("Text Layout Settings")]
-        [SerializeField] private Vector2 _dialogueTextOffsetMin = new Vector2(80f, 35f);
-        [SerializeField] private Vector2 _dialogueTextOffsetMax = new Vector2(-80f, -65f);
-        [SerializeField] private Vector2 _narrationTextOffsetMin = new Vector2(80f, 35f);
-        [SerializeField] private Vector2 _narrationTextOffsetMax = new Vector2(-80f, -45f);
-        [SerializeField] private Vector2 _objectiveTextOffsetMin = new Vector2(80f, 35f);
-        [SerializeField] private Vector2 _objectiveTextOffsetMax = new Vector2(-80f, -45f);
+        [SerializeField] private Vector2 _dialogueTextSize = new Vector2(900f, 120f);
+        [SerializeField] private Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
+        [SerializeField] private Vector2 _narrationTextSize = new Vector2(900f, 120f);
+        [SerializeField] private Vector2 _narrationTextPosition = new Vector2(0f, -15f);
+        [SerializeField] private Vector2 _objectiveTextSize = new Vector2(900f, 120f);
+        [SerializeField] private Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
 
         [Header("Name Text Layout")]
         [SerializeField] private NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
@@ -112,9 +121,13 @@ namespace Nemuri.Dialogue
         private bool _waitingForInput;
         private DialogueNode _currentNode;
         private Coroutine _typingCoroutine;
+        private Coroutine _autoCloseCoroutine;
         private AudioSource _audioSource;
+        [Header("Font Setting")]
+        [SerializeField] private Font _customFont;
         private Font _uiFont;
         private string _activeSpeaker = "";
+        private Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
 
         private void Awake()
         {
@@ -220,8 +233,10 @@ namespace Nemuri.Dialogue
                 _nodes.Enqueue(node);
             }
 
-            SetPlayerMovementEnabled(false);
-            OnConversationStart?.Invoke();
+            if (PlayerMovement.Instance != null)
+            {
+                PlayerMovement.Instance.SetCanMove(false);
+            }
 
             SetDialoguePanelActive(true);
             DisplayNextNode();
@@ -229,6 +244,20 @@ namespace Nemuri.Dialogue
 
         public void ShowDialogue(string speaker, string text)
         {
+            var node = new DialogueNode { speaker = speaker, text = text, typingSpeed = _defaultTypingSpeed };
+            StartConversation(new List<DialogueNode> { node });
+        }
+
+        public void ShowFeedbackDialogue(string speaker, string text)
+        {
+            if (_savedNodes.Count == 0 && _nodes.Count > 0)
+            {
+                foreach (var n in _nodes)
+                {
+                    _savedNodes.Enqueue(n);
+                }
+            }
+
             var node = new DialogueNode { speaker = speaker, text = text, typingSpeed = _defaultTypingSpeed };
             StartConversation(new List<DialogueNode> { node });
         }
@@ -242,7 +271,6 @@ namespace Nemuri.Dialogue
             }
 
             _currentNode = _nodes.Dequeue();
-            OnNodeDisplayed?.Invoke(_currentNode);
 
             bool hideName = string.Equals(_currentNode.speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) ||
@@ -304,20 +332,24 @@ namespace Nemuri.Dialogue
             if (_dialogueText != null)
             {
                 RectTransform textRect = _dialogueText.rectTransform;
+                textRect.anchorMin = new Vector2(0.5f, 0.5f);
+                textRect.anchorMax = new Vector2(0.5f, 0.5f);
+                textRect.pivot = new Vector2(0.5f, 0.5f);
+
                 if (string.Equals(speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    textRect.offsetMin = _narrationTextOffsetMin;
-                    textRect.offsetMax = _narrationTextOffsetMax;
+                    textRect.sizeDelta = _narrationTextSize;
+                    textRect.anchoredPosition = _narrationTextPosition;
                 }
                 else if (string.Equals(speaker, "Objective", System.StringComparison.OrdinalIgnoreCase))
                 {
-                    textRect.offsetMin = _objectiveTextOffsetMin;
-                    textRect.offsetMax = _objectiveTextOffsetMax;
+                    textRect.sizeDelta = _objectiveTextSize;
+                    textRect.anchoredPosition = _objectiveTextPosition;
                 }
                 else
                 {
-                    textRect.offsetMin = _dialogueTextOffsetMin;
-                    textRect.offsetMax = _dialogueTextOffsetMax;
+                    textRect.sizeDelta = _dialogueTextSize;
+                    textRect.anchoredPosition = _dialogueTextPosition;
                 }
             }
 
@@ -509,6 +541,50 @@ namespace Nemuri.Dialogue
             _waitingForInput = true;
             StopDialogueAudio();
             SetSkipPromptVisible(false);
+
+            if (_autoCloseCoroutine != null)
+            {
+                StopCoroutine(_autoCloseCoroutine);
+            }
+
+            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase))
+            {
+                ProceedToNextNode();
+            }
+            else
+            {
+                _autoCloseCoroutine = StartCoroutine(AutoCloseRoutine(2f));
+            }
+        }
+
+        private IEnumerator AutoCloseRoutine(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            if (_waitingForInput)
+            {
+                ProceedToNextNode();
+            }
+        }
+
+        private void ProceedToNextNode()
+        {
+            if (_autoCloseCoroutine != null)
+            {
+                StopCoroutine(_autoCloseCoroutine);
+                _autoCloseCoroutine = null;
+            }
+            
+            _waitingForInput = false;
+
+            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
+                WalkingSceneObjectiveManager.Instance != null)
+            {
+                PauseConversationForObjective(_currentNode.text);
+            }
+            else
+            {
+                DisplayNextNode();
+            }
         }
 
         public void OnInteractAction(InputAction.CallbackContext context)
@@ -532,29 +608,17 @@ namespace Nemuri.Dialogue
 
                 FinishTyping();
             }
-            else if (_waitingForInput)
-            {
-                _waitingForInput = false;
-
-                if (string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
-                    WalkingSceneObjectiveManager.Instance != null)
-                {
-                    PauseConversationForObjective(_currentNode.text);
-                }
-                else
-                {
-                    DisplayNextNode();
-                }
-            }
         }
 
         private void PauseConversationForObjective(string objectiveText)
         {
-            SetDialoguePanelActive(false);
             StopDialogueAudio();
             SetSkipPromptVisible(false);
 
-            SetPlayerMovementEnabled(true);
+            if (PlayerMovement.Instance != null)
+            {
+                PlayerMovement.Instance.SetCanMove(true);
+            }
 
             if (WalkingSceneObjectiveManager.Instance != null)
             {
@@ -564,7 +628,10 @@ namespace Nemuri.Dialogue
 
         public void ResumeConversation()
         {
-            SetPlayerMovementEnabled(false);
+            if (PlayerMovement.Instance != null)
+            {
+                PlayerMovement.Instance.SetCanMove(false);
+            }
 
             SetDialoguePanelActive(true);
             DisplayNextNode();
@@ -577,19 +644,19 @@ namespace Nemuri.Dialogue
             SetSkipPromptVisible(false);
             _activeSpeaker = "";
 
-            SetPlayerMovementEnabled(true);
-            OnConversationEnd?.Invoke();
-        }
+            if (_savedNodes.Count > 0)
+            {
+                _nodes.Clear();
+                foreach (var n in _savedNodes)
+                {
+                    _nodes.Enqueue(n);
+                }
+                _savedNodes.Clear();
+            }
 
-        private void SetPlayerMovementEnabled(bool enabled)
-        {
             if (PlayerMovement.Instance != null)
             {
-                PlayerMovement.Instance.SetCanMove(enabled);
-            }
-            if (PlayerMovementChapt1.Instance != null)
-            {
-                PlayerMovementChapt1.Instance.SetCanMove(enabled);
+                PlayerMovement.Instance.SetCanMove(true);
             }
         }
 
@@ -642,6 +709,9 @@ namespace Nemuri.Dialogue
             {
                 ApplyPanelLayout(_dialoguePanelLayout);
                 ApplySkipPromptLayout();
+                ApplyUiFont(_nameText);
+                ApplyUiFont(_dialogueText);
+                ApplyUiFont(_skipPromptText);
                 return;
             }
 
@@ -682,6 +752,7 @@ namespace Nemuri.Dialogue
                 if (existingName != null)
                 {
                     _nameText = existingName.GetComponent<Text>();
+                    _nameText.fontStyle = FontStyle.Bold;
                 }
                 else
                 {
@@ -690,15 +761,22 @@ namespace Nemuri.Dialogue
 
                     _nameText = nameGo.AddComponent<Text>();
                     ApplyUiFont(_nameText);
-                    _nameText.fontSize = 48;
+                    _nameText.fontSize = 76;
                     _nameText.alignment = TextAnchor.UpperLeft;
                     _nameText.fontStyle = FontStyle.Bold;
-                    _nameText.color = new Color(0.92f, 0.84f, 0.38f, 1f);
+                    _nameText.color = new Color(0.50f, 0.35f, 0.22f, 1f);
                     _nameText.supportRichText = false;
 
                     RectTransform rect = nameGo.GetComponent<RectTransform>();
                     ApplyNameTextLayout("");
                 }
+            }
+            else if (_nameText != null && _dialoguePanel != null)
+            {
+                _nameText.transform.SetParent(_dialoguePanel.transform, false);
+                _nameText.fontSize = 76;
+                _nameText.fontStyle = FontStyle.Bold;
+                _nameText.supportRichText = false;
             }
 
             if (_dialogueText == null && _dialoguePanel != null)
@@ -707,6 +785,7 @@ namespace Nemuri.Dialogue
                 if (existingText != null)
                 {
                     _dialogueText = existingText.GetComponent<Text>();
+                    _dialogueText.fontStyle = FontStyle.Bold;
                 }
                 else
                 {
@@ -715,18 +794,45 @@ namespace Nemuri.Dialogue
 
                     _dialogueText = textGo.AddComponent<Text>();
                     ApplyUiFont(_dialogueText);
-                    _dialogueText.fontSize = 30;
+                    _dialogueText.fontSize = 60;
                     _dialogueText.alignment = TextAnchor.UpperLeft;
+                    _dialogueText.fontStyle = FontStyle.Bold;
                     _dialogueText.color = Color.white;
                     _dialogueText.supportRichText = false;
                     _dialogueText.horizontalOverflow = HorizontalWrapMode.Wrap;
                     _dialogueText.verticalOverflow = VerticalWrapMode.Truncate;
 
                     RectTransform rect = textGo.GetComponent<RectTransform>();
-                    rect.anchorMin = Vector2.zero;
-                    rect.anchorMax = Vector2.one;
-                    rect.offsetMin = _dialogueTextOffsetMin;
-                    rect.offsetMax = _dialogueTextOffsetMax;
+                    rect.anchorMin = new Vector2(0.5f, 0.5f);
+                    rect.anchorMax = new Vector2(0.5f, 0.5f);
+                    rect.pivot = new Vector2(0.5f, 0.5f);
+                    rect.sizeDelta = _dialogueTextSize;
+                    rect.anchoredPosition = _dialogueTextPosition;
+                }
+            }
+            else if (_dialogueText != null && _dialoguePanel != null)
+            {
+                _dialogueText.transform.SetParent(_dialoguePanel.transform, false);
+                _dialogueText.fontSize = 60;
+                _dialogueText.fontStyle = FontStyle.Bold;
+                _dialogueText.supportRichText = false;
+                _dialogueText.horizontalOverflow = HorizontalWrapMode.Wrap;
+                _dialogueText.verticalOverflow = VerticalWrapMode.Truncate;
+
+                RectTransform rect = _dialogueText.rectTransform;
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = _dialogueTextSize;
+                rect.anchoredPosition = _dialogueTextPosition;
+            }
+
+            if (_dialogueText != null)
+            {
+                ContentSizeFitter fitter = _dialogueText.GetComponent<ContentSizeFitter>();
+                if (fitter != null)
+                {
+                    Destroy(fitter);
                 }
             }
 
@@ -747,8 +853,13 @@ namespace Nemuri.Dialogue
                     _skipPromptText.alignment = TextAnchor.MiddleRight;
                     _skipPromptText.color = new Color(0.92f, 0.84f, 0.38f, 1f);
                     _skipPromptText.supportRichText = false;
+                    _skipPromptText.fontStyle = FontStyle.Bold;
                     skipGo.SetActive(false);
                 }
+            }
+            else if (_skipPromptText != null && _dialoguePanel != null)
+            {
+                _skipPromptText.transform.SetParent(_dialoguePanel.transform, false);
             }
 
             DestroyLegacyContinueIndicator();
@@ -851,6 +962,18 @@ namespace Nemuri.Dialogue
 
         private Font ResolveUiFont()
         {
+            if (_customFont != null)
+            {
+                return _customFont;
+            }
+
+            // Try loading from Resources
+            _customFont = Resources.Load<Font>("Spinnenkop DEMO");
+            if (_customFont != null)
+            {
+                return _customFont;
+            }
+
             if (_uiFont != null)
             {
                 return _uiFont;
