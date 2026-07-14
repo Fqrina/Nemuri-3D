@@ -13,16 +13,16 @@ namespace Nemuri.Scenes
         private enum IntroState
         {
             InitialWait,
-            FirstDialogue,       // Playing nocturne_intro_1 (D1-D15)
-            WaitingForGate,      // Playmode (T3 - Swapping to Murial to open gate)
-            SecondDialogue,      // Playing nocturne_intro_2 (D16-D18)
-            WaitingForKeiko,     // Playmode (T4 - Approach Keiko)
-            ThirdDialogue,       // Playing nocturne_intro_3 (D19-D34)
-            WaitingForFeanor,    // Playmode (T5 - Approach Feanor)
-            FourthDialogue,      // Playing nocturne_intro_4 (D35-D42)
-            WaitingForFerry,     // Playmode - Approach Ferry (Bunny)
-            FifthDialogue,       // Playing nocturne_intro_5 (D43-D52)
-            Completed            // Quest T6 started, crystals unlocked
+            FirstDialogue,
+            WaitingForGate,
+            SecondDialogue,
+            WaitingForKeiko,
+            ThirdDialogue,
+            WaitingForFeanor,
+            FourthDialogue,
+            WaitingForFerry,
+            FifthDialogue,
+            Completed
         }
 
         [Header("NPC GameObjects")]
@@ -58,13 +58,11 @@ namespace Nemuri.Scenes
 
         private void Start()
         {
-            // Initial NPC states
-            if (_ronaNpc != null) _ronaNpc.SetActive(true); // Rona is present from the start
+            if (_ronaNpc != null) _ronaNpc.SetActive(true);
             if (_keikoNpc != null) _keikoNpc.SetActive(true);
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
             if (_ferryNpc != null) _ferryNpc.SetActive(true);
 
-            // Murial spawn setup
             if (_murialNpc != null)
             {
                 if (_murialSpawnPoint != null)
@@ -72,26 +70,23 @@ namespace Nemuri.Scenes
                     _murialNpc.transform.position = _murialSpawnPoint.position;
                     _murialNpc.transform.rotation = _murialSpawnPoint.rotation;
                 }
-                _murialNpc.SetActive(false); // Hidden until falling
+                _murialNpc.SetActive(false);
             }
 
-            // Disable gate until T3 objective starts
             if (_gateController != null)
             {
                 _gateController.enabled = false;
             }
 
-            // Disable crystals initially
             SetCrystalsInteractable(false);
 
-            // Configure character swapper: initially only characters 1-3 (Kiel, Rona, Murial) are unlocked
             if (CharacterSwapManager.Instance != null)
             {
-                CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);  // Kiel
-                CharacterSwapManager.Instance.SetCharacterUnlocked(1, true);  // Rona
-                CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);  // Murial
-                CharacterSwapManager.Instance.SetCharacterUnlocked(3, false); // Keiko (Locked)
-                CharacterSwapManager.Instance.SetCharacterUnlocked(4, false); // Feanor (Locked)
+                CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(1, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(3, false);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(4, false);
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -137,17 +132,13 @@ namespace Nemuri.Scenes
         private IEnumerator IntroStartRoutine()
         {
             SetPlayerMovementEnabled(false);
-
-            // Wait a few seconds before dialogue triggers
             yield return new WaitForSeconds(2f);
-
             _state = IntroState.FirstDialogue;
             PlayDialogue(_dialogueJson1);
         }
 
         private void HandleNodeDisplayed(DialogueNode node)
         {
-            // Trigger Murial falling when the bushes rustle text is displayed
             if (_state == IntroState.FirstDialogue && !_isMurialFalling &&
                 node.speaker == "SFX" && node.text.Contains("bushes rustle"))
             {
@@ -214,8 +205,6 @@ namespace Nemuri.Scenes
             {
                 case IntroState.FirstDialogue:
                     SetPlayerMovementEnabled(true);
-                    
-                    // Enable the gate controller so Murial can open it
                     if (_gateController != null)
                     {
                         _gateController.enabled = true;
@@ -240,7 +229,7 @@ namespace Nemuri.Scenes
 
                 case IntroState.FifthDialogue:
                     SetPlayerMovementEnabled(true);
-                    SetCrystalsInteractable(true); // Quest T6 started, crystals can now be collected
+                    SetCrystalsInteractable(true);
                     _state = IntroState.Completed;
                     Debug.Log("[NocturneIntroController] Intro flow sequence fully completed!");
                     break;
@@ -288,7 +277,6 @@ namespace Nemuri.Scenes
             {
                 if (crystal != null)
                 {
-                    // Disable colliders and interactables to block interaction
                     var colliders = crystal.GetComponentsInChildren<Collider>(true);
                     foreach (var col in colliders)
                     {

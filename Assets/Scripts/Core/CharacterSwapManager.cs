@@ -76,7 +76,6 @@ namespace Nemuri.Core
 
         private void Update()
         {
-            // Do not allow manual character switching if a dialogue is active
             if (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive)
             {
                 return;
@@ -92,7 +91,6 @@ namespace Nemuri.Core
                 return;
             }
 
-            // Set the initial active character and deactivate the rest
             for (int i = 0; i < _characters.Count; i++)
             {
                 bool isActive = (i == _activeCharacterIndex);
@@ -104,7 +102,6 @@ namespace Nemuri.Core
 
                 if (_characters[i].npcObject != null)
                 {
-                    // NPC is active only when its player counterpart is inactive
                     _characters[i].npcObject.SetActive(!isActive);
                 }
             }
@@ -149,28 +146,22 @@ namespace Nemuri.Core
                 return;
             }
 
-            // Transfer position and rotation from current character to the target character
             targetCharacterObj.transform.position = currentCharacterObj.transform.position;
             targetCharacterObj.transform.rotation = currentCharacterObj.transform.rotation;
 
-            // Handle deactivating current player character and activating target player character
             currentCharacterObj.SetActive(false);
             targetCharacterObj.SetActive(true);
 
-            // Handle active state of their NPC counterparts
             if (_characters[_activeCharacterIndex].npcObject != null)
             {
-                // Previous character now coexists as an NPC at their design-placed spot
                 _characters[_activeCharacterIndex].npcObject.SetActive(true);
             }
 
             if (_characters[index].npcObject != null)
             {
-                // New character is now controlled by player, so hide their NPC version
                 _characters[index].npcObject.SetActive(false);
             }
 
-            // Update camera targets
             UpdateCameraTargets(targetCharacterObj.transform);
 
             _activeCharacterIndex = index;
@@ -183,7 +174,6 @@ namespace Nemuri.Core
                 _followCamera.target = targetTransform;
             }
 
-            // Try to find and update Cinemachine virtual cameras
             var virtualCameras = FindObjectsByType<Cinemachine.CinemachineVirtualCamera>();
             foreach (var vCam in virtualCameras)
             {
@@ -199,13 +189,11 @@ namespace Nemuri.Core
         {
             _characterIndexBeforeDialogue = _activeCharacterIndex;
 
-            // Automatically switch active player character to Kiel (index 0)
             if (_activeCharacterIndex != 0)
             {
                 SwapToCharacter(0, isInternalSwap: true);
             }
 
-            // Ensure all other characters' NPC representations are active during dialogue
             for (int i = 1; i < _characters.Count; i++)
             {
                 if (_characters[i].npcObject != null)
@@ -217,7 +205,6 @@ namespace Nemuri.Core
 
         private void HandleConversationEnd()
         {
-            // Restore character state back to how it was before dialogue
             if (_characters[_activeCharacterIndex].npcObject != null)
             {
                 _characters[_activeCharacterIndex].npcObject.SetActive(true);
@@ -228,7 +215,6 @@ namespace Nemuri.Core
                 SwapToCharacter(_characterIndexBeforeDialogue, isInternalSwap: true);
             }
 
-            // Hide the NPC representation of the active character
             if (_characters[_activeCharacterIndex].npcObject != null)
             {
                 _characters[_activeCharacterIndex].npcObject.SetActive(false);
