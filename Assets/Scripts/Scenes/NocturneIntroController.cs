@@ -88,7 +88,6 @@ namespace Nemuri.Scenes
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
             if (_ferryNpc != null) _ferryNpc.SetActive(true);
 
-            // Configure physics components on NPCs to prevent movement blocks
             ConfigureNpcPhysics(_ronaNpc);
             ConfigureNpcPhysics(_murialNpc);
             ConfigureNpcPhysics(_keikoNpc);
@@ -102,10 +101,12 @@ namespace Nemuri.Scenes
 
             if (_murialNpc != null)
             {
+                // Preserve the exact rotation set by the user in the editor for Murial NPC
+                Quaternion originalRot = _murialNpc.transform.rotation;
                 if (_murialSpawnPoint != null)
                 {
                     _murialNpc.transform.position = _murialSpawnPoint.position;
-                    _murialNpc.transform.rotation = _murialSpawnPoint.rotation;
+                    _murialNpc.transform.rotation = originalRot;
                 }
                 _murialNpc.SetActive(false);
             }
@@ -146,12 +147,12 @@ namespace Nemuri.Scenes
             switch (_state)
             {
                 case IntroState.WaitingForApproachVines:
-                    if (_ronaNpc != null && _gateController != null)
+                    if (_ronaNpc != null)
                     {
-                        Vector3 ronaTarget = _gateController.transform.position + new Vector3(-2f, 0f, -3f);
+                        Vector3 ronaTarget = new Vector3(-0.39f, 0f, 2.72f);
                         
-                        Ray ray = new Ray(ronaTarget + Vector3.up * 5f, Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, 20f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 50f))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -181,7 +182,7 @@ namespace Nemuri.Scenes
                         if (activePlayer != null)
                         {
                             float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
-                            if (distToVines <= 7f)
+                            if (distToVines <= 2.2f)
                             {
                                 Debug.Log($"[NocturneIntroController] Player approached vines (Distance: {distToVines:F2}). Triggering 1b dialog.");
                                 SetNpcMoving(_ronaNpc, false);
