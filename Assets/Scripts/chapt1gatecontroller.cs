@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Nemuri.Interactions;
+using Nemuri.Player;
 
 public class Chapt1gatecontroller : MonoBehaviour
 {
@@ -16,8 +17,6 @@ public class Chapt1gatecontroller : MonoBehaviour
     [Header("Hold Interaction")]
     public float holdDuration = 3f;
 
-    [SerializeField] private string[] allCharacterNames = { "KAELCHARA", "RONACHARA", "MURIALCHARA", "KEIKOCHARA", "FEANORCHARA" };
-
     private Vector3 startPosition;
     private Vector3 targetPosition;
     public bool isTriggered = false; 
@@ -25,7 +24,7 @@ public class Chapt1gatecontroller : MonoBehaviour
     private float searchTimer = 0f;
     private float _holdTimer;
     private Interactable _interactable;
-    private bool _hasShownWrongPlayerError;
+    private float _wrongPlayerTimer = 0f;
 
     void Start()
     {
@@ -44,6 +43,17 @@ public class Chapt1gatecontroller : MonoBehaviour
     {
         if (isTriggered) return;
 
+        // Wrong player warning feedback timer
+        if (_wrongPlayerTimer > 0f)
+        {
+            _wrongPlayerTimer -= Time.deltaTime;
+            if (_wrongPlayerTimer <= 0f)
+            {
+                _interactable?.DismissInteraction();
+            }
+            return;
+        }
+
         if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
         {
             searchTimer += Time.deltaTime;
@@ -60,8 +70,15 @@ public class Chapt1gatecontroller : MonoBehaviour
         
         if (distance <= activationDistance)
         {
-            bool isAllowed = System.Array.Exists(
-                targetCharacterNames, n => activePlayerTransform.name == n);
+            bool isAllowed = false;
+            foreach (var n in targetCharacterNames)
+            {
+                if (activePlayerTransform.name.Contains(n))
+                {
+                    isAllowed = true;
+                    break;
+                }
+            }
 
             if (isAllowed)
             {
@@ -91,18 +108,14 @@ public class Chapt1gatecontroller : MonoBehaviour
             }
             else
             {
-                if (!_hasShownWrongPlayerError)
-                {
-                    _interactable?.DisplayInteraction("Hold E to open gate", 0f);
+                _interactable?.DisplayInteraction("Hold E to open gate", 0f);
 
-                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                    {
-                        string names = string.Join(" or ", targetCharacterNames);
-                        _interactable?.DisplayInteraction($"You must use {names} as player to interact", 0f);
-                        _hasShownWrongPlayerError = true;
-                        isTriggered = true;
-                        _interactable?.DismissInteraction();
-                    }
+                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    string names = string.Join(" or ", targetCharacterNames);
+                    _interactable?.DisplayInteraction($"You must use {names} as player to interact", 0f);
+                    _wrongPlayerTimer = 2.0f; // Show error message for 2 seconds
+                    _holdTimer = 0f;
                 }
             }
         }
@@ -120,42 +133,26 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void FindActivePlayer()
     {
-        Transform closest = null;
-        float closestDist = float.MaxValue;
-
-        foreach (string charName in allCharacterNames)
+        if (PlayerMovementChapt1.Instance != null && PlayerMovementChapt1.Instance.gameObject.activeInHierarchy)
         {
-            GameObject obj = GameObject.Find(charName);
-            if (obj != null && obj.activeInHierarchy)
-            {
-                float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    closest = obj.transform;
-                }
-            }
+            activePlayerTransform = PlayerMovementChapt1.Instance.transform;
+            return;
+        }
+        if (PlayerMovement.Instance != null && PlayerMovement.Instance.gameObject.activeInHierarchy)
+        {
+            activePlayerTransform = PlayerMovement.Instance.transform;
+            return;
         }
 
-        if (closest == null)
+        GameObject defaultPlayer = GameObject.FindWithTag("Player");
+        if (defaultPlayer != null && defaultPlayer.activeInHierarchy)
         {
-            foreach (string charName in targetCharacterNames)
-            {
-                GameObject obj = GameObject.Find(charName);
-                if (obj != null && obj.activeInHierarchy)
-                {
-                    activePlayerTransform = obj.transform;
-                    return;
-                }
-            }
+            activePlayerTransform = defaultPlayer.transform;
         }
-
-        activePlayerTransform = closest;
     }
 
     void TriggerMovement()
     {
-        isTriggered = true; 
         StartCoroutine(MoveSmoothly());
     }
 
@@ -171,6 +168,9 @@ public class Chapt1gatecontroller : MonoBehaviour
             yield return null;
         }
         transform.position = targetPosition;
+        
+        // Mark as triggered ONLY after the movement is fully complete!
+        isTriggered = true;
     }
 
     private void OnDrawGizmosSelected()

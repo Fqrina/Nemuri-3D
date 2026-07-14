@@ -88,6 +88,13 @@ namespace Nemuri.Scenes
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
             if (_ferryNpc != null) _ferryNpc.SetActive(true);
 
+            // Configure physics components on NPCs to prevent movement blocks
+            ConfigureNpcPhysics(_ronaNpc);
+            ConfigureNpcPhysics(_murialNpc);
+            ConfigureNpcPhysics(_keikoNpc);
+            ConfigureNpcPhysics(_feanorNpc);
+            ConfigureNpcPhysics(_ferryNpc);
+
             SnapToGround(_ronaNpc);
             SnapToGround(_keikoNpc);
             SnapToGround(_feanorNpc);
@@ -192,6 +199,36 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForKeiko:
+                    // Rona NPC walks towards Keiko's position
+                    if (_ronaNpc != null && _keikoNpc != null)
+                    {
+                        Vector3 ronaTarget = _keikoNpc.transform.position + new Vector3(-3f, 0f, -3f);
+                        
+                        Ray ray = new Ray(ronaTarget + Vector3.up * 5f, Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+                        {
+                            ronaTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position).normalized;
+                            if (dir != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 10f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_ronaNpc, true);
+                        }
+                        else
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                        }
+                    }
+
                     CheckApproach(_keikoNpc, () => TriggerThirdDialogue());
                     break;
 
@@ -274,21 +311,7 @@ namespace Nemuri.Scenes
                 _murialNpc.SetActive(true);
 
                 Vector3 startPos = _murialSpawnPoint != null ? _murialSpawnPoint.position : _murialNpc.transform.position;
-                Vector3 endPos = startPos;
-
-                Ray ray = new Ray(startPos, Vector3.down);
-                if (Physics.Raycast(ray, out RaycastHit hit, 50f))
-                {
-                    endPos = hit.point;
-                }
-                else if (_murialLandingPoint != null)
-                {
-                    endPos = _murialLandingPoint.position;
-                }
-                else
-                {
-                    endPos = startPos + Vector3.down * 8f;
-                }
+                Vector3 endPos = _murialLandingPoint != null ? _murialLandingPoint.position : startPos + Vector3.down * 8f;
 
                 float elapsed = 0f;
                 while (elapsed < _fallDuration)
@@ -501,6 +524,24 @@ namespace Nemuri.Scenes
             {
                 try { anim.SetBool("IsMoving", moving); } catch {}
                 try { anim.SetFloat("Speed", moving ? 1f : 0f); } catch {}
+            }
+        }
+
+        private void ConfigureNpcPhysics(GameObject npc)
+        {
+            if (npc == null) return;
+            
+            var rb = npc.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = true;
+                rb.useGravity = false;
+            }
+
+            var cc = npc.GetComponent<CharacterController>();
+            if (cc != null)
+            {
+                cc.enabled = false;
             }
         }
 
