@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Nemuri.Dialogue;
+using Nemuri.Player;
 
 namespace Nemuri.Core
 {
