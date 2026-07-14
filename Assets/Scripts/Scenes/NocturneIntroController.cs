@@ -80,7 +80,8 @@ namespace Nemuri.Scenes
             new Vector2(-11.92f, 96.04f),
             new Vector2(-18.44f, 92.19f),
             new Vector2(-24.92f, 89.26f),
-            new Vector2(-27.61f, 84.22f)
+            new Vector2(-27.61f, 84.22f),
+            new Vector2(-27.94f, 74.39f) // Waypoint 7
         };
 
         private void Start()
@@ -297,7 +298,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForFeanor:
-                    // Keiko NPC walks through 6 waypoints sequentially
                     if (_keikoNpc != null && _keikoPathIndex < _keikoPath.Count)
                     {
                         Vector2 target2D = _keikoPath[_keikoPathIndex];
@@ -411,6 +411,11 @@ namespace Nemuri.Scenes
                     }
                 }
             }
+            else if (node.text.Contains("A Rabbit is sitting"))
+            {
+                Debug.Log("[NocturneIntroController] Triggering camera pan to Rabbit.");
+                StartCoroutine(LookAtRabbitRoutine());
+            }
         }
 
         private void TriggerShake(float duration, float magnitude)
@@ -443,6 +448,46 @@ namespace Nemuri.Scenes
                 _murialNpc.transform.position = endPos;
                 Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
             }
+        }
+
+        private IEnumerator LookAtRabbitRoutine()
+        {
+            if (_ferryNpc == null || Camera.main == null) yield break;
+
+            var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
+            if (brain != null) brain.enabled = false;
+
+            Vector3 startPos = Camera.main.transform.position;
+            Quaternion startRot = Camera.main.transform.rotation;
+
+            // Position the camera to view the rabbit sitting at the floating table
+            Vector3 targetPos = _ferryNpc.transform.position + new Vector3(-6f, 4f, 5f);
+            Vector3 lookDir = (_ferryNpc.transform.position + Vector3.up * 1f - targetPos).normalized;
+            Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
+
+            float elapsed = 0f;
+            float duration = 2.5f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                t = Mathf.SmoothStep(0f, 1f, t);
+
+                Camera.main.transform.position = Vector3.Lerp(startPos, targetPos, t);
+                Camera.main.transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
+                yield return null;
+            }
+
+            Camera.main.transform.position = targetPos;
+            Camera.main.transform.rotation = targetRot;
+        }
+
+        private void RestoreCameraToPlayer()
+        {
+            if (Camera.main == null) return;
+            var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
+            if (brain != null) brain.enabled = true;
         }
 
         private void TriggerSecondIntroDialogue()
@@ -533,6 +578,7 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.FourthDialogue:
+                    RestoreCameraToPlayer();
                     SetPlayerMovementEnabled(true);
                     if (CharacterSwapManager.Instance != null)
                     {
