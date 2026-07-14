@@ -14,6 +14,8 @@ namespace Nemuri.Scenes
         {
             InitialWait,
             FirstDialogue,
+            WaitingForApproachVines,
+            SecondIntroDialogue,
             WaitingForGate,
             SecondDialogue,
             WaitingForKeiko,
@@ -47,6 +49,7 @@ namespace Nemuri.Scenes
         [SerializeField] private List<GameObject> _crystals = new List<GameObject>();
 
         private TextAsset _dialogueJson1;
+        private TextAsset _dialogueJson1b;
         private TextAsset _dialogueJson2;
         private TextAsset _dialogueJson3;
         private TextAsset _dialogueJson4;
@@ -71,7 +74,8 @@ namespace Nemuri.Scenes
                 }
             }
 
-            _dialogueJson1 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1");
+            _dialogueJson1 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1a");
+            _dialogueJson1b = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1b");
             _dialogueJson2 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_2");
             _dialogueJson3 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_3");
             _dialogueJson4 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_4");
@@ -131,6 +135,21 @@ namespace Nemuri.Scenes
         {
             switch (_state)
             {
+                case IntroState.WaitingForApproachVines:
+                    if (_gateController != null)
+                    {
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
+                            if (distToVines <= _dialogueTriggerDistance + 1f)
+                            {
+                                TriggerSecondIntroDialogue();
+                            }
+                        }
+                    }
+                    break;
+
                 case IntroState.WaitingForGate:
                     if (_gateController != null && _gateController.isTriggered)
                     {
@@ -197,7 +216,7 @@ namespace Nemuri.Scenes
                 }
                 else if (node.text.Contains("bushes rustle"))
                 {
-                    if (_state == IntroState.FirstDialogue && !_isMurialFalling)
+                    if (_state == IntroState.SecondIntroDialogue && !_isMurialFalling)
                     {
                         StartCoroutine(MurialFallRoutine());
                     }
@@ -284,6 +303,13 @@ namespace Nemuri.Scenes
             }
         }
 
+        private void TriggerSecondIntroDialogue()
+        {
+            _state = IntroState.SecondIntroDialogue;
+            SetPlayerMovementEnabled(false);
+            PlayDialogue(_dialogueJson1b);
+        }
+
         private void TriggerSecondDialogue()
         {
             _state = IntroState.SecondDialogue;
@@ -318,13 +344,21 @@ namespace Nemuri.Scenes
             {
                 case IntroState.FirstDialogue:
                     SetPlayerMovementEnabled(true);
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(1, true); // Unlock Rona
+                    }
+                    _state = IntroState.WaitingForApproachVines;
+                    break;
+
+                case IntroState.SecondIntroDialogue:
+                    SetPlayerMovementEnabled(true);
                     if (_gateController != null)
                     {
                         _gateController.enabled = true;
                     }
                     if (CharacterSwapManager.Instance != null)
                     {
-                        CharacterSwapManager.Instance.SetCharacterUnlocked(1, true); // Unlock Rona
                         CharacterSwapManager.Instance.SetCharacterUnlocked(2, true); // Unlock Murial
                     }
                     _state = IntroState.WaitingForGate;

@@ -277,6 +277,12 @@ namespace Nemuri.Dialogue
             _currentNode = _nodes.Dequeue();
             OnNodeDisplayed?.Invoke(_currentNode);
 
+            if (string.Equals(_currentNode.speaker, "SFX", System.StringComparison.OrdinalIgnoreCase))
+            {
+                DisplayNextNode();
+                return;
+            }
+
             bool hideName = string.Equals(_currentNode.speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "SFX", System.StringComparison.OrdinalIgnoreCase);
