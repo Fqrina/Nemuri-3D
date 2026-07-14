@@ -21,7 +21,6 @@ public class Chapt1gatecontroller : MonoBehaviour
     private Vector3 targetPosition;
     public bool isTriggered = false; 
     private Transform activePlayerTransform;
-    private float searchTimer = 0f;
     private float _holdTimer;
     private Interactable _interactable;
     private float _wrongPlayerTimer = 0f;
@@ -54,14 +53,11 @@ public class Chapt1gatecontroller : MonoBehaviour
             return;
         }
 
-        if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
+        // Find the active player every frame to ensure we are always referencing the correct character
+        FindActivePlayer();
+
+        if (activePlayerTransform == null)
         {
-            searchTimer += Time.deltaTime;
-            if (searchTimer >= 0.5f)
-            {
-                FindActivePlayer();
-                searchTimer = 0f;
-            }
             HideInteraction();
             return; 
         }
@@ -112,8 +108,7 @@ public class Chapt1gatecontroller : MonoBehaviour
 
                 if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                 {
-                    string names = string.Join(" or ", targetCharacterNames);
-                    _interactable?.DisplayInteraction($"Use {names}", 0f);
+                    _interactable?.DisplayInteraction("Use Murial", 0f);
                     _wrongPlayerTimer = 2.0f; // Show error message for 2 seconds
                     _holdTimer = 0f;
                 }
@@ -148,6 +143,10 @@ public class Chapt1gatecontroller : MonoBehaviour
         if (defaultPlayer != null && defaultPlayer.activeInHierarchy)
         {
             activePlayerTransform = defaultPlayer.transform;
+        }
+        else
+        {
+            activePlayerTransform = null;
         }
     }
 

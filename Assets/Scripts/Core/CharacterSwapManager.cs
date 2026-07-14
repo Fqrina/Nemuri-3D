@@ -42,7 +42,7 @@ namespace Nemuri.Core
         {
             if (index >= 0 && index < _unlockedCharacters.Length)
             {
-                return _unlockedCharacters[index];
+                _unlockedCharacters[index] = unlocked;
             }
             return false;
         }
@@ -94,69 +94,23 @@ namespace Nemuri.Core
 
             for (int i = 0; i < _characters.Count; i++)
             {
-                SetCharacterActiveState(i, i == _activeCharacterIndex);
+                bool isActive = (i == _activeCharacterIndex);
+                
+                if (_characters[i].playerObject != null)
+                {
+                    _characters[i].playerObject.SetActive(isActive);
+                }
+
+                // Keep all NPC GameObjects active at all times!
+                if (_characters[i].npcObject != null)
+                {
+                    _characters[i].npcObject.SetActive(true);
+                }
             }
 
             if (_characters[_activeCharacterIndex].playerObject != null)
             {
                 UpdateCameraTargets(_characters[_activeCharacterIndex].playerObject.transform);
-            }
-        }
-
-        private void SetCharacterActiveState(int index, bool isPlayer)
-        {
-            var charBinding = _characters[index];
-            if (charBinding.playerObject == null) return;
-
-            bool isChildOfNpc = charBinding.npcObject != null && charBinding.playerObject.transform.IsChildOf(charBinding.npcObject.transform);
-
-            if (isPlayer)
-            {
-                if (isChildOfNpc)
-                {
-                    charBinding.playerObject.transform.SetParent(null);
-                }
-
-                charBinding.playerObject.SetActive(true);
-
-                var movement = charBinding.playerObject.GetComponent<PlayerMovementChapt1>();
-                if (movement != null) movement.enabled = true;
-
-                var input = charBinding.playerObject.GetComponent<PlayerInput>();
-                if (input != null) input.enabled = true;
-
-                var rb = charBinding.playerObject.GetComponent<Rigidbody>();
-                if (rb != null) rb.isKinematic = false;
-
-                if (charBinding.npcObject != null)
-                {
-                    charBinding.npcObject.SetActive(false);
-                }
-            }
-            else
-            {
-                if (charBinding.npcObject != null)
-                {
-                    charBinding.npcObject.SetActive(true);
-                }
-
-                if (isChildOfNpc)
-                {
-                    charBinding.playerObject.SetActive(true);
-
-                    var movement = charBinding.playerObject.GetComponent<PlayerMovementChapt1>();
-                    if (movement != null) movement.enabled = false;
-
-                    var input = charBinding.playerObject.GetComponent<PlayerInput>();
-                    if (input != null) input.enabled = false;
-
-                    var rb = charBinding.playerObject.GetComponent<Rigidbody>();
-                    if (rb != null) rb.isKinematic = true;
-                }
-                else
-                {
-                    charBinding.playerObject.SetActive(false);
-                }
             }
         }
 
@@ -197,8 +151,10 @@ namespace Nemuri.Core
             targetCharacterObj.transform.position = currentCharacterObj.transform.position;
             targetCharacterObj.transform.rotation = currentCharacterObj.transform.rotation;
 
-            SetCharacterActiveState(_activeCharacterIndex, false);
-            SetCharacterActiveState(index, true);
+            currentCharacterObj.SetActive(false);
+            targetCharacterObj.SetActive(true);
+
+            // Do NOT deactivate target or previous npcObject when swapping! Keep all NPCs active!
 
             UpdateCameraTargets(targetCharacterObj.transform);
 
@@ -231,31 +187,13 @@ namespace Nemuri.Core
             {
                 SwapToCharacter(0, isInternalSwap: true);
             }
-
-            for (int i = 1; i < _characters.Count; i++)
-            {
-                if (_characters[i].npcObject != null)
-                {
-                    _characters[i].npcObject.SetActive(true);
-                }
-            }
         }
 
         private void HandleConversationEnd()
         {
-            if (_characters[_activeCharacterIndex].npcObject != null)
-            {
-                _characters[_activeCharacterIndex].npcObject.SetActive(true);
-            }
-
-            if (_characterIndexBeforeDialogue != _activeCharacterIndex)
+            if (_activeCharacterIndex != _characterIndexBeforeDialogue)
             {
                 SwapToCharacter(_characterIndexBeforeDialogue, isInternalSwap: true);
-            }
-
-            if (_characters[_activeCharacterIndex].npcObject != null)
-            {
-                _characters[_activeCharacterIndex].npcObject.SetActive(false);
             }
         }
     }
