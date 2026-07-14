@@ -81,6 +81,11 @@ namespace Nemuri.Scenes
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
             if (_ferryNpc != null) _ferryNpc.SetActive(true);
 
+            SnapToGround(_ronaNpc);
+            SnapToGround(_keikoNpc);
+            SnapToGround(_feanorNpc);
+            SnapToGround(_ferryNpc);
+
             if (_murialNpc != null)
             {
                 if (_murialSpawnPoint != null)
@@ -248,19 +253,34 @@ namespace Nemuri.Scenes
                 _murialNpc.SetActive(true);
 
                 Vector3 startPos = _murialSpawnPoint != null ? _murialSpawnPoint.position : _murialNpc.transform.position;
-                Vector3 endPos = _murialLandingPoint != null ? _murialLandingPoint.position : startPos + Vector3.down * 5f;
+                Vector3 endPos = startPos;
+
+                Ray ray = new Ray(startPos, Vector3.down);
+                if (Physics.Raycast(ray, out RaycastHit hit, 50f))
+                {
+                    endPos = hit.point;
+                }
+                else if (_murialLandingPoint != null)
+                {
+                    endPos = _murialLandingPoint.position;
+                }
+                else
+                {
+                    endPos = startPos + Vector3.down * 8f;
+                }
 
                 float elapsed = 0f;
                 while (elapsed < _fallDuration)
                 {
                     elapsed += Time.deltaTime;
                     float t = elapsed / _fallDuration;
+                    float tAccel = t * t;
 
-                    _murialNpc.transform.position = Vector3.Lerp(startPos, endPos, t);
+                    _murialNpc.transform.position = Vector3.Lerp(startPos, endPos, tAccel);
                     yield return null;
                 }
                 _murialNpc.transform.position = endPos;
-                Debug.Log("[NocturneIntroController] Murial NPC fell from tree!");
+                Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
             }
         }
 
@@ -430,6 +450,18 @@ namespace Nemuri.Scenes
             foreach (var m in move2)
             {
                 m.SetCanMove(enabled);
+            }
+        }
+
+        private void SnapToGround(GameObject npc)
+        {
+            if (npc == null) return;
+            Vector3 pos = npc.transform.position;
+            Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
+            if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+            {
+                pos.y = hit.point.y;
+                npc.transform.position = pos;
             }
         }
     }
