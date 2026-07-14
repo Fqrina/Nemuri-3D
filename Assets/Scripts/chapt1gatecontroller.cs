@@ -167,6 +167,10 @@ public class Chapt1gatecontroller : MonoBehaviour
     void TriggerMovement()
     {
         HideInteraction();
+        if (_interactable != null)
+        {
+            _interactable.enabled = false;
+        }
         StartCoroutine(MoveSmoothly());
     }
 

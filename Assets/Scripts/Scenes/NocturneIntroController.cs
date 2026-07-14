@@ -148,10 +148,11 @@ namespace Nemuri.Scenes
                 case IntroState.WaitingForApproachVines:
                     if (_ronaNpc != null)
                     {
-                        Vector3 ronaTarget = new Vector3(-20.06f, 0f, 121.5f);
+                        float currentY = _ronaNpc.transform.position.y;
+                        Vector3 ronaTarget = new Vector3(-20.06f, currentY, 121.5f);
                         
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, 20f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 50f))
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -174,6 +175,18 @@ namespace Nemuri.Scenes
                         else
                         {
                             SetNpcMoving(_ronaNpc, false);
+                            
+                            Transform activePlayer = FindActivePlayerTransform();
+                            if (activePlayer != null)
+                            {
+                                Vector3 toPlayer = (activePlayer.position - _ronaNpc.transform.position);
+                                toPlayer.y = 0f;
+                                toPlayer.Normalize();
+                                if (toPlayer != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                                }
+                            }
                         }
                     }
 
@@ -205,8 +218,9 @@ namespace Nemuri.Scenes
                     {
                         Vector3 ronaTarget = _keikoNpc.transform.position + new Vector3(-3f, 0f, -3f);
                         
-                        Ray ray = new Ray(ronaTarget + Vector3.up * 5f, Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+                        float currentY = _ronaNpc.transform.position.y;
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -229,6 +243,18 @@ namespace Nemuri.Scenes
                         else
                         {
                             SetNpcMoving(_ronaNpc, false);
+                            
+                            Transform activePlayer = FindActivePlayerTransform();
+                            if (activePlayer != null)
+                            {
+                                Vector3 toPlayer = (activePlayer.position - _ronaNpc.transform.position);
+                                toPlayer.y = 0f;
+                                toPlayer.Normalize();
+                                if (toPlayer != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                                }
+                            }
                         }
                     }
 
