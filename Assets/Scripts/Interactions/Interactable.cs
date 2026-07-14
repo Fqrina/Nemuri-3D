@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using Nemuri.Dialogue;
 
 namespace Nemuri.Interactions
 {
@@ -63,6 +64,11 @@ namespace Nemuri.Interactions
 
         private void Update()
         {
+            if (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive)
+            {
+                HidePromptAndReset();
+                return;
+            }
             if (_player == null)
             {
                 FindPlayer();
@@ -140,6 +146,12 @@ namespace Nemuri.Interactions
 
         public void DisplayInteraction(string promptText, float normalizedProgress)
         {
+            if (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive)
+            {
+                DismissInteraction();
+                return;
+            }
+
             if (_prompt == null)
             {
                 _prompt = InteractionPrompt.Create();
