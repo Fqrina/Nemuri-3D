@@ -64,6 +64,8 @@ namespace Nemuri.Scenes
 
         private void Start()
         {
+            Debug.Log($"[NocturneIntroController] Start initialized. Rona NPC: {_ronaNpc != null}, Murial NPC: {_murialNpc != null}, Gate: {_gateController != null}");
+
             if (DialogueManager.Instance == null)
             {
                 DialogueManager existingManager = FindAnyObjectByType<DialogueManager>();
@@ -81,10 +83,12 @@ namespace Nemuri.Scenes
             _dialogueJson4 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_4");
             _dialogueJson5 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_5");
 
-            if (_ronaNpc != null) _ronaNpc.SetActive(true);
-            if (_keikoNpc != null) _keikoNpc.SetActive(true);
-            if (_feanorNpc != null) _feanorNpc.SetActive(true);
-            if (_ferryNpc != null) _ferryNpc.SetActive(true);
+            // Unparent NPCs so they don't get deactivated if their parent player characters are disabled
+            if (_ronaNpc != null) { _ronaNpc.transform.SetParent(null); _ronaNpc.SetActive(true); }
+            if (_murialNpc != null) { _murialNpc.transform.SetParent(null); }
+            if (_keikoNpc != null) { _keikoNpc.transform.SetParent(null); _keikoNpc.SetActive(true); }
+            if (_feanorNpc != null) { _feanorNpc.transform.SetParent(null); _feanorNpc.SetActive(true); }
+            if (_ferryNpc != null) { _ferryNpc.transform.SetParent(null); _ferryNpc.SetActive(true); }
 
             SnapToGround(_ronaNpc);
             SnapToGround(_keikoNpc);
@@ -174,6 +178,7 @@ namespace Nemuri.Scenes
                             float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
                             if (distToVines <= 7f)
                             {
+                                Debug.Log($"[NocturneIntroController] Player approached vines (Distance: {distToVines:F2}). Triggering 1b dialog.");
                                 SetNpcMoving(_ronaNpc, false);
                                 TriggerSecondIntroDialogue();
                             }
@@ -210,7 +215,8 @@ namespace Nemuri.Scenes
 
                 float x = Random.Range(-1f, 1f) * _currentShakeMagnitude;
                 float y = Random.Range(-1f, 1f) * _currentShakeMagnitude;
-                _shakeOffset = new Vector3(x, y, 0f);
+                float z = Random.Range(-1f, 1f) * _currentShakeMagnitude;
+                _shakeOffset = new Vector3(x, y, z);
 
                 if (Camera.main != null)
                 {
@@ -237,13 +243,13 @@ namespace Nemuri.Scenes
             {
                 if (node.text.Contains("Slight tremor"))
                 {
-                    TriggerShake(1.2f, 0.18f);
-                    TriggerRedFlash(0.8f);
+                    Debug.Log("[NocturneIntroController] Triggering slight tremor shake.");
+                    TriggerShake(1.5f, 0.5f);
                 }
                 else if (node.text.Contains("shakes violently") || node.text.Contains("violent quake"))
                 {
-                    TriggerShake(2.5f, 0.55f);
-                    TriggerRedFlash(1.8f);
+                    Debug.Log("[NocturneIntroController] Triggering violent quake shake.");
+                    TriggerShake(3.0f, 1.6f);
                 }
                 else if (node.text.Contains("bushes rustle"))
                 {
@@ -259,39 +265,6 @@ namespace Nemuri.Scenes
         {
             _currentShakeTime = duration;
             _currentShakeMagnitude = magnitude;
-        }
-
-        private void TriggerRedFlash(float duration)
-        {
-            StartCoroutine(RedFlashRoutine(duration));
-        }
-
-        private IEnumerator RedFlashRoutine(float duration)
-        {
-            GameObject canvasGo = GameObject.Find("Dialogue Canvas");
-            if (canvasGo == null) yield break;
-
-            GameObject flashGo = new GameObject("RedFlash");
-            flashGo.transform.SetParent(canvasGo.transform, false);
-
-            var image = flashGo.AddComponent<UnityEngine.UI.Image>();
-            image.color = new Color(1f, 0f, 0f, 0.35f);
-
-            var rect = flashGo.GetComponent<RectTransform>();
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.sizeDelta = Vector2.zero;
-
-            float elapsed = 0f;
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / duration;
-                image.color = new Color(1f, 0f, 0f, Mathf.Lerp(0.35f, 0f, t));
-                yield return null;
-            }
-
-            Destroy(flashGo);
         }
 
         private IEnumerator MurialFallRoutine()
@@ -380,6 +353,7 @@ namespace Nemuri.Scenes
                         CharacterSwapManager.Instance.SetCharacterUnlocked(1, true); // Unlock Rona
                     }
                     _state = IntroState.WaitingForApproachVines;
+                    Debug.Log("[NocturneIntroController] Dialogue 1a finished. Waiting for player to approach vines.");
                     break;
 
                 case IntroState.SecondIntroDialogue:
@@ -393,6 +367,7 @@ namespace Nemuri.Scenes
                         CharacterSwapManager.Instance.SetCharacterUnlocked(2, true); // Unlock Murial
                     }
                     _state = IntroState.WaitingForGate;
+                    Debug.Log("[NocturneIntroController] Dialogue 1b finished. Waiting for gate interaction.");
                     break;
 
                 case IntroState.SecondDialogue:
