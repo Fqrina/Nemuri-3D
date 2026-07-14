@@ -80,6 +80,7 @@ namespace Nemuri.Scenes
             _dialogueJson3 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_3");
             _dialogueJson4 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_4");
             _dialogueJson5 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_5");
+
             if (_ronaNpc != null) _ronaNpc.SetActive(true);
             if (_keikoNpc != null) _keikoNpc.SetActive(true);
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
@@ -136,14 +137,44 @@ namespace Nemuri.Scenes
             switch (_state)
             {
                 case IntroState.WaitingForApproachVines:
+                    if (_ronaNpc != null && _gateController != null)
+                    {
+                        Vector3 ronaTarget = _gateController.transform.position + new Vector3(-2f, 0f, -3f);
+                        
+                        Ray ray = new Ray(ronaTarget + Vector3.up * 5f, Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+                        {
+                            ronaTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position).normalized;
+                            if (dir != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 10f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_ronaNpc, true);
+                        }
+                        else
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                        }
+                    }
+
                     if (_gateController != null)
                     {
                         Transform activePlayer = FindActivePlayerTransform();
                         if (activePlayer != null)
                         {
                             float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
-                            if (distToVines <= _dialogueTriggerDistance + 1f)
+                            if (distToVines <= 7f)
                             {
+                                SetNpcMoving(_ronaNpc, false);
                                 TriggerSecondIntroDialogue();
                             }
                         }
@@ -474,16 +505,29 @@ namespace Nemuri.Scenes
 
         private void SetPlayerMovementEnabled(bool enabled)
         {
-            var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
-            foreach (var m in move1)
+            if (PlayerMovement.Instance != null)
             {
-                m.SetCanMove(enabled);
+                PlayerMovement.Instance.SetCanMove(enabled);
+            }
+            if (PlayerMovementChapt1.Instance != null)
+            {
+                PlayerMovementChapt1.Instance.SetCanMove(enabled);
+            }
+        }
+
+        private void SetNpcMoving(GameObject npc, bool moving)
+        {
+            if (npc == null) return;
+            Animator anim = npc.GetComponent<Animator>();
+            if (anim == null)
+            {
+                anim = npc.GetComponentInChildren<Animator>();
             }
 
-            var move2 = FindObjectsByType<PlayerMovementChapt1>(FindObjectsInactive.Include);
-            foreach (var m in move2)
+            if (anim != null)
             {
-                m.SetCanMove(enabled);
+                try { anim.SetBool("IsMoving", moving); } catch {}
+                try { anim.SetFloat("Speed", moving ? 1f : 0f); } catch {}
             }
         }
 
