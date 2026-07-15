@@ -276,6 +276,7 @@ namespace Nemuri.Scenes
             switch (_state)
             {
                 case IntroState.WaitingForApproachVines:
+                    bool ronaArrived = false;
                     if (_ronaNpc != null)
                     {
                         float currentY = _ronaNpc.transform.position.y;
@@ -305,6 +306,7 @@ namespace Nemuri.Scenes
                         else
                         {
                             SetNpcMoving(_ronaNpc, false);
+                            ronaArrived = true;
                             
                             Transform activePlayer = FindActivePlayerTransform();
                             if (activePlayer != null)
@@ -319,8 +321,12 @@ namespace Nemuri.Scenes
                             }
                         }
                     }
+                    else
+                    {
+                        ronaArrived = true;
+                    }
 
-                    if (_gateController != null)
+                    if (ronaArrived && _gateController != null)
                     {
                         Transform activePlayer = FindActivePlayerTransform();
                         if (activePlayer != null)
@@ -328,8 +334,7 @@ namespace Nemuri.Scenes
                             float distToVines = Vector3.Distance(activePlayer.position, _gateController.transform.position);
                             if (distToVines <= 4.0f)
                             {
-                                Debug.Log($"[NocturneIntroController] Player approached vines (Distance: {distToVines:F2}). Triggering 1b dialog.");
-                                SetNpcMoving(_ronaNpc, false);
+                                Debug.Log($"[NocturneIntroController] Player approached vines after Rona arrived. Triggering 1b dialog.");
                                 TriggerSecondIntroDialogue();
                             }
                         }
