@@ -45,23 +45,29 @@ namespace Nemuri.CameraEffects
             Vector3 cameraPos = transform.position;
             float distToPlayer = _playerTransform != null ? Vector3.Distance(cameraPos, _playerTransform.position) : 999f;
 
-            // Find all potential obstructions in a 15-unit radius around the camera
-            Collider[] colliders = Physics.OverlapSphere(cameraPos, 15f, _layerMask);
-            
-            // Gather all unique root game objects on the CameraDisappear layer
             HashSet<GameObject> uniqueRoots = new HashSet<GameObject>();
-            foreach (var col in colliders)
+
+            // 1. OverlapSphere to capture close clipping objects around camera
+            Collider[] closeColliders = Physics.OverlapSphere(cameraPos, 3.0f, _layerMask);
+            foreach (var col in closeColliders)
             {
-                if (col == null) continue;
-                
-                GameObject rootObj = col.gameObject;
-                Transform parent = col.transform.parent;
-                while (parent != null && parent.gameObject.layer == _disappearLayer)
+                if (col != null) uniqueRoots.Add(GetRootObstruction(col.gameObject));
+            }
+
+            // 2. SphereCast along the view line from camera to player to find direct blockers
+            if (_playerTransform != null)
+            {
+                Vector3 targetPoint = _playerTransform.position + Vector3.up * 1.0f; // Target player torso
+                Vector3 toPlayer = targetPoint - cameraPos;
+                float castDist = toPlayer.magnitude;
+                if (castDist > 0.1f)
                 {
-                    rootObj = parent.gameObject;
-                    parent = parent.parent;
+                    RaycastHit[] hits = Physics.SphereCastAll(cameraPos, 1.2f, toPlayer.normalized, castDist, _layerMask);
+                    foreach (var hit in hits)
+                    {
+                        if (hit.collider != null) uniqueRoots.Add(GetRootObstruction(hit.collider.gameObject));
+                    }
                 }
-                uniqueRoots.Add(rootObj);
             }
 
             // Process each unique root object
@@ -69,7 +75,7 @@ namespace Nemuri.CameraEffects
             {
                 Vector3 rootPos = rootObj.transform.position;
 
-                // 1. Hardcode: If object Y is below the player's Y position, skip it
+                // Hardcode Y-level check: skip if below player plane
                 if (_playerTransform != null && rootPos.y < _playerTransform.position.y - 0.5f)
                 {
                     continue;
@@ -78,18 +84,17 @@ namespace Nemuri.CameraEffects
                 float distToRoot = Vector3.Distance(cameraPos, rootPos);
                 bool shouldFade = false;
 
-                // 2. Clipping check (extremely close to camera)
-                if (distToRoot < 2.5f)
+                // Clipping check
+                if (distToRoot < 3.0f)
                 {
                     shouldFade = true;
                 }
-                // 3. Viewport check (obstructing the center 50% of the screen)
+                // Center 50% screen check
                 else if (_playerTransform != null && distToRoot < distToPlayer)
                 {
                     Vector3 viewportPos = Camera.main.WorldToViewportPoint(rootPos);
                     if (viewportPos.z > 0f)
                     {
-                        // Check if projected point is within the center 50% of the screen
                         if (viewportPos.x >= 0.25f && viewportPos.x <= 0.75f &&
                             viewportPos.y >= 0.20f && viewportPos.y <= 0.80f)
                         {
@@ -104,7 +109,7 @@ namespace Nemuri.CameraEffects
                 }
             }
 
-            // 4. Update cooldowns and restore objects that are no longer obstructing
+            // 3. Update cooldowns and restore
             List<GameObject> toRestore = new List<GameObject>();
             List<GameObject> activeKeys = new List<GameObject>(_obstructedObjects.Keys);
 
@@ -122,6 +127,18 @@ namespace Nemuri.CameraEffects
             {
                 RestoreObstruction(key);
             }
+        }
+
+        private GameObject GetRootObstruction(GameObject obj)
+        {
+            GameObject rootObj = obj;
+            Transform parent = obj.transform.parent;
+            while (parent != null && parent.gameObject.layer == _disappearLayer)
+            {
+                rootObj = parent.gameObject;
+                parent = parent.parent;
+            }
+            return rootObj;
         }
 
         private void RegisterObstruction(GameObject rootObj)

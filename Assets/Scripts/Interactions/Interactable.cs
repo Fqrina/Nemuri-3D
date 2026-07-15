@@ -19,7 +19,7 @@ namespace Nemuri.Interactions
         [SerializeField] private Transform _interactionPoint;
         [SerializeField] private string _promptText = "Hold E to interact";
 
-        public UnityEvent OnInteract;
+        public UnityEvent OnInteract = new UnityEvent();
 
         private Transform _player;
         private PlayerInput _playerInput;

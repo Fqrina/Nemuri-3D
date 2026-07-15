@@ -384,6 +384,7 @@ namespace Nemuri.Scenes
                 interactable.PromptText = "Investigate Resonance (E)";
                 interactable.InteractionRange = 4.0f;
                 interactable.HoldSeconds = 0f;
+                if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
                 interactable.OnInteract.RemoveAllListeners();
                 interactable.OnInteract.AddListener(OnPuzzle2Interacted);
                 interactable.enabled = false; // Initially inactive until Somnia Seed dialogue ends
