@@ -94,7 +94,7 @@ namespace Nemuri.Interactions
                     }
                     else if (!intro.HasFeanorInteractedPuzzle2)
                     {
-                        if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
+                        if (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
                         {
                             intro.TriggerFeanorPuzzle2Interaction();
                         }
