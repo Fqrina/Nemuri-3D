@@ -96,15 +96,27 @@ namespace Nemuri.Core
             {
                 bool isActive = (i == _activeCharacterIndex);
                 
+                // Automatically find npcObject if null in Inspector
+                if (_characters[i].npcObject == null)
+                {
+                    string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
+                    GameObject found = GameObject.Find(searchName);
+                    if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+                    if (found != null) _characters[i].npcObject = found;
+                }
+
                 if (_characters[i].playerObject != null)
                 {
                     _characters[i].playerObject.SetActive(isActive);
                 }
 
-                // Keep all NPC GameObjects active at all times!
                 if (_characters[i].npcObject != null)
                 {
-                    _characters[i].npcObject.SetActive(true);
+                    _characters[i].npcObject.SetActive(!isActive);
+                    if (!isActive)
+                    {
+                        SnapToGround(_characters[i].npcObject);
+                    }
                 }
             }
 
@@ -146,6 +158,24 @@ namespace Nemuri.Core
             if (currentCharacterObj == null || targetCharacterObj == null)
             {
                 return;
+            }
+
+            // Automatically find target npcObject if null in Inspector
+            if (_characters[index].npcObject == null)
+            {
+                string searchName = index == 0 ? "KAELNPC" : _characters[index].characterName.Replace("CHARA", "").Trim() + "NPC";
+                GameObject found = GameObject.Find(searchName);
+                if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+                if (found != null) _characters[index].npcObject = found;
+            }
+
+            // Automatically find previous npcObject if null in Inspector
+            if (_characters[_activeCharacterIndex].npcObject == null)
+            {
+                string searchName = _activeCharacterIndex == 0 ? "KAELNPC" : _characters[_activeCharacterIndex].characterName.Replace("CHARA", "").Trim() + "NPC";
+                GameObject found = GameObject.Find(searchName);
+                if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+                if (found != null) _characters[_activeCharacterIndex].npcObject = found;
             }
 
             Transform walkingPlayer = currentCharacterObj.transform.parent;
@@ -243,8 +273,8 @@ namespace Nemuri.Core
         {
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
-            Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
-            if (Physics.Raycast(ray, out RaycastHit hit, 20f, 1 << 0))
+            Ray ray = new Ray(pos + Vector3.up * 10f, Vector3.down);
+            if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
             {
                 pos.y = hit.point.y;
                 npc.transform.position = pos;
