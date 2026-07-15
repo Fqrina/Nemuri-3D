@@ -38,7 +38,13 @@ namespace Nemuri.Scenes
             Puzzle3IntroDialogue,
             Puzzle3SuccessDialogue,
             Puzzle3CollectedDialogue,
-            WaitingForBridge1Dialogue
+            WaitingForBridge1Dialogue,
+            WaitingForBunnyDialoguePostDreampearl,
+            BunnyDialoguePostDreampearl,
+            WaitingForPortalDialogue,
+            PortalDialoguePartA,
+            PortalDialoguePartB,
+            PortalDialoguePartC
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -330,6 +336,106 @@ namespace Nemuri.Scenes
             new Vector2(-17.0f, 98.61f)
         };
 
+        public bool HasBunnyDialogueEnded { get; private set; } = false;
+        public bool HasPortalFixed { get; private set; } = false;
+
+        private bool _startBunnyWalkPostDreampearl = false;
+        private bool _bunnyDialoguePostDreampearlStarted = false;
+        private bool _startPortalWalk = false;
+        private bool _portalDialogueStarted = false;
+
+        private List<Vector2> _ronaPathToBunnyPostDreampearl = new List<Vector2>()
+        {
+            new Vector2(-13.23f + 0.15f, 100.15f - 0.1f),
+            new Vector2(-13.22f + 0.15f, 96.45f - 0.1f),
+            new Vector2(-16.43f + 0.15f, 93.87f - 0.1f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-15.78f + 0.15f, 87.5f - 0.1f),
+            new Vector2(-15.86f, 84.95f)
+        };
+
+        private List<Vector2> _murialPathToBunnyPostDreampearl = new List<Vector2>()
+        {
+            new Vector2(-13.23f - 0.15f, 100.15f + 0.1f),
+            new Vector2(-13.22f - 0.15f, 96.45f + 0.1f),
+            new Vector2(-16.43f - 0.15f, 93.87f + 0.1f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-15.78f - 0.15f, 87.5f + 0.1f),
+            new Vector2(-14.6f, 84.8f)
+        };
+
+        private List<Vector2> _keikoPathToBunnyPostDreampearl = new List<Vector2>()
+        {
+            new Vector2(-13.23f + 0.1f, 100.15f + 0.15f),
+            new Vector2(-13.22f + 0.1f, 96.45f + 0.15f),
+            new Vector2(-16.43f + 0.1f, 93.87f + 0.15f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-15.78f + 0.1f, 87.5f + 0.15f),
+            new Vector2(-17.57f, 84.38f)
+        };
+
+        private List<Vector2> _feanorPathToBunnyPostDreampearl = new List<Vector2>()
+        {
+            new Vector2(-13.23f - 0.1f, 100.15f - 0.15f),
+            new Vector2(-13.22f - 0.1f, 96.45f - 0.15f),
+            new Vector2(-16.43f - 0.1f, 93.87f - 0.15f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-15.78f - 0.1f, 87.5f - 0.15f),
+            new Vector2(-19.48f, 83.77f)
+        };
+
+        private List<Vector2> _ronaPathToPortal = new List<Vector2>()
+        {
+            new Vector2(-15.78f + 0.15f, 87.5f - 0.1f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-16.43f + 0.15f, 93.87f - 0.1f),
+            new Vector2(-18.81f + 0.15f, 91.75f - 0.1f),
+            new Vector2(-22.58f + 0.15f, 90.05f - 0.1f),
+            new Vector2(-26.24f + 0.15f, 87.11f - 0.1f),
+            new Vector2(-27.48f + 0.15f, 83.05f - 0.1f),
+            new Vector2(-27.39f + 0.15f, 79.41f - 0.1f),
+            new Vector2(-27.12f, 75.26f)
+        };
+
+        private List<Vector2> _murialPathToPortal = new List<Vector2>()
+        {
+            new Vector2(-15.78f - 0.15f, 87.5f + 0.1f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-16.43f - 0.15f, 93.87f + 0.1f),
+            new Vector2(-18.81f - 0.15f, 91.75f + 0.1f),
+            new Vector2(-22.58f - 0.15f, 90.05f + 0.1f),
+            new Vector2(-26.24f - 0.15f, 87.11f + 0.1f),
+            new Vector2(-27.48f - 0.15f, 83.05f + 0.1f),
+            new Vector2(-27.39f - 0.15f, 79.41f + 0.1f),
+            new Vector2(-28.27f, 74.9f)
+        };
+
+        private List<Vector2> _keikoPathToPortal = new List<Vector2>()
+        {
+            new Vector2(-15.78f + 0.1f, 87.5f + 0.15f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-16.43f + 0.1f, 93.87f + 0.15f),
+            new Vector2(-18.81f + 0.1f, 91.75f + 0.15f),
+            new Vector2(-22.58f + 0.1f, 90.05f + 0.15f),
+            new Vector2(-26.24f + 0.1f, 87.11f + 0.15f),
+            new Vector2(-27.48f + 0.1f, 83.05f + 0.15f),
+            new Vector2(-27.39f + 0.1f, 79.41f + 0.15f),
+            new Vector2(-25.76f, 72.42f)
+        };
+
+        private List<Vector2> _feanorPathToPortal = new List<Vector2>()
+        {
+            new Vector2(-15.78f - 0.1f, 87.5f - 0.15f),
+            new Vector2(-15.66f, 90.12f),
+            new Vector2(-16.43f - 0.1f, 93.87f - 0.15f),
+            new Vector2(-18.81f - 0.1f, 91.75f - 0.15f),
+            new Vector2(-22.58f - 0.1f, 90.05f - 0.15f),
+            new Vector2(-26.24f - 0.1f, 87.11f - 0.15f),
+            new Vector2(-27.48f - 0.1f, 83.05f - 0.15f),
+            new Vector2(-27.39f - 0.1f, 79.41f - 0.15f),
+            new Vector2(-29.84f, 72.5f)
+        };
+
         private List<Vector2> _ronaPathToCrescent = new List<Vector2>()
         {
             new Vector2(-12.085f, 111.217f),
@@ -361,6 +467,8 @@ namespace Nemuri.Scenes
             new Vector2(-11.86f, 105.35f),
             new Vector2(-9.17f, 105.59f)
         };
+
+        private Vector3 _ferryInitialPosition;
 
         private void Start()
         {
@@ -499,6 +607,11 @@ namespace Nemuri.Scenes
                 {
                     anim.speed = 1.5f;
                 }
+            }
+
+            if (_ferryNpc != null)
+            {
+                _ferryInitialPosition = _ferryNpc.transform.position;
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -1194,6 +1307,25 @@ namespace Nemuri.Scenes
                         }
                     }
 
+                    if (HasPuzzle3Collected && !_startBunnyWalkPostDreampearl)
+                    {
+                        GameObject bunnyObj = null;
+                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        if (pg != null)
+                        {
+                            Transform go1 = pg.transform.Find("GameObject (1)");
+                            if (go1 != null)
+                            {
+                                Transform metarig = go1.Find("metarig");
+                                if (metarig != null) bunnyObj = metarig.gameObject;
+                            }
+                        }
+                        if (bunnyObj != null)
+                        {
+                            CheckApproach(bunnyObj, () => TriggerBunnyWalkPostDreampearlSequence());
+                        }
+                    }
+
                     // Proximity trigger removed: walk sequence is now triggered explicitly via interaction
                     break;
 
@@ -1502,6 +1634,326 @@ namespace Nemuri.Scenes
                             {
                                 _bridge1DialogueStarted = true;
                                 TriggerBridge1Dialogue();
+                            }
+                        }
+                    }
+                    break;
+
+                case IntroState.WaitingForBunnyDialoguePostDreampearl:
+                    if (_startBunnyWalkPostDreampearl)
+                    {
+                        GameObject bunnyObj = null;
+                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        if (pg != null)
+                        {
+                            Transform go1 = pg.transform.Find("GameObject (1)");
+                            if (go1 != null)
+                            {
+                                Transform metarig = go1.Find("metarig");
+                                if (metarig != null) bunnyObj = metarig.gameObject;
+                            }
+                        }
+
+                        // 1. Rona
+                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToBunnyPostDreampearl.Count)
+                        {
+                            Vector2 target2D = _ronaPathToBunnyPostDreampearl[_ronaPathIndex];
+                            float currentY = _ronaNpc.transform.position.y;
+                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            ronaTarget.y = GetGroundHeight(ronaTarget);
+
+                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                            if (dist > 0.2f)
+                            {
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_ronaNpc, true);
+                            }
+                            else
+                            {
+                                _ronaPathIndex++;
+                                if (_ronaPathIndex >= _ronaPathToBunnyPostDreampearl.Count) SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                        else if (_ronaNpc != null)
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                            if (bunnyObj != null) RotateNpcToFaceTarget(_ronaNpc, bunnyObj);
+                        }
+
+                        // 2. Murial
+                        if (_murialNpc != null && _murialPathIndex < _murialPathToBunnyPostDreampearl.Count)
+                        {
+                            Vector2 target2D = _murialPathToBunnyPostDreampearl[_murialPathIndex];
+                            float currentY = _murialNpc.transform.position.y;
+                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            murialTarget.y = GetGroundHeight(murialTarget);
+
+                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                            if (dist > 0.2f)
+                            {
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_murialNpc, true);
+                            }
+                            else
+                            {
+                                _murialPathIndex++;
+                                if (_murialPathIndex >= _murialPathToBunnyPostDreampearl.Count) SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                        else if (_murialNpc != null)
+                        {
+                            SetNpcMoving(_murialNpc, false);
+                            if (bunnyObj != null) RotateNpcToFaceTarget(_murialNpc, bunnyObj);
+                        }
+
+                        // 3. Keiko
+                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToBunnyPostDreampearl.Count)
+                        {
+                            Vector2 target2D = _keikoPathToBunnyPostDreampearl[_keikoPathIndex];
+                            float currentY = _keikoNpc.transform.position.y;
+                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            keikoTarget.y = GetGroundHeight(keikoTarget);
+
+                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                            if (dist > 0.2f)
+                            {
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_keikoNpc, true);
+                            }
+                            else
+                            {
+                                _keikoPathIndex++;
+                                if (_keikoPathIndex >= _keikoPathToBunnyPostDreampearl.Count) SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                        else if (_keikoNpc != null)
+                        {
+                            SetNpcMoving(_keikoNpc, false);
+                            if (bunnyObj != null) RotateNpcToFaceTarget(_keikoNpc, bunnyObj);
+                        }
+
+                        // 4. Feanor
+                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToBunnyPostDreampearl.Count)
+                        {
+                            Vector2 target2D = _feanorPathToBunnyPostDreampearl[_feanorPathIndex];
+                            float currentY = _feanorNpc.transform.position.y;
+                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            feanorTarget.y = GetGroundHeight(feanorTarget);
+
+                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                            if (dist > 0.2f)
+                            {
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_feanorNpc, true);
+                            }
+                            else
+                            {
+                                _feanorPathIndex++;
+                                if (_feanorPathIndex >= _feanorPathToBunnyPostDreampearl.Count) SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                        else if (_feanorNpc != null)
+                        {
+                            SetNpcMoving(_feanorNpc, false);
+                            if (bunnyObj != null) RotateNpcToFaceTarget(_feanorNpc, bunnyObj);
+                        }
+
+                        // Check if all arrived to trigger Bunny Dialogue
+                        if (!_bunnyDialoguePostDreampearlStarted)
+                        {
+                            bool allArrived = true;
+                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToBunnyPostDreampearl.Count) allArrived = false;
+                            if (_murialNpc != null && _murialPathIndex < _murialPathToBunnyPostDreampearl.Count) allArrived = false;
+                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToBunnyPostDreampearl.Count) allArrived = false;
+                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToBunnyPostDreampearl.Count) allArrived = false;
+
+                            if (allArrived)
+                            {
+                                _bunnyDialoguePostDreampearlStarted = true;
+                                TriggerBunnyDialoguePostDreampearl();
+                            }
+                        }
+                    }
+                    break;
+
+                case IntroState.WaitingForPortalDialogue:
+                    if (_startPortalWalk)
+                    {
+                        GameObject portalObj = GameObject.Find("cube 015");
+
+                        // 1. Rona
+                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToPortal.Count)
+                        {
+                            Vector2 target2D = _ronaPathToPortal[_ronaPathIndex];
+                            float currentY = _ronaNpc.transform.position.y;
+                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            ronaTarget.y = GetGroundHeight(ronaTarget);
+
+                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                            if (dist > 0.2f)
+                            {
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_ronaNpc, true);
+                            }
+                            else
+                            {
+                                _ronaPathIndex++;
+                                if (_ronaPathIndex >= _ronaPathToPortal.Count) SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                        else if (_ronaNpc != null)
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                            if (portalObj != null) RotateNpcToFaceTarget(_ronaNpc, portalObj);
+                        }
+
+                        // 2. Murial
+                        if (_murialNpc != null && _murialPathIndex < _murialPathToPortal.Count)
+                        {
+                            Vector2 target2D = _murialPathToPortal[_murialPathIndex];
+                            float currentY = _murialNpc.transform.position.y;
+                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            murialTarget.y = GetGroundHeight(murialTarget);
+
+                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                            if (dist > 0.2f)
+                            {
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_murialNpc, true);
+                            }
+                            else
+                            {
+                                _murialPathIndex++;
+                                if (_murialPathIndex >= _murialPathToPortal.Count) SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                        else if (_murialNpc != null)
+                        {
+                            SetNpcMoving(_murialNpc, false);
+                            if (portalObj != null) RotateNpcToFaceTarget(_murialNpc, portalObj);
+                        }
+
+                        // 3. Keiko
+                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToPortal.Count)
+                        {
+                            Vector2 target2D = _keikoPathToPortal[_keikoPathIndex];
+                            float currentY = _keikoNpc.transform.position.y;
+                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            keikoTarget.y = GetGroundHeight(keikoTarget);
+
+                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                            if (dist > 0.2f)
+                            {
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_keikoNpc, true);
+                            }
+                            else
+                            {
+                                _keikoPathIndex++;
+                                if (_keikoPathIndex >= _keikoPathToPortal.Count) SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                        else if (_keikoNpc != null)
+                        {
+                            SetNpcMoving(_keikoNpc, false);
+                            if (portalObj != null) RotateNpcToFaceTarget(_keikoNpc, portalObj);
+                        }
+
+                        // 4. Feanor
+                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToPortal.Count)
+                        {
+                            Vector2 target2D = _feanorPathToPortal[_feanorPathIndex];
+                            float currentY = _feanorNpc.transform.position.y;
+                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            feanorTarget.y = GetGroundHeight(feanorTarget);
+
+                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                            if (dist > 0.2f)
+                            {
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_feanorNpc, true);
+                            }
+                            else
+                            {
+                                _feanorPathIndex++;
+                                if (_feanorPathIndex >= _feanorPathToPortal.Count) SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                        else if (_feanorNpc != null)
+                        {
+                            SetNpcMoving(_feanorNpc, false);
+                            if (portalObj != null) RotateNpcToFaceTarget(_feanorNpc, portalObj);
+                        }
+
+                        // Check if all arrived to trigger Portal Dialogue Part A
+                        if (!_portalDialogueStarted)
+                        {
+                            bool allArrived = true;
+                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToPortal.Count) allArrived = false;
+                            if (_murialNpc != null && _murialPathIndex < _murialPathToPortal.Count) allArrived = false;
+                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToPortal.Count) allArrived = false;
+                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToPortal.Count) allArrived = false;
+
+                            if (allArrived)
+                            {
+                                _portalDialogueStarted = true;
+                                TriggerPortalDialoguePartA();
                             }
                         }
                     }
@@ -1987,6 +2439,25 @@ namespace Nemuri.Scenes
                 case IntroState.Puzzle3CollectedDialogue:
                     SetPlayerMovementEnabled(true);
                     Debug.Log("[NocturneIntroController] Puzzle 3 collected dialogue ended.");
+                    break;
+
+                case IntroState.BunnyDialoguePostDreampearl:
+                    OnBunnyDialoguePostDreampearlEnded();
+                    break;
+
+                case IntroState.PortalDialoguePartA:
+                    StartCoroutine(SmoothPanToEmptyTableRoutine());
+                    break;
+
+                case IntroState.PortalDialoguePartB:
+                    RestoreCameraToPlayer();
+                    TriggerPortalDialoguePartC();
+                    break;
+
+                case IntroState.PortalDialoguePartC:
+                    HasPortalFixed = true;
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Final portal dialogue completed. Free roaming enabled.");
                     break;
             }
         }
@@ -3006,6 +3477,237 @@ namespace Nemuri.Scenes
                 if (result != null) return result;
             }
             return null;
+        }
+
+        public void TriggerBunnyWalkPostDreampearlSequence()
+        {
+            if (_startBunnyWalkPostDreampearl) return;
+            _startBunnyWalkPostDreampearl = true;
+
+            SetPlayerMovementEnabled(false);
+
+            // Reset path indices to 0 for the bunny walk
+            _ronaPathIndex = 0;
+            _murialPathIndex = 0;
+            _keikoPathIndex = 0;
+            _feanorPathIndex = 0;
+
+            _state = IntroState.WaitingForBunnyDialoguePostDreampearl;
+            Debug.Log("[NocturneIntroController] Player approached bunny post-Dreampearl! NPCs commencing walk sequence.");
+        }
+
+        public void TriggerBunnyDialoguePostDreampearl()
+        {
+            if (_bunnyDialoguePostDreampearlStarted) return;
+            _bunnyDialoguePostDreampearlStarted = true;
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Ferry", text = "I’m surprised you got it all back, wonderful!", portraitName = "", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona", text = "Will this fix the Nocturne heart?", portraitName = "Rona", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Ferry", text = "It’s not that simple dear…", portraitName = "", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial", text = "What do you mean?", portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Ferry", text = "Just go ahead and put the crystals and you’ll find out by yourself", portraitName = "", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.BunnyDialoguePostDreampearl;
+            SetPlayerMovementEnabled(false);
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        private void OnBunnyDialoguePostDreampearlEnded()
+        {
+            SetPlayerMovementEnabled(true);
+            HasBunnyDialogueEnded = true;
+            _state = IntroState.Completed; // Return to Completed state for free roaming
+
+            // Configure the portal interactable!
+            GameObject cube015 = GameObject.Find("cube 015");
+            if (cube015 == null) cube015 = GameObject.Find("cube.015");
+            if (cube015 == null) cube015 = FindPortalObject();
+
+            if (cube015 != null)
+            {
+                var inter = cube015.GetComponent<Interactable>();
+                if (inter == null) inter = cube015.AddComponent<Interactable>();
+                inter.PromptText = "Fix Portal (E)";
+                inter.InteractionRange = 4.0f;
+                inter.HoldSeconds = 0f;
+                if (inter.OnInteract == null) inter.OnInteract = new UnityEngine.Events.UnityEvent();
+                inter.OnInteract.RemoveAllListeners();
+                inter.OnInteract.AddListener(OnPortalInteracted);
+                inter.enabled = true;
+            }
+            Debug.Log("[NocturneIntroController] Bunny dialogue post-Dreampearl ended. Portal interactable enabled.");
+        }
+
+        private void OnPortalInteracted()
+        {
+            // Only Kael can fix the portal
+            if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 0)
+            {
+                // Disable interactable
+                GameObject cube015 = GameObject.Find("cube 015");
+                if (cube015 == null) cube015 = GameObject.Find("cube.015");
+                if (cube015 == null) cube015 = FindPortalObject();
+
+                if (cube015 != null)
+                {
+                    var inter = cube015.GetComponent<Interactable>();
+                    if (inter != null) inter.enabled = false;
+                }
+
+                // Hide the metarig bunny NPC (Ferry disappears!)
+                GameObject pg = GameObject.Find("PINEALGRAND");
+                if (pg != null)
+                {
+                    Transform go1 = pg.transform.Find("GameObject (1)");
+                    if (go1 != null)
+                    {
+                        Transform metarig = go1.Find("metarig");
+                        if (metarig != null) metarig.gameObject.SetActive(false);
+                    }
+                }
+
+                // Start portal walk sequence!
+                TriggerPortalWalkSequence();
+            }
+            else
+            {
+                GameObject cube015 = GameObject.Find("cube 015");
+                if (cube015 == null) cube015 = GameObject.Find("cube.015");
+                if (cube015 == null) cube015 = FindPortalObject();
+
+                if (cube015 != null)
+                {
+                    var inter = cube015.GetComponent<Interactable>();
+                    if (inter != null)
+                    {
+                        inter.DisplayInteraction("You must use Kael as player to interact", 0f);
+                    }
+                }
+            }
+        }
+
+        public void TriggerPortalWalkSequence()
+        {
+            if (_startPortalWalk) return;
+            _startPortalWalk = true;
+
+            SetPlayerMovementEnabled(false);
+
+            // Reset path indices to 0 for the portal walk
+            _ronaPathIndex = 0;
+            _murialPathIndex = 0;
+            _keikoPathIndex = 0;
+            _feanorPathIndex = 0;
+
+            _state = IntroState.WaitingForPortalDialogue;
+            Debug.Log("[NocturneIntroController] Kael fixed portal! NPCs commencing walk sequence to portal.");
+        }
+
+        public void TriggerPortalDialoguePartA()
+        {
+            if (_portalDialogueStarted) return;
+            _portalDialogueStarted = true;
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Keiko", text = "We did it!", portraitName = "Keiko", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael", text = "I feel a lot better now!", portraitName = "Kael", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona", text = "It really did fix something inside of you Kael!", portraitName = "Rona", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Feanor", text = "Hm… Looking at the portal it seems were not done yet.", portraitName = "Feanor", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael", text = "Let’s just ask Ferry!", portraitName = "Kael", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.PortalDialoguePartA;
+            SetPlayerMovementEnabled(false);
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        private IEnumerator SmoothPanToEmptyTableRoutine()
+        {
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.canProceed = false;
+            }
+
+            var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
+            if (brain != null) brain.enabled = false;
+
+            Vector3 startPos = Camera.main.transform.position;
+            Quaternion startRot = Camera.main.transform.rotation;
+
+            Vector3 targetPos = _ferryInitialPosition + new Vector3(-6f, 4f, 5f);
+            Vector3 lookDir = (_ferryInitialPosition + Vector3.up * 1f - targetPos).normalized;
+            Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
+
+            float elapsed = 0f;
+            float duration = 2.5f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                t = Mathf.SmoothStep(0f, 1f, t);
+
+                Camera.main.transform.position = Vector3.Lerp(startPos, targetPos, t);
+                Camera.main.transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
+                yield return null;
+            }
+
+            Camera.main.transform.position = targetPos;
+            Camera.main.transform.rotation = targetRot;
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.canProceed = true;
+            }
+
+            // Start Part B of dialogue!
+            TriggerPortalDialoguePartB();
+        }
+
+        public void TriggerPortalDialoguePartB()
+        {
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Narrator", text = "You looked at the table, it was not floating anymore and there is no signs of Ferry", portraitName = "", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.PortalDialoguePartB;
+            SetPlayerMovementEnabled(false);
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        public void TriggerPortalDialoguePartC()
+        {
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Kael", text = "Where did he go?", portraitName = "Kael", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Feanor", text = "We never know…", portraitName = "Feanor", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona", text = "Let’s just go into the portal and see what it does", portraitName = "Rona", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko", text = "Are we just going to leave Ferry?", portraitName = "Keiko", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial", text = "He will be fine!", portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael", text = "Yeah, I got a feeling he knows more than we do… I’m sure he was telling us to go further into the portal!", portraitName = "Kael", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona", text = "Let’s go then!", portraitName = "Rona", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.PortalDialoguePartC;
+            SetPlayerMovementEnabled(false);
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
         }
     }
 }

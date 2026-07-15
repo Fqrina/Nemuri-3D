@@ -419,6 +419,40 @@ namespace Nemuri.Core
 
         private GameObject FindNextPuzzleTarget()
         {
+            var intro = Nemuri.Scenes.NocturneIntroController.Instance;
+            if (intro != null)
+            {
+                if (intro.HasPuzzle3Collected)
+                {
+                    if (!intro.HasBunnyDialogueEnded)
+                    {
+                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        if (pg != null)
+                        {
+                            Transform go1 = pg.transform.Find("GameObject (1)");
+                            if (go1 != null)
+                            {
+                                Transform metarig = go1.Find("metarig");
+                                if (metarig != null) return metarig.gameObject;
+                            }
+                        }
+                    }
+                    else if (!intro.HasPortalFixed)
+                    {
+                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        if (pg != null)
+                        {
+                            Transform cube015 = FindChildRecursiveTransform(pg.transform, "cube 015");
+                            if (cube015 == null) cube015 = FindChildRecursiveTransform(pg.transform, "cube.015");
+                            if (cube015 != null) return cube015.gameObject;
+                        }
+                        GameObject directCube = GameObject.Find("cube 015");
+                        if (directCube == null) directCube = GameObject.Find("cube.015");
+                        if (directCube != null) return directCube;
+                    }
+                }
+            }
+
             GameObject target1 = FindCrystalByName("dobj.001");
             if (target1 != null && target1.activeSelf)
             {
