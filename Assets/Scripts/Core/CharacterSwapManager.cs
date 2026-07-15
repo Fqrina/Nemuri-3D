@@ -199,8 +199,9 @@ namespace Nemuri.Core
                 GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
                 if (previousNpc != null)
                 {
-                    SetNpcPositionAndRotation(previousNpc, walkingPlayer.position, walkingPlayer.rotation);
-                    SnapToGround(previousNpc);
+                    Vector3 targetPos = walkingPlayer.position;
+                    targetPos.y -= 1.82f; // Apply -1.82f offset strictly to character swap positioning
+                    SetNpcPositionAndRotation(previousNpc, targetPos, walkingPlayer.rotation);
                     previousNpc.SetActive(true);
                 }
 
@@ -230,8 +231,9 @@ namespace Nemuri.Core
                 GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
                 if (previousNpc != null)
                 {
-                    SetNpcPositionAndRotation(previousNpc, oldPlayerPos, oldPlayerRot);
-                    SnapToGround(previousNpc);
+                    Vector3 targetPos = oldPlayerPos;
+                    targetPos.y -= 1.82f; // Apply -1.82f offset strictly to character swap positioning
+                    SetNpcPositionAndRotation(previousNpc, targetPos, oldPlayerRot);
                     previousNpc.SetActive(true);
                 }
             }
@@ -260,9 +262,6 @@ namespace Nemuri.Core
                 cc.enabled = false;
             }
 
-            // Apply -1.82 Y offset to NPC teleports
-            position.y -= 1.82f;
-
             npc.transform.position = position;
             npc.transform.rotation = rotation;
 
@@ -276,7 +275,7 @@ namespace Nemuri.Core
         {
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
-            pos.y = Nemuri.Scenes.NocturneIntroController.GetGroundHeight(pos) - 1.82f;
+            pos.y = Nemuri.Scenes.NocturneIntroController.GetGroundHeight(pos);
             npc.transform.position = pos;
         }
 
