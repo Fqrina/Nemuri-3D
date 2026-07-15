@@ -299,6 +299,15 @@ namespace Nemuri.Core
             }
         }
 
+        public void ResetSwapStateToKael()
+        {
+            _characterIndexBeforeDialogue = 0;
+            if (_activeCharacterIndex != 0)
+            {
+                SwapToCharacter(0, isDialogueSwap: true);
+            }
+        }
+
         private void HandleConversationStart()
         {
             _characterIndexBeforeDialogue = _activeCharacterIndex;

@@ -365,12 +365,7 @@ namespace Nemuri.Scenes
                     {
                         float currentY = _ronaNpc.transform.position.y;
                         Vector3 ronaTarget = new Vector3(-20.06f, currentY, 121.5f);
-                        
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            ronaTarget.y = hit.point.y;
-                        }
+                        ronaTarget.y = GetGroundHeight(ronaTarget);
 
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
@@ -439,12 +434,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _ronaPath[_ronaPathIndex];
                         float currentY = _ronaNpc.transform.position.y;
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            ronaTarget.y = hit.point.y;
-                        }
+                        ronaTarget.y = GetGroundHeight(ronaTarget);
 
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
@@ -492,12 +482,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _murialPath[_murialPathIndex];
                         float currentY = _murialNpc.transform.position.y;
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            murialTarget.y = hit.point.y;
-                        }
+                        murialTarget.y = GetGroundHeight(murialTarget);
 
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
@@ -549,12 +534,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _keikoPath[_keikoPathIndex];
                         float currentY = _keikoNpc.transform.position.y;
                         Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            keikoTarget.y = hit.point.y;
-                        }
+                        keikoTarget.y = GetGroundHeight(keikoTarget);
 
                         float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                         if (distToTarget > 0.2f)
@@ -602,12 +582,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _ronaPathToFeanor[_ronaPathIndex];
                         float currentY = _ronaNpc.transform.position.y;
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            ronaTarget.y = hit.point.y;
-                        }
+                        ronaTarget.y = GetGroundHeight(ronaTarget);
 
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
@@ -655,12 +630,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _murialPathToFeanor[_murialPathIndex];
                         float currentY = _murialNpc.transform.position.y;
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            murialTarget.y = hit.point.y;
-                        }
+                        murialTarget.y = GetGroundHeight(murialTarget);
 
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
@@ -712,12 +682,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _ronaPathToFerry[_ronaPathIndex];
                         float currentY = _ronaNpc.transform.position.y;
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            ronaTarget.y = hit.point.y;
-                        }
+                        ronaTarget.y = GetGroundHeight(ronaTarget);
 
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
@@ -755,12 +720,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _murialPathToFerry[_murialPathIndex];
                         float currentY = _murialNpc.transform.position.y;
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            murialTarget.y = hit.point.y;
-                        }
+                        murialTarget.y = GetGroundHeight(murialTarget);
 
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
@@ -798,12 +758,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _keikoPathToFerry[_keikoPathIndex];
                         float currentY = _keikoNpc.transform.position.y;
                         Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            keikoTarget.y = hit.point.y;
-                        }
+                        keikoTarget.y = GetGroundHeight(keikoTarget);
 
                         float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                         if (distToTarget > 0.2f)
@@ -841,12 +796,7 @@ namespace Nemuri.Scenes
                         Vector2 target2D = _feanorPathToFerry[_feanorPathIndex];
                         float currentY = _feanorNpc.transform.position.y;
                         Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-                        {
-                            feanorTarget.y = hit.point.y;
-                        }
+                        feanorTarget.y = GetGroundHeight(feanorTarget);
 
                         float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                         if (distToTarget > 0.2f)
@@ -899,11 +849,7 @@ namespace Nemuri.Scenes
                             Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
                             float currentY = _ronaNpc.transform.position.y;
                             Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                            if (Physics.Raycast(new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
-                            {
-                                ronaTarget.y = hit.point.y;
-                            }
+                            ronaTarget.y = GetGroundHeight(ronaTarget);
 
                             float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (distToTarget > 0.2f)
@@ -942,11 +888,7 @@ namespace Nemuri.Scenes
                             Vector2 target2D = _murialPathToGem[_murialPathIndex];
                             float currentY = _murialNpc.transform.position.y;
                             Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                            if (Physics.Raycast(new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
-                            {
-                                murialTarget.y = hit.point.y;
-                            }
+                            murialTarget.y = GetGroundHeight(murialTarget);
 
                             float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (distToTarget > 0.2f)
@@ -985,11 +927,7 @@ namespace Nemuri.Scenes
                             Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
                             float currentY = _keikoNpc.transform.position.y;
                             Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                            if (Physics.Raycast(new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
-                            {
-                                keikoTarget.y = hit.point.y;
-                            }
+                            keikoTarget.y = GetGroundHeight(keikoTarget);
 
                             float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (distToTarget > 0.2f)
@@ -1028,11 +966,7 @@ namespace Nemuri.Scenes
                             Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
                             float currentY = _feanorNpc.transform.position.y;
                             Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                            if (Physics.Raycast(new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
-                            {
-                                feanorTarget.y = hit.point.y;
-                            }
+                            feanorTarget.y = GetGroundHeight(feanorTarget);
 
                             float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (distToTarget > 0.2f)
@@ -1283,6 +1217,10 @@ namespace Nemuri.Scenes
         private void TriggerSecondDialogue()
         {
             _state = IntroState.SecondDialogue;
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.ResetSwapStateToKael();
+            }
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson2);
         }
@@ -1557,16 +1495,62 @@ namespace Nemuri.Scenes
             }
         }
 
+        public static float GetGroundHeight(Vector3 position)
+        {
+            Ray ray = new Ray(new Vector3(position.x, position.y + 15f, position.z), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 40f, 1 << 0);
+            
+            float bestY = position.y;
+            float highestGroundY = -999f;
+            
+            foreach (var hit in hits)
+            {
+                if (hit.collider == null) continue;
+                
+                GameObject hitObj = hit.collider.gameObject;
+                string nameLower = hitObj.name.ToLower();
+                
+                // Ignore player, NPCs, and helpers
+                if (hitObj.CompareTag("Player") || 
+                    hitObj.GetComponentInParent<CharacterController>() != null ||
+                    hitObj.GetComponentInParent<PlayerMovementChapt1>() != null ||
+                    hitObj.GetComponentInParent<PlayerMovement>() != null ||
+                    nameLower.Contains("npc") || 
+                    nameLower.Contains("chara") ||
+                    nameLower.Contains("player") ||
+                    nameLower.Contains("walking") ||
+                    nameLower.Contains("land") ||
+                    nameLower.Contains("spawn") ||
+                    nameLower.Contains("target") ||
+                    nameLower.Contains("waypoint"))
+                {
+                    continue;
+                }
+                
+                if (hitObj.layer == 2 || hitObj.layer == 3 || hitObj.layer == 6)
+                {
+                    continue;
+                }
+                
+                if (hit.point.y > highestGroundY)
+                {
+                    highestGroundY = hit.point.y;
+                }
+            }
+            
+            if (highestGroundY > -990f)
+            {
+                return highestGroundY;
+            }
+            return bestY;
+        }
+
         private void SnapToGround(GameObject npc)
         {
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
-            Ray ray = new Ray(pos + Vector3.up * 10f, Vector3.down);
-            if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-            {
-                pos.y = hit.point.y;
-                npc.transform.position = pos;
-            }
+            pos.y = GetGroundHeight(pos);
+            npc.transform.position = pos;
         }
 
         private void RotateNpcToFacePlayer(GameObject npc)
