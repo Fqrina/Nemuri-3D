@@ -23,6 +23,15 @@ namespace Nemuri.Core
         [SerializeField] private int _activeCharacterIndex = 0;
         public int ActiveCharacterIndex => _activeCharacterIndex;
 
+        public GameObject GetActivePlayerObject()
+        {
+            if (_activeCharacterIndex >= 0 && _activeCharacterIndex < _characters.Count)
+            {
+                return _characters[_activeCharacterIndex].playerObject;
+            }
+            return null;
+        }
+
         [Header("Camera Configurations")]
         [SerializeField] private FixedWorldOffsetCamera _followCamera;
 
@@ -193,7 +202,13 @@ namespace Nemuri.Core
                     _characters[i].npcObject.SetActive(!isActive);
                     if (!isActive)
                     {
-                        SnapToGround(_characters[i].npcObject);
+                        bool isMurialWaitingToFall = (_characters[i].npcObject.name == "MURIALNPC" || _characters[i].npcObject.name == "MURIAL NPC") &&
+                            (Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasMurialFallen);
+
+                        if (!isMurialWaitingToFall)
+                        {
+                            SnapToGround(_characters[i].npcObject);
+                        }
                     }
                 }
             }

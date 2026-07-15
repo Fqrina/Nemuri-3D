@@ -3440,8 +3440,8 @@ namespace Nemuri.Scenes
 
         public static float GetGroundHeight(Vector3 position)
         {
-            Ray ray = new Ray(new Vector3(position.x, position.y + 15f, position.z), Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 40f, 1 << 0);
+            Ray ray = new Ray(new Vector3(position.x, position.y + 2.0f, position.z), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 10f, 1 << 0);
             
             float bestY = position.y;
             float highestGroundY = -999f;
@@ -3465,7 +3465,18 @@ namespace Nemuri.Scenes
                     nameLower.Contains("land") ||
                     nameLower.Contains("spawn") ||
                     nameLower.Contains("target") ||
-                    nameLower.Contains("waypoint"))
+                    nameLower.Contains("waypoint") ||
+                    nameLower.Contains("roof") ||
+                    nameLower.Contains("dome") ||
+                    nameLower.Contains("ceiling") ||
+                    nameLower.Contains("pillar") ||
+                    nameLower.Contains("column") ||
+                    nameLower.Contains("arch") ||
+                    nameLower.Contains("treetop") ||
+                    nameLower.Contains("leaf") ||
+                    nameLower.Contains("leaves") ||
+                    nameLower.Contains("branch") ||
+                    nameLower.Contains("canopy"))
                 {
                     continue;
                 }
