@@ -27,6 +27,8 @@ namespace Nemuri.Scenes
             Completed,
             CrescentTearPart1,
             CrescentTearPart2,
+            CrescentTearPart3,
+            CrescentTearCollectedDialogue,
             WaitingForCrescentDialogue,
             SomniaSeedPart1,
             SomniaSeedPart2,
@@ -267,8 +269,12 @@ namespace Nemuri.Scenes
         private bool _dialogueSomniaStarted = false;
         public bool HasDialogueSomniaEnded { get; private set; } = false;
         public bool HasCrescentTearPart1Started { get; private set; } = false;
-        public bool HasFeanorInteractedPuzzle2 { get; private set; } = false;
+        public bool HasCrescentTearPart1Ended { get; private set; } = false;
+        public bool HasMurialInteracted { get; private set; } = false;
         public bool HasCrescentTearPart2Ended { get; private set; } = false;
+        public bool HasFeanorInteracted { get; private set; } = false;
+        public bool HasCrescentTearPart3Ended { get; private set; } = false;
+        public bool HasCrescentTearCollected { get; private set; } = false;
         public bool HasSomniaSeedPart1Started { get; private set; } = false;
         public bool HasSomniaSeedPart1Ended { get; private set; } = false;
         public bool HasSomniaSeedPuzzleCompleted { get; private set; } = false;
@@ -402,7 +408,7 @@ namespace Nemuri.Scenes
             {
                 var interactable = p2Ip.GetComponent<Interactable>();
                 if (interactable == null) interactable = p2Ip.AddComponent<Interactable>();
-                interactable.PromptText = "Investigate Resonance (E)";
+                interactable.PromptText = "Press E to Resonance";
                 interactable.InteractionRange = 4.0f;
                 interactable.HoldSeconds = 0f;
                 if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
@@ -1615,30 +1621,78 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.CrescentTearPart1:
-                    // Unlock Feanor (index 4) and force swap to Feanor
+                    HasCrescentTearPart1Ended = true;
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);
+                        CharacterSwapManager.Instance.SwapToCharacter(2);
+                    }
+                    SetPlayerMovementEnabled(true);
+                    
+                    GameObject p2Ip1 = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2Ip1 != null)
+                    {
+                        var inter = p2Ip1.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Rip Vines (E)";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Crescent Tear Part 1 ended. Forced swap to Murial.");
+                    break;
+
+                case IntroState.CrescentTearPart2:
+                    HasCrescentTearPart2Ended = true;
                     if (CharacterSwapManager.Instance != null)
                     {
                         CharacterSwapManager.Instance.SetCharacterUnlocked(4, true);
                         CharacterSwapManager.Instance.SwapToCharacter(4);
                     }
                     SetPlayerMovementEnabled(true);
-                    Debug.Log("[NocturneIntroController] Crescent Tear Part 1 ended. Forced swap to Feanor.");
+                    
+                    GameObject p2Ip2 = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2Ip2 != null)
+                    {
+                        var inter = p2Ip2.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Untangle Vines (E)";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended. Forced swap to Feanor.");
                     break;
 
-                case IntroState.CrescentTearPart2:
+                case IntroState.CrescentTearPart3:
                     SetPlayerMovementEnabled(true);
-                    HasCrescentTearPart2Ended = true;
-                    SetPuzzle2InteractionActive(false); // Deactivate Crescent Tear interaction point
-                    
-                    // Set Crescent Tear (dobj) crystal pickup interactable enabled so it can be collected
+                    HasCrescentTearPart3Ended = true;
+
+                    GameObject p2Ip3 = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2Ip3 != null)
+                    {
+                        var inter = p2Ip3.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
                     GameObject dobjObj = GameObject.Find("dobj");
                     if (dobjObj != null)
                     {
+                        var col = dobjObj.GetComponent<Collider>();
+                        if (col != null) col.enabled = true;
+                        
                         var inter = dobjObj.GetComponent<Interactable>();
                         if (inter != null) inter.enabled = true;
                     }
 
-                    Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended.");
+                    Debug.Log("[NocturneIntroController] Crescent Tear Part 3 ended. Crystal is now collectable.");
+                    break;
+
+                case IntroState.CrescentTearCollectedDialogue:
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Crescent Tear collected dialogue ended.");
                     break;
 
                 case IntroState.SomniaSeedCollectedDialogue:
@@ -1848,20 +1902,61 @@ namespace Nemuri.Scenes
             {
                 TriggerCrescentTearWalkSequence();
             }
-            else if (!HasFeanorInteractedPuzzle2)
+            else if (HasCrescentTearPart1Ended && !HasMurialInteracted)
             {
+                // Must be Murial to rip the vines
+                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 2)
+                {
+                    HasMurialInteracted = true;
+                    
+                    // Disable interactable temporarily
+                    GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2Ip != null)
+                    {
+                        var inter = p2Ip.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+                    
+                    TriggerCrescentTearPart2Dialogue();
+                }
+                else
+                {
+                    Debug.Log("[NocturneIntroController] Only Murial can rip the vines!");
+                }
+
+                GameObject p2IpObj = GameObject.Find("Puzzle2InteractionPoint");
+                if (p2IpObj != null)
+                {
+                    var inter = p2IpObj.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+            }
+            else if (HasCrescentTearPart2Ended && !HasFeanorInteracted)
+            {
+                // Must be Feanor to untangle the vines
                 if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
                 {
+                    HasFeanorInteracted = true;
+
+                    // Disable interactable temporarily
+                    GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2Ip != null)
+                    {
+                        var inter = p2Ip.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
                     TriggerFeanorPuzzle2Interaction();
                 }
                 else
                 {
-                    Debug.Log("[NocturneIntroController] Must use Feanor to interact with Crescent Tear vines!");
+                    Debug.Log("[NocturneIntroController] Only Feanor can untangle the vines!");
                 }
-                GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-                if (p2Ip != null)
+
+                GameObject p2IpObj = GameObject.Find("Puzzle2InteractionPoint");
+                if (p2IpObj != null)
                 {
-                    var inter = p2Ip.GetComponent<Interactable>();
+                    var inter = p2IpObj.GetComponent<Interactable>();
                     if (inter != null) inter.DismissInteraction();
                 }
             }
@@ -1909,8 +2004,8 @@ namespace Nemuri.Scenes
             DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
             if (seq == null || seq.nodes == null) return;
 
-            // Part 1: nodes 0 to 9 (N12 - D64)
-            List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 10);
+            // Part 1: nodes 0 to 4 (N12 - D61 + T9)
+            List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 5);
 
             _state = IntroState.CrescentTearPart1;
             SetPlayerMovementEnabled(false);
@@ -1923,9 +2018,6 @@ namespace Nemuri.Scenes
 
         public void TriggerFeanorPuzzle2Interaction()
         {
-            if (HasFeanorInteractedPuzzle2) return;
-            HasFeanorInteractedPuzzle2 = true;
-
             SetPlayerMovementEnabled(false);
 
             GameObject cubeObj = null;
@@ -1952,8 +2044,8 @@ namespace Nemuri.Scenes
             DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
             if (seq == null || seq.nodes == null) return;
 
-            // Part 2: nodes 10 to end (N14 - T11)
-            List<DialogueNode> part2Nodes = seq.nodes.GetRange(10, seq.nodes.Count - 10);
+            // Part 2: nodes 5 to 14 (SFX: CRACK - T10)
+            List<DialogueNode> part2Nodes = seq.nodes.GetRange(5, 10);
 
             _state = IntroState.CrescentTearPart2;
 
@@ -1972,9 +2064,9 @@ namespace Nemuri.Scenes
             Vector3 startDobjPos = dobjObj != null ? dobjObj.transform.position : Vector3.zero;
 
             float startX = startCubePos.x;
-            float endX = 18.21f;
+            float endX = startX + 5.0f; // Cube.001 (1) X koordinatnya +5 Unit smooth
             float startY = startDobjPos.y;
-            float endY = 0.46f;
+            float endY = startY - 1.0f; // Y koordinat dari dobj turun 1 unit secara smooth
 
             while (elapsed < duration)
             {
@@ -2013,7 +2105,51 @@ namespace Nemuri.Scenes
                 dobjObj.transform.position = finalDobjPos;
             }
 
-            TriggerCrescentTearPart2Dialogue();
+            TriggerCrescentTearPart3Dialogue();
+        }
+
+        private void TriggerCrescentTearPart3Dialogue()
+        {
+            TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
+            if (dialogueJson == null) return;
+
+            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
+            if (seq == null || seq.nodes == null) return;
+
+            // Part 3: nodes 15 to end (N15 - T11)
+            List<DialogueNode> part3Nodes = seq.nodes.GetRange(15, seq.nodes.Count - 15);
+
+            _state = IntroState.CrescentTearPart3;
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part3Nodes);
+            }
+        }
+
+        public void TriggerCrescentTearCollectedDialogue()
+        {
+            if (HasCrescentTearCollected) return;
+            HasCrescentTearCollected = true;
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode()
+                {
+                    speaker = "Kael",
+                    text = "Nice! We obtained the Crescent Tear. Next, let's search for the third source... the Dreampearl.",
+                    portraitName = "Kael",
+                    typingSpeed = 0.05f
+                }
+            };
+            
+            _state = IntroState.CrescentTearCollectedDialogue;
+            SetPlayerMovementEnabled(false);
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
         }
 
         private GameObject FindCrystalObject()

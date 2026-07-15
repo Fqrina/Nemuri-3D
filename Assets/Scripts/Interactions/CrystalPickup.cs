@@ -41,6 +41,13 @@ namespace Nemuri.Interactions
                     Nemuri.Scenes.NocturneIntroController.Instance.TriggerSomniaSeedCollectedDialogue();
                 }
             }
+            else if (gameObject.name == "dobj")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerCrescentTearCollectedDialogue();
+                }
+            }
         }
 
         private static void EnsurePuzzleManager()
