@@ -116,6 +116,11 @@ namespace Nemuri.Core
 
         private void HandleInput()
         {
+            if (!Nemuri.Scenes.NocturneIntroController.IsIntroCompleted)
+            {
+                return;
+            }
+
             if (Keyboard.current == null)
             {
                 return;

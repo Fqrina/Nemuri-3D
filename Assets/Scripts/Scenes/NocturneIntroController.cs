@@ -27,6 +27,8 @@ namespace Nemuri.Scenes
             Completed
         }
 
+        public static bool IsIntroCompleted { get; private set; } = false;
+
         [Header("NPC GameObjects")]
         [SerializeField] private GameObject _ronaNpc;
         [SerializeField] private GameObject _murialNpc;
@@ -64,8 +66,13 @@ namespace Nemuri.Scenes
 
         private GameObject _portalObject;
 
-        // Rona NPC Path movement variables
+        // Path indices for NPCs
         private int _ronaPathIndex = 0;
+        private int _murialPathIndex = 0;
+        private int _keikoPathIndex = 0;
+        private int _feanorPathIndex = 0;
+
+        // 1. Rona NPC Path to Keiko (3 Waypoints)
         private List<Vector2> _ronaPath = new List<Vector2>()
         {
             new Vector2(-26.04f, 114.53f),
@@ -73,19 +80,7 @@ namespace Nemuri.Scenes
             new Vector2(-20.44f, 104.67f)
         };
 
-        private List<Vector2> _ronaPathToFeanor = new List<Vector2>()
-        {
-            new Vector2(-16.21f, 104.38f),
-            new Vector2(-13.42f, 100.42f),
-            new Vector2(-13.42f, 96.54f),
-            new Vector2(-19.94f, 92.69f),
-            new Vector2(-26.42f, 89.76f),
-            new Vector2(-29.11f, 84.72f),
-            new Vector2(-29.44f, 74.89f)
-        };
-
-        // Murial NPC Path movement variables
-        private int _murialPathIndex = 0;
+        // 2. Murial NPC Path to Keiko (5 Waypoints)
         private List<Vector2> _murialPath = new List<Vector2>()
         {
             new Vector2(-21.8f, 122.85f),
@@ -95,19 +90,7 @@ namespace Nemuri.Scenes
             new Vector2(-19.37f, 106.16f)
         };
 
-        private List<Vector2> _murialPathToFeanor = new List<Vector2>()
-        {
-            new Vector2(-13.21f, 103.38f),
-            new Vector2(-10.42f, 99.42f),
-            new Vector2(-10.42f, 95.54f),
-            new Vector2(-16.94f, 91.69f),
-            new Vector2(-23.42f, 88.76f),
-            new Vector2(-26.11f, 83.72f),
-            new Vector2(-26.44f, 73.89f)
-        };
-
-        // Keiko NPC Path movement variables
-        private int _keikoPathIndex = 0;
+        // 3. Keiko NPC Path to Feanor (7 Waypoints)
         private List<Vector2> _keikoPath = new List<Vector2>()
         {
             new Vector2(-14.71f, 103.88f),
@@ -116,11 +99,62 @@ namespace Nemuri.Scenes
             new Vector2(-18.44f, 92.19f),
             new Vector2(-24.92f, 89.26f),
             new Vector2(-27.61f, 84.22f),
-            new Vector2(-27.94f, 74.39f) // Waypoint 7
+            new Vector2(-27.94f, 74.39f)
+        };
+
+        // 4. Group Paths to Ferry (8 Waypoints each, sharing the narrow gate at point 6)
+        private List<Vector2> _ronaPathToFerry = new List<Vector2>()
+        {
+            new Vector2(-28.08f, 83.21f),
+            new Vector2(-26.88f, 87.65f),
+            new Vector2(-24.91f, 89.56f),
+            new Vector2(-21.62f, 91.87f),
+            new Vector2(-16.36f, 93.07f),
+            new Vector2(-15.86f, 89.98f), // Gate (exact)
+            new Vector2(-16.4f, 86.63f),  // Offset
+            new Vector2(-15.86f, 84.95f)  // Final
+        };
+
+        private List<Vector2> _murialPathToFerry = new List<Vector2>()
+        {
+            new Vector2(-27.08f, 82.21f),
+            new Vector2(-25.88f, 86.65f),
+            new Vector2(-23.91f, 88.56f),
+            new Vector2(-20.62f, 90.87f),
+            new Vector2(-15.36f, 92.07f),
+            new Vector2(-15.86f, 89.98f), // Gate (exact)
+            new Vector2(-14.8f, 86.63f),  // Offset
+            new Vector2(-14.6f, 84.8f)    // Final
+        };
+
+        private List<Vector2> _keikoPathToFerry = new List<Vector2>()
+        {
+            new Vector2(-27.78f, 82.91f),
+            new Vector2(-26.58f, 87.35f),
+            new Vector2(-24.61f, 89.26f),
+            new Vector2(-21.32f, 91.57f),
+            new Vector2(-16.06f, 92.77f),
+            new Vector2(-15.86f, 89.98f), // Gate (exact)
+            new Vector2(-15.9f, 86.63f),  // Offset
+            new Vector2(-17.57f, 84.38f)  // Final
+        };
+
+        private List<Vector2> _feanorPathToFerry = new List<Vector2>()
+        {
+            new Vector2(-27.38f, 82.51f),
+            new Vector2(-26.18f, 86.95f),
+            new Vector2(-24.21f, 88.86f),
+            new Vector2(-20.92f, 91.17f),
+            new Vector2(-15.66f, 92.37f),
+            new Vector2(-15.86f, 89.98f), // Gate (exact)
+            new Vector2(-15.3f, 86.63f),  // Offset
+            new Vector2(-19.48f, 83.77f)  // Final
         };
 
         private void Start()
         {
+            IsIntroCompleted = false; // Reset lock on start
+
             Debug.Log($"[NocturneIntroController] Start initialized. Rona NPC: {_ronaNpc != null}, Murial NPC: {_murialNpc != null}, Gate: {_gateController != null}");
 
             if (DialogueManager.Instance == null)
@@ -451,7 +485,7 @@ namespace Nemuri.Scenes
                         }
                     }
 
-                    // Rona NPC walks to Feanor (along with Keiko)
+                    // Rona NPC walks to Feanor
                     if (_ronaNpc != null && _ronaPathIndex < _ronaPathToFeanor.Count)
                     {
                         Vector2 target2D = _ronaPathToFeanor[_ronaPathIndex];
@@ -504,7 +538,7 @@ namespace Nemuri.Scenes
                         }
                     }
 
-                    // Murial NPC walks to Feanor (along with Keiko)
+                    // Murial NPC walks to Feanor
                     if (_murialNpc != null && _murialPathIndex < _murialPathToFeanor.Count)
                     {
                         Vector2 target2D = _murialPathToFeanor[_murialPathIndex];
@@ -561,7 +595,185 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForFerry:
+                    // 1. Rona NPC path movement to Ferry
+                    if (_ronaNpc != null && _ronaPathIndex < _ronaPathToFerry.Count)
+                    {
+                        Vector2 target2D = _ronaPathToFerry[_ronaPathIndex];
+                        float currentY = _ronaNpc.transform.position.y;
+                        Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            ronaTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_ronaNpc, true);
+                        }
+                        else
+                        {
+                            _ronaPathIndex++;
+                            if (_ronaPathIndex >= _ronaPathToFerry.Count)
+                            {
+                                SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                    }
+                    else if (_ronaNpc != null)
+                    {
+                        SetNpcMoving(_ronaNpc, false);
+                        RotateNpcToFacePlayer(_ronaNpc);
+                    }
+
+                    // 2. Murial NPC path movement to Ferry
+                    if (_murialNpc != null && _murialPathIndex < _murialPathToFerry.Count)
+                    {
+                        Vector2 target2D = _murialPathToFerry[_murialPathIndex];
+                        float currentY = _murialNpc.transform.position.y;
+                        Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            murialTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_murialNpc, true);
+                        }
+                        else
+                        {
+                            _murialPathIndex++;
+                            if (_murialPathIndex >= _murialPathToFerry.Count)
+                            {
+                                SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                    }
+                    else if (_murialNpc != null)
+                    {
+                        SetNpcMoving(_murialNpc, false);
+                        RotateNpcToFacePlayer(_murialNpc);
+                    }
+
+                    // 3. Keiko NPC path movement to Ferry
+                    if (_keikoNpc != null && _keikoPathIndex < _keikoPathToFerry.Count)
+                    {
+                        Vector2 target2D = _keikoPathToFerry[_keikoPathIndex];
+                        float currentY = _keikoNpc.transform.position.y;
+                        Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            keikoTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_keikoNpc, true);
+                        }
+                        else
+                        {
+                            _keikoPathIndex++;
+                            if (_keikoPathIndex >= _keikoPathToFerry.Count)
+                            {
+                                SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                    }
+                    else if (_keikoNpc != null)
+                    {
+                        SetNpcMoving(_keikoNpc, false);
+                        RotateNpcToFacePlayer(_keikoNpc);
+                    }
+
+                    // 4. Feanor NPC path movement to Ferry
+                    if (_feanorNpc != null && _feanorPathIndex < _feanorPathToFerry.Count)
+                    {
+                        Vector2 target2D = _feanorPathToFerry[_feanorPathIndex];
+                        float currentY = _feanorNpc.transform.position.y;
+                        Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            feanorTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_feanorNpc, true);
+                        }
+                        else
+                        {
+                            _feanorPathIndex++;
+                            if (_feanorPathIndex >= _feanorPathToFerry.Count)
+                            {
+                                SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                    }
+                    else if (_feanorNpc != null)
+                    {
+                        SetNpcMoving(_feanorNpc, false);
+                        RotateNpcToFacePlayer(_feanorNpc);
+                    }
+
                     CheckApproach(_ferryNpc, () => TriggerFifthDialogue());
+                    break;
+
+                case IntroState.FifthDialogue:
+                    break;
+
+                case IntroState.Completed:
                     break;
             }
         }
@@ -826,6 +1038,13 @@ namespace Nemuri.Scenes
                     {
                         CharacterSwapManager.Instance.SetCharacterUnlocked(4, true); // Unlock Feanor
                     }
+
+                    // Reset path indices for all 4 NPCs so they start walking to the Ferry (Bunny)
+                    _ronaPathIndex = 0;
+                    _murialPathIndex = 0;
+                    _keikoPathIndex = 0;
+                    _feanorPathIndex = 0;
+
                     _state = IntroState.WaitingForFerry;
                     break;
 
@@ -833,6 +1052,7 @@ namespace Nemuri.Scenes
                     SetPlayerMovementEnabled(true);
                     SetCrystalsInteractable(true);
                     _state = IntroState.Completed;
+                    IsIntroCompleted = true; // Unlock character swaps!
                     Debug.Log("[NocturneIntroController] Intro flow sequence fully completed!");
                     break;
             }
