@@ -32,18 +32,24 @@ namespace Nemuri.Scenes
 
         public static bool CanSwapTo(int characterIndex)
         {
-            if (IsIntroCompleted)
-            {
-                return true;
-            }
-
             if (Instance != null)
             {
+                // Lock character swaps during Somnia Seed puzzle approach/walk and dialogue phase
+                if (Instance._startGemPuzzleWalk && !Instance._hasDialogueSomniaEnded)
+                {
+                    return false;
+                }
+
                 if (Instance._state == IntroState.WaitingForGate)
                 {
                     // Allow Kael (0), Rona (1), and Murial (2) when waiting to lower the gate
                     return characterIndex == 0 || characterIndex == 1 || characterIndex == 2;
                 }
+            }
+
+            if (IsIntroCompleted)
+            {
+                return true;
             }
 
             // Lock manual swaps completely after the gate is opened until intro is completed
@@ -247,6 +253,7 @@ namespace Nemuri.Scenes
         private TextAsset _dialogueJsonSomnia;
         private bool _startGemPuzzleWalk = false;
         private bool _dialogueSomniaStarted = false;
+        private bool _hasDialogueSomniaEnded = false;
 
         private void Start()
         {
@@ -1339,6 +1346,12 @@ namespace Nemuri.Scenes
                     _crystalObject = FindCrystalObject();
                     
                     Debug.Log("[NocturneIntroController] Intro flow sequence completed! Waiting for player to interact with dobj.001.");
+                    break;
+
+                case IntroState.Completed:
+                    SetPlayerMovementEnabled(true);
+                    _hasDialogueSomniaEnded = true;
+                    Debug.Log("[NocturneIntroController] Somnia Seed dialogue ended.");
                     break;
             }
         }
