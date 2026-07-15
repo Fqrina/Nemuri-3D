@@ -27,7 +27,9 @@ namespace Nemuri.Scenes
             Completed,
             CrescentTearPart1,
             CrescentTearPart2,
-            WaitingForCrescentDialogue
+            WaitingForCrescentDialogue,
+            SomniaSeedPart1,
+            SomniaSeedPart2
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -266,6 +268,9 @@ namespace Nemuri.Scenes
         public bool HasCrescentTearPart1Started { get; private set; } = false;
         public bool HasFeanorInteractedPuzzle2 { get; private set; } = false;
         public bool HasCrescentTearPart2Ended { get; private set; } = false;
+        public bool HasSomniaSeedPart1Started { get; private set; } = false;
+        public bool HasSomniaSeedPart1Ended { get; private set; } = false;
+        public bool HasSomniaSeedPuzzleCompleted { get; private set; } = false;
 
         private bool _startCrescentWalk = false;
         private bool _crescentDialogueStarted = false;
@@ -374,6 +379,21 @@ namespace Nemuri.Scenes
             }
 
             SetCrystalsInteractable(false);
+
+            // Dynamically configure rockpuzzle1 (stone) interaction
+            GameObject rock1 = GameObject.Find("rockpuzzle1");
+            if (rock1 != null)
+            {
+                var interactable = rock1.GetComponent<Interactable>();
+                if (interactable == null) interactable = rock1.AddComponent<Interactable>();
+                interactable.PromptText = "Lift Stone (E)";
+                interactable.InteractionRange = 4.0f;
+                interactable.HoldSeconds = 0f;
+                if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
+                interactable.OnInteract.RemoveAllListeners();
+                interactable.OnInteract.AddListener(OnRock1Interacted);
+                interactable.enabled = true; // Enabled at start!
+            }
 
             // Dynamically configure Puzzle2InteractionPoint
             GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
@@ -1090,7 +1110,7 @@ namespace Nemuri.Scenes
                             if (allArrived)
                             {
                                 _dialogueSomniaStarted = true;
-                                TriggerGemPuzzleDialogue();
+                                TriggerSomniaSeedPart1Dialogue();
                             }
                         }
                     }
@@ -1546,11 +1566,51 @@ namespace Nemuri.Scenes
                     Debug.Log("[NocturneIntroController] Intro flow sequence completed! Waiting for player to interact with dobj.001.");
                     break;
 
-                case IntroState.Completed:
+                case IntroState.SomniaSeedPart1:
+                    HasSomniaSeedPart1Ended = true;
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);
+                        CharacterSwapManager.Instance.SwapToCharacter(2);
+                    }
+                    SetPlayerMovementEnabled(true);
+                    
+                    GameObject rock1 = GameObject.Find("rockpuzzle1");
+                    if (rock1 != null)
+                    {
+                        var inter = rock1.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Lift Stone (E)";
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Somnia Seed Part 1 ended. Forced swap to Murial.");
+                    break;
+
+                case IntroState.SomniaSeedPart2:
                     SetPlayerMovementEnabled(true);
                     HasDialogueSomniaEnded = true;
-                    SetPuzzle2InteractionActive(true); // Activate Crescent Tear interaction point
-                    Debug.Log("[NocturneIntroController] Somnia Seed dialogue ended.");
+
+                    GameObject dobj001 = FindCrystalByName("dobj.001");
+                    if (dobj001 != null)
+                    {
+                        var col = dobj001.GetComponent<Collider>();
+                        if (col != null) col.enabled = true;
+                        
+                        var inter = dobj001.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = true;
+                    }
+
+                    GameObject rock1Obj = GameObject.Find("rockpuzzle1");
+                    if (rock1Obj != null)
+                    {
+                        var inter = rock1Obj.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    SetPuzzle2InteractionActive(true);
+                    Debug.Log("[NocturneIntroController] Somnia Seed Part 2 ended. Crystal is now collectable.");
                     break;
 
                 case IntroState.CrescentTearPart1:
@@ -1612,10 +1672,45 @@ namespace Nemuri.Scenes
             }
         }
 
+        private void OnRock1Interacted()
+        {
+            if (!HasSomniaSeedPart1Started)
+            {
+                TriggerSomniaSeedWalkSequence();
+            }
+            else if (HasSomniaSeedPart1Ended && !HasSomniaSeedPuzzleCompleted)
+            {
+                // If they interact with the rock again, and they are Murial:
+                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 2)
+                {
+                    GameObject dobj001 = FindCrystalByName("dobj.001");
+                    if (dobj001 != null)
+                    {
+                        var minigame = dobj001.GetComponent<Nemuri.Interactions.CrystalMinigame>();
+                        if (minigame != null)
+                        {
+                            minigame.StartMinigame();
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.Log("[NocturneIntroController] Only Murial can lift the stone!");
+                }
+
+                GameObject rock1 = GameObject.Find("rockpuzzle1");
+                if (rock1 != null)
+                {
+                    var inter = rock1.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+            }
+        }
+
         public void TriggerSomniaSeedWalkSequence()
         {
-            if (_hasTriggeredGemPuzzle) return;
-            
+            if (HasSomniaSeedPart1Started) return;
+            HasSomniaSeedPart1Started = true;
             _hasTriggeredGemPuzzle = true;
             SetPlayerMovementEnabled(false);
             
@@ -1632,19 +1727,91 @@ namespace Nemuri.Scenes
             _feanorPathIndex = 0;
 
             _startGemPuzzleWalk = true;
-            Debug.Log("[NocturneIntroController] Player interacted with dobj.001! Commencing NPC walking sequence.");
+            Debug.Log("[NocturneIntroController] Player interacted with rockpuzzle1! Commencing NPC walking sequence.");
         }
 
-        private void TriggerGemPuzzleDialogue()
+        private void TriggerSomniaSeedPart1Dialogue()
         {
-            _hasTriggeredGemPuzzle = true;
-            Debug.Log("[NocturneIntroController] Player touched dobj.001! Triggering Somnia Seed dialogue.");
-
             if (_dialogueJsonSomnia == null)
             {
                 _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
             }
-            PlayDialogue(_dialogueJsonSomnia);
+            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(_dialogueJsonSomnia.text);
+            if (seq == null || seq.nodes == null) return;
+
+            // Part 1: nodes 0 to 5 (D53 - T7)
+            List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 6);
+
+            _state = IntroState.SomniaSeedPart1;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part1Nodes);
+            }
+        }
+
+        public void OnSomniaSeedPuzzleSuccess()
+        {
+            if (HasSomniaSeedPuzzleCompleted) return;
+            HasSomniaSeedPuzzleCompleted = true;
+
+            SetPlayerMovementEnabled(false);
+
+            GameObject rock1 = GameObject.Find("rockpuzzle1");
+            StartCoroutine(SmoothMoveRock1Routine(rock1));
+        }
+
+        private IEnumerator SmoothMoveRock1Routine(GameObject rockObj)
+        {
+            float duration = 2.0f; // Smoothly lower over 2 seconds
+            float elapsed = 0f;
+
+            Vector3 startPos = rockObj != null ? rockObj.transform.position : Vector3.zero;
+            float startY = startPos.y;
+            float endY = startY - 1.0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float tSmooth = Mathf.SmoothStep(0f, 1f, t);
+
+                if (rockObj != null)
+                {
+                    Vector3 currentPos = rockObj.transform.position;
+                    currentPos.y = Mathf.Lerp(startY, endY, tSmooth);
+                    rockObj.transform.position = currentPos;
+                }
+
+                yield return null;
+            }
+
+            if (rockObj != null)
+            {
+                Vector3 finalPos = rockObj.transform.position;
+                finalPos.y = endY;
+                rockObj.transform.position = finalPos;
+            }
+
+            TriggerSomniaSeedPart2Dialogue();
+        }
+
+        private void TriggerSomniaSeedPart2Dialogue()
+        {
+            if (_dialogueJsonSomnia == null)
+            {
+                _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
+            }
+            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(_dialogueJsonSomnia.text);
+            if (seq == null || seq.nodes == null) return;
+
+            // Part 2: nodes 6 to 9 (N11 - T8)
+            List<DialogueNode> part2Nodes = seq.nodes.GetRange(6, seq.nodes.Count - 6);
+
+            _state = IntroState.SomniaSeedPart2;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part2Nodes);
+            }
         }
 
         private void OnPuzzle2Interacted()
@@ -1853,24 +2020,23 @@ namespace Nemuri.Scenes
                 GameObject crystal = FindCrystalByName(name);
                 if (crystal != null)
                 {
+                    bool isCompleted = false;
+                    if (name == "dobj.001") isCompleted = HasSomniaSeedPuzzleCompleted;
+                    else if (name == "dobj") isCompleted = HasCrescentTearPart2Ended;
+                    else isCompleted = true; // For Puzzle 3, enabled by default
+
+                    bool shouldEnable = active && isCompleted;
+
                     var colliders = crystal.GetComponentsInChildren<Collider>(true);
                     foreach (var col in colliders)
                     {
-                        col.enabled = active;
+                        col.enabled = shouldEnable;
                     }
 
                     var interactable = crystal.GetComponent<Interactable>();
                     if (interactable != null)
                     {
-                        // For Crescent Tear (dobj), it should only be enabled AFTER Feanor untangles the vines!
-                        if (name == "dobj")
-                        {
-                            interactable.enabled = active && HasCrescentTearPart2Ended;
-                        }
-                        else
-                        {
-                            interactable.enabled = active;
-                        }
+                        interactable.enabled = shouldEnable;
                     }
                 }
             }

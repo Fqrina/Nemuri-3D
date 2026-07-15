@@ -67,17 +67,14 @@ namespace Nemuri.Interactions
             }
         }
 
-        private void StartMinigame()
+        public void StartMinigame()
         {
             if (gameObject.name == "dobj.001")
             {
-                if (Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasDialogueSomniaEnded)
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && Nemuri.Scenes.NocturneIntroController.Instance.HasSomniaSeedPuzzleCompleted)
                 {
-                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerSomniaSeedWalkSequence();
-                    if (_interactable != null)
-                    {
-                        _interactable.DismissInteraction();
-                    }
+                    if (_crystalPickup != null) _crystalPickup.Collect();
+                    if (_interactable != null) _interactable.DismissInteraction();
                     return;
                 }
 
@@ -280,7 +277,14 @@ namespace Nemuri.Interactions
 
             if (completed)
             {
-                if (_crystalPickup != null)
+                if (gameObject.name == "dobj.001")
+                {
+                    if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                    {
+                        Nemuri.Scenes.NocturneIntroController.Instance.OnSomniaSeedPuzzleSuccess();
+                    }
+                }
+                else if (_crystalPickup != null)
                 {
                     _crystalPickup.Collect();
                 }
