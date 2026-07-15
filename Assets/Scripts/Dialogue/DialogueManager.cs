@@ -42,16 +42,17 @@ namespace Nemuri.Dialogue
         private const string PlayerTag = "Player";
         private const string DialogueCanvasName = "Dialogue Canvas";
 
-        public static DialogueManager Instance { get; private set; }
+        public static DialogueManager Instance { get; protected set; }
 
         public static System.Action OnConversationStart;
         public static System.Action OnConversationEnd;
         public static System.Action<DialogueNode> OnNodeDisplayed;
 
         public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
+        public bool canProceed = true;
 
         [Header("Prefab UI References")]
-        [SerializeField] private GameObject _dialoguePanel;
+        [SerializeField] protected GameObject _dialoguePanel;
         [SerializeField] private Text _nameText;
         [SerializeField] private Text _dialogueText;
         [SerializeField] private Image _portraitImage;
@@ -67,17 +68,20 @@ namespace Nemuri.Dialogue
         [SerializeField] private Image _panelBackgroundImage;
 
         [Header("Panel Size & Position")]
-        [SerializeField] private PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
+        [SerializeField]
+        private PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField] private PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
+        [SerializeField]
+        private PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField] private PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
+        [SerializeField]
+        private PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
@@ -98,17 +102,20 @@ namespace Nemuri.Dialogue
         [SerializeField] private Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
 
         [Header("Name Text Layout")]
-        [SerializeField] private NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
+        [SerializeField]
+        private NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField] private NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
+        [SerializeField]
+        private NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField] private NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
+        [SerializeField]
+        private NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
@@ -124,10 +131,10 @@ namespace Nemuri.Dialogue
         private InputAction _interactAction;
         private readonly Queue<DialogueNode> _nodes = new Queue<DialogueNode>();
         private bool _isTyping;
-        private bool _waitingForInput;
-        private DialogueNode _currentNode;
+        protected bool _waitingForInput;
+        protected DialogueNode _currentNode;
         private Coroutine _typingCoroutine;
-        private Coroutine _autoCloseCoroutine;
+        protected Coroutine _autoCloseCoroutine;
         private AudioSource _audioSource;
         [Header("Font Setting")]
         [SerializeField] private Font _customFont;
@@ -135,12 +142,12 @@ namespace Nemuri.Dialogue
         private string _activeSpeaker = "";
         private Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
-                return;
+                Debug.Log($"[DialogueManager] Destroying older/duplicate instance of type {Instance.GetType().Name} to replace with new instance of type {this.GetType().Name}.");
+                Destroy(Instance.gameObject);
             }
 
             Instance = this;
@@ -158,7 +165,7 @@ namespace Nemuri.Dialogue
             _audioSource.loop = false;
         }
 
-        private void Start()
+        protected virtual void Start()
         {
             BindPlayerInput();
             SetupInput();
@@ -204,11 +211,15 @@ namespace Nemuri.Dialogue
             Debug.LogWarning("[DialogueManager] Interact action was not found in the PlayerInput actions.", this);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (_interactAction != null)
             {
                 _interactAction.performed -= OnInteractAction;
+            }
+            if (Instance == this)
+            {
+                Instance = null;
             }
         }
 
@@ -276,6 +287,12 @@ namespace Nemuri.Dialogue
 
             _currentNode = _nodes.Dequeue();
             OnNodeDisplayed?.Invoke(_currentNode);
+
+            if (string.Equals(_currentNode.speaker, "SFX", System.StringComparison.OrdinalIgnoreCase))
+            {
+                DisplayNextNode();
+                return;
+            }
 
             bool hideName = string.Equals(_currentNode.speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) ||
@@ -487,7 +504,7 @@ namespace Nemuri.Dialogue
             _audioSource.Play();
         }
 
-        private void StopDialogueAudio()
+        protected void StopDialogueAudio()
         {
             if (_audioSource == null)
             {
@@ -501,7 +518,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void SetSkipPromptVisible(bool visible)
+        protected void SetSkipPromptVisible(bool visible)
         {
             if (_skipPromptText != null)
             {
@@ -562,7 +579,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private IEnumerator AutoCloseRoutine(float delay)
+        protected IEnumerator AutoCloseRoutine(float delay)
         {
             yield return new WaitForSeconds(delay);
             if (_waitingForInput)
@@ -571,25 +588,26 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void ProceedToNextNode()
+        protected virtual void ProceedToNextNode()
         {
+            if (!canProceed)
+            {
+                if (_autoCloseCoroutine != null)
+                {
+                    StopCoroutine(_autoCloseCoroutine);
+                }
+                _autoCloseCoroutine = StartCoroutine(AutoCloseRoutine(0.5f));
+                return;
+            }
+
             if (_autoCloseCoroutine != null)
             {
                 StopCoroutine(_autoCloseCoroutine);
                 _autoCloseCoroutine = null;
             }
-            
-            _waitingForInput = false;
 
-            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
-                WalkingSceneObjectiveManager.Instance != null)
-            {
-                PauseConversationForObjective(_currentNode.text);
-            }
-            else
-            {
-                DisplayNextNode();
-            }
+            _waitingForInput = false;
+            DisplayNextNode();
         }
 
         public void OnInteractAction(InputAction.CallbackContext context)
@@ -615,19 +633,6 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void PauseConversationForObjective(string objectiveText)
-        {
-            StopDialogueAudio();
-            SetSkipPromptVisible(false);
-
-            SetPlayerMovementEnabled(true);
-
-            if (WalkingSceneObjectiveManager.Instance != null)
-            {
-                WalkingSceneObjectiveManager.Instance.SetActiveObjective(objectiveText);
-            }
-        }
-
         public void ResumeConversation()
         {
             SetPlayerMovementEnabled(false);
@@ -636,7 +641,7 @@ namespace Nemuri.Dialogue
             DisplayNextNode();
         }
 
-        private void EndConversation()
+        protected virtual void EndConversation()
         {
             SetDialoguePanelActive(false);
             StopDialogueAudio();
@@ -657,16 +662,13 @@ namespace Nemuri.Dialogue
             OnConversationEnd?.Invoke();
         }
 
-        private void SetPlayerMovementEnabled(bool enabled)
+        public void ForceEndConversation()
         {
-            if (PlayerMovement.Instance != null)
-            {
-                PlayerMovement.Instance.SetCanMove(enabled);
-            }
-            if (PlayerMovementChapt1.Instance != null)
-            {
-                PlayerMovementChapt1.Instance.SetCanMove(enabled);
-            }
+            EndConversation();
+        }
+
+        protected virtual void SetPlayerMovementEnabled(bool enabled)
+        {
         }
 
         private void BindPlayerInput()
@@ -699,7 +701,7 @@ namespace Nemuri.Dialogue
                 && _skipPromptText != null;
         }
 
-        private void SetDialoguePanelActive(bool active)
+        protected void SetDialoguePanelActive(bool active)
         {
             if (_dialoguePanel != null)
             {

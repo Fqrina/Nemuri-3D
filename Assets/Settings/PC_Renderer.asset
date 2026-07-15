@@ -75,15 +75,15 @@ MonoBehaviour:
     AOMethod: 0
     Downsample: 0
     AfterOpaque: 0
-    Source: 1
+    Source: 0
     NormalSamples: 1
-    Intensity: 0.4
-    DirectLightingStrength: 0.25
-    Radius: 0.3
+    Intensity: 3.0
+    DirectLightingStrength: 0.0
+    Radius: 0.6
     Samples: 1
     BlurQuality: 0
     Falloff: 100
-    SampleCount: -1
+    SampleCount: 2
   m_BlueNoise256Textures:
   - {fileID: 2800000, guid: 36f118343fc974119bee3d09e2111500, type: 3}
   - {fileID: 2800000, guid: 4b7b083e6b6734e8bb2838b0b50a0bc8, type: 3}
