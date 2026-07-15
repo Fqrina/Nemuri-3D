@@ -47,24 +47,46 @@ namespace Nemuri.CameraEffects
 
             // Find all potential obstructions in a 15-unit radius around the camera
             Collider[] colliders = Physics.OverlapSphere(cameraPos, 15f, _layerMask);
+            
+            // Gather all unique root game objects on the CameraDisappear layer
+            HashSet<GameObject> uniqueRoots = new HashSet<GameObject>();
             foreach (var col in colliders)
             {
                 if (col == null) continue;
+                
+                GameObject rootObj = col.gameObject;
+                Transform parent = col.transform.parent;
+                while (parent != null && parent.gameObject.layer == _disappearLayer)
+                {
+                    rootObj = parent.gameObject;
+                    parent = parent.parent;
+                }
+                uniqueRoots.Add(rootObj);
+            }
 
-                Vector3 treePos = col.bounds.center;
-                float distToTree = Vector3.Distance(cameraPos, treePos);
+            // Process each unique root object
+            foreach (var rootObj in uniqueRoots)
+            {
+                Vector3 rootPos = rootObj.transform.position;
 
+                // 1. Hardcode: If object Y is below the player's Y position, skip it
+                if (_playerTransform != null && rootPos.y < _playerTransform.position.y - 0.5f)
+                {
+                    continue;
+                }
+
+                float distToRoot = Vector3.Distance(cameraPos, rootPos);
                 bool shouldFade = false;
 
-                // 1. Clipping check (inside or extremely close to the camera)
-                if (distToTree < 2.0f)
+                // 2. Clipping check (extremely close to camera)
+                if (distToRoot < 2.5f)
                 {
                     shouldFade = true;
                 }
-                // 2. Viewport check (only objects obstructing the center 50% of screen)
-                else if (_playerTransform != null && distToTree < distToPlayer)
+                // 3. Viewport check (obstructing the center 50% of the screen)
+                else if (_playerTransform != null && distToRoot < distToPlayer)
                 {
-                    Vector3 viewportPos = Camera.main.WorldToViewportPoint(treePos);
+                    Vector3 viewportPos = Camera.main.WorldToViewportPoint(rootPos);
                     if (viewportPos.z > 0f)
                     {
                         // Check if projected point is within the center 50% of the screen
@@ -78,11 +100,11 @@ namespace Nemuri.CameraEffects
 
                 if (shouldFade)
                 {
-                    RegisterObstruction(col.gameObject);
+                    RegisterObstruction(rootObj);
                 }
             }
 
-            // 3. Update cooldowns and restore objects that are no longer obstructing
+            // 4. Update cooldowns and restore objects that are no longer obstructing
             List<GameObject> toRestore = new List<GameObject>();
             List<GameObject> activeKeys = new List<GameObject>(_obstructedObjects.Keys);
 
@@ -102,17 +124,8 @@ namespace Nemuri.CameraEffects
             }
         }
 
-        private void RegisterObstruction(GameObject obj)
+        private void RegisterObstruction(GameObject rootObj)
         {
-            // Find root-most parent of the obstruction that is still on the CameraDisappear layer
-            GameObject rootObj = obj;
-            Transform parent = obj.transform.parent;
-            while (parent != null && parent.gameObject.layer == _disappearLayer)
-            {
-                rootObj = parent.gameObject;
-                parent = parent.parent;
-            }
-
             if (_obstructedObjects.TryGetValue(rootObj, out ObstructedObject existing))
             {
                 existing.cooldownTimer = _fadeCooldown; // Reset cooldown
