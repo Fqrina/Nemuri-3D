@@ -243,6 +243,8 @@ namespace Nemuri.Scenes
             new Vector2(-12.085f, 111.217f),
             new Vector2(-14.361f, 112.13f) // Path 1 end
         };
+        private bool _hasTriggeredGemPuzzle = false;
+        private TextAsset _dialogueJsonSomnia;
 
         private void Start()
         {
@@ -1061,6 +1063,20 @@ namespace Nemuri.Scenes
                             RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
                         }
                     }
+
+                    // 5. Proximity trigger for the Gem Puzzle 1 (dobj.001)
+                    if (IsIntroCompleted && !_hasTriggeredGemPuzzle && _crystalObject != null)
+                    {
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            float distToCrystal = Vector3.Distance(activePlayer.position, _crystalObject.transform.position);
+                            if (distToCrystal <= 3.0f)
+                            {
+                                TriggerGemPuzzleDialogue();
+                            }
+                        }
+                    }
                     break;
             }
         }
@@ -1372,6 +1388,28 @@ namespace Nemuri.Scenes
             {
                 onApproach?.Invoke();
             }
+        }
+
+        private void TriggerGemPuzzleDialogue()
+        {
+            _hasTriggeredGemPuzzle = true;
+            Debug.Log("[NocturneIntroController] Player touched dobj.001! Triggering Somnia Seed dialogue.");
+
+            if (_dialogueJsonSomnia == null)
+            {
+                _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
+            }
+            PlayDialogue(_dialogueJsonSomnia);
+        }
+
+        private GameObject FindCrystalObject()
+        {
+            GameObject pg = GameObject.Find("PINEALGRAND");
+            if (pg != null)
+            {
+                return FindChildRecursive(pg.transform, "dobj.001");
+            }
+            return GameObject.Find("dobj.001");
         }
 
         private void PlayDialogue(TextAsset dialogueJson)

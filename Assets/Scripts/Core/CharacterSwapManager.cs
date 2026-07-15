@@ -128,7 +128,7 @@ namespace Nemuri.Core
             else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(4)) SwapToCharacter(4);
         }
 
-        public void SwapToCharacter(int index, bool isInternalSwap = false)
+        public void SwapToCharacter(int index, bool isDialogueSwap = false)
         {
             if (_characters == null || index < 0 || index >= _characters.Count)
             {
@@ -148,17 +148,72 @@ namespace Nemuri.Core
                 return;
             }
 
-            targetCharacterObj.transform.position = currentCharacterObj.transform.position;
-            targetCharacterObj.transform.rotation = currentCharacterObj.transform.rotation;
+            Transform walkingPlayer = currentCharacterObj.transform.parent;
+            if (walkingPlayer == null) walkingPlayer = transform;
 
-            currentCharacterObj.SetActive(false);
-            targetCharacterObj.SetActive(true);
+            if (isDialogueSwap)
+            {
+                // Dialogue Mode: local swap at current location (appear where active)
+                currentCharacterObj.SetActive(false);
+                targetCharacterObj.SetActive(true);
 
-            // Do NOT deactivate target or previous npcObject when swapping! Keep all NPCs active!
+                GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
+                if (previousNpc != null)
+                {
+                    previousNpc.transform.position = walkingPlayer.position;
+                    previousNpc.transform.rotation = walkingPlayer.rotation;
+                    SnapToGround(previousNpc);
+                    previousNpc.SetActive(true);
+                }
+
+                GameObject targetNpc = _characters[index].npcObject;
+                if (targetNpc != null)
+                {
+                    targetNpc.SetActive(false);
+                }
+            }
+            else
+            {
+                // Play Mode: teleport to target NPC position, swap active bodies
+                Vector3 oldPlayerPos = walkingPlayer.position;
+                Quaternion oldPlayerRot = walkingPlayer.rotation;
+
+                GameObject targetNpc = _characters[index].npcObject;
+                if (targetNpc != null)
+                {
+                    walkingPlayer.position = targetNpc.transform.position;
+                    walkingPlayer.rotation = targetNpc.transform.rotation;
+                    targetNpc.SetActive(false);
+                }
+
+                currentCharacterObj.SetActive(false);
+                targetCharacterObj.SetActive(true);
+
+                GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
+                if (previousNpc != null)
+                {
+                    previousNpc.transform.position = oldPlayerPos;
+                    previousNpc.transform.rotation = oldPlayerRot;
+                    SnapToGround(previousNpc);
+                    previousNpc.SetActive(true);
+                }
+            }
 
             UpdateCameraTargets(targetCharacterObj.transform);
 
             _activeCharacterIndex = index;
+        }
+
+        private void SnapToGround(GameObject npc)
+        {
+            if (npc == null) return;
+            Vector3 pos = npc.transform.position;
+            Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
+            if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+            {
+                pos.y = hit.point.y;
+                npc.transform.position = pos;
+            }
         }
 
         private void UpdateCameraTargets(Transform targetTransform)
@@ -185,7 +240,7 @@ namespace Nemuri.Core
 
             if (_activeCharacterIndex != 0)
             {
-                SwapToCharacter(0, isInternalSwap: true);
+                SwapToCharacter(0, isDialogueSwap: true);
             }
         }
 
@@ -193,7 +248,7 @@ namespace Nemuri.Core
         {
             if (_activeCharacterIndex != _characterIndexBeforeDialogue)
             {
-                SwapToCharacter(_characterIndexBeforeDialogue, isInternalSwap: true);
+                SwapToCharacter(_characterIndexBeforeDialogue, isDialogueSwap: true);
             }
         }
     }
