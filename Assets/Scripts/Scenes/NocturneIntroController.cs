@@ -49,12 +49,12 @@ namespace Nemuri.Scenes
             if (Instance != null)
             {
                 // Lock character swaps during Somnia Seed puzzle approach/walk and dialogue phase
-                if (Instance._startGemPuzzleWalk && !Instance.HasDialogueSomniaEnded)
+                if (Instance._startGemPuzzleWalk && !Instance.HasSomniaSeedPart1Ended)
                 {
                     return false;
                 }
 
-                if (Instance._startCrescentWalk && !Instance.HasCrescentTearPart2Ended)
+                if (Instance._startCrescentWalk && !Instance.HasCrescentTearPart1Ended)
                 {
                     return false;
                 }
@@ -405,7 +405,7 @@ namespace Nemuri.Scenes
             {
                 var interactable = rock1.GetComponent<Interactable>();
                 if (interactable == null) interactable = rock1.AddComponent<Interactable>();
-                interactable.PromptText = "Lift Stone (E)";
+                interactable.PromptText = "Interact (E)";
                 interactable.InteractionRange = 4.0f;
                 interactable.HoldSeconds = 0f;
                 if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
@@ -961,7 +961,16 @@ namespace Nemuri.Scenes
                         RotateNpcToFacePlayer(_feanorNpc);
                     }
 
-                    CheckApproach(_ferryNpc, () => TriggerFifthDialogue());
+                    bool allNpcsArrived = true;
+                    if (_ronaNpc != null && _ronaPathIndex < _ronaPathToFerry.Count) allNpcsArrived = false;
+                    if (_murialNpc != null && _murialPathIndex < _murialPathToFerry.Count) allNpcsArrived = false;
+                    if (_keikoNpc != null && _keikoPathIndex < _keikoPathToFerry.Count) allNpcsArrived = false;
+                    if (_feanorNpc != null && _feanorPathIndex < _feanorPathToFerry.Count) allNpcsArrived = false;
+
+                    if (allNpcsArrived)
+                    {
+                        CheckApproach(_ferryNpc, () => TriggerFifthDialogue());
+                    }
                     break;
 
                 case IntroState.FifthDialogue:
@@ -1615,7 +1624,7 @@ namespace Nemuri.Scenes
                         var inter = rock1.GetComponent<Interactable>();
                         if (inter != null)
                         {
-                            inter.PromptText = "Lift Stone (E)";
+                            inter.PromptText = "Remove Stone (E)";
                             inter.enabled = true;
                         }
                     }
@@ -1844,7 +1853,16 @@ namespace Nemuri.Scenes
                 }
                 else
                 {
-                    Debug.Log("[NocturneIntroController] Only Murial can lift the stone!");
+                    GameObject rock1 = GameObject.Find("rockpuzzle1");
+                    if (rock1 != null)
+                    {
+                        var inter = rock1.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.DisplayInteraction("You must use Murial as player to interact", 0f);
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Only Murial can remove the stone!");
                 }
 
                 GameObject rock1 = GameObject.Find("rockpuzzle1");
