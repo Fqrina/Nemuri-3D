@@ -2384,6 +2384,13 @@ namespace Nemuri.Scenes
             StartCoroutine(SmoothMovePuzzle3BridgeRoutine(p3Bridge));
         }
 
+        private struct RendererMatInfo
+        {
+            public Renderer r;
+            public Material m;
+            public Color origColor;
+        }
+
         private IEnumerator SmoothMovePuzzle3BridgeRoutine(GameObject p3Bridge)
         {
             float duration = 3.0f; // Smooth move and fade-in over 3 seconds
@@ -2397,12 +2404,6 @@ namespace Nemuri.Scenes
             Renderer[] renderers = p3Bridge != null ? p3Bridge.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
             
             // First pass: store original materials/colors and set to transparent blend
-            struct RendererMatInfo
-            {
-                public Renderer r;
-                public Material m;
-                public Color origColor;
-            }
             List<RendererMatInfo> matInfos = new List<RendererMatInfo>();
             
             foreach (var r in renderers)
