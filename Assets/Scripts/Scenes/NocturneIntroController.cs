@@ -26,7 +26,8 @@ namespace Nemuri.Scenes
             FifthDialogue,
             Completed,
             CrescentTearPart1,
-            CrescentTearPart2
+            CrescentTearPart2,
+            WaitingForCrescentDialogue
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -380,7 +381,7 @@ namespace Nemuri.Scenes
             {
                 var interactable = p2Ip.GetComponent<Interactable>();
                 if (interactable == null) interactable = p2Ip.AddComponent<Interactable>();
-                interactable.InteractionPrompt = "Investigate Resonance (E)";
+                interactable.PromptText = "Investigate Resonance (E)";
                 interactable.InteractionRange = 4.0f;
                 interactable.HoldSeconds = 0f;
                 interactable.OnInteract.RemoveAllListeners();
@@ -1879,8 +1880,8 @@ namespace Nemuri.Scenes
             GameObject pg = GameObject.Find("PINEALGRAND");
             if (pg != null)
             {
-                Transform found = FindChildRecursive(pg.transform, name);
-                if (found != null) return found.gameObject;
+                GameObject found = FindChildRecursive(pg.transform, name);
+                if (found != null) return found;
             }
             return GameObject.Find(name);
         }

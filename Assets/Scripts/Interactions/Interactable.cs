@@ -36,7 +36,11 @@ namespace Nemuri.Interactions
             set => _promptText = value;
         }
 
-        public float InteractionRange => _interactionRange;
+        public float InteractionRange
+        {
+            get => _interactionRange;
+            set => _interactionRange = Mathf.Max(0.1f, value);
+        }
         public float HoldSeconds
         {
             get => _holdSeconds;
