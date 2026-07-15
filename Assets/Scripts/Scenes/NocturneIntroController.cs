@@ -2186,8 +2186,8 @@ namespace Nemuri.Scenes
                 {
                     bool isCompleted = false;
                     if (name == "dobj.001") isCompleted = HasSomniaSeedPuzzleCompleted;
-                    else if (name == "dobj") isCompleted = HasCrescentTearPart2Ended;
-                    else isCompleted = true; // For Puzzle 3, enabled by default
+                    else if (name == "dobj") isCompleted = HasCrescentTearPart3Ended;
+                    else if (name == "dobj.002") isCompleted = HasCrescentTearCollected;
 
                     bool shouldEnable = active && isCompleted;
 
