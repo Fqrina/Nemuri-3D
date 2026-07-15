@@ -46,8 +46,8 @@ namespace Nemuri.Scenes
                 }
             }
 
-            // Otherwise, stay locked to Kael (0)
-            return characterIndex == 0;
+            // Lock manual swaps completely after the gate is opened until intro is completed
+            return false;
         }
 
         [Header("NPC GameObjects")]
@@ -142,7 +142,7 @@ namespace Nemuri.Scenes
             new Vector2(-16.94f, 91.69f),
             new Vector2(-23.42f, 88.76f),
             new Vector2(-26.11f, 83.72f),
-            new Vector2(-26.44f, 73.89f)
+            new Vector2(-23.44f, 73.89f)
         };
 
         // 4. Group Paths to Ferry (8 Waypoints each, sharing the narrow gate at point 6)

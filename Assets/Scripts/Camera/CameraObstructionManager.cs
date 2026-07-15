@@ -11,6 +11,7 @@ namespace Nemuri.CameraEffects
             public GameObject gameObject;
             public Renderer[] renderers;
             public Material[][] originalMaterials;
+            public Collider[] colliders;
             public float cooldownTimer;
         }
 
@@ -128,6 +129,16 @@ namespace Nemuri.CameraEffects
             obs.cooldownTimer = _fadeCooldown;
             obs.originalMaterials = new Material[renderers.Length][];
 
+            // Get all colliders to disable them so player can pass through
+            obs.colliders = rootObj.GetComponentsInChildren<Collider>(true);
+            foreach (var col in obs.colliders)
+            {
+                if (col != null)
+                {
+                    col.enabled = false;
+                }
+            }
+
             for (int i = 0; i < renderers.Length; i++)
             {
                 Renderer renderer = renderers[i];
@@ -149,11 +160,23 @@ namespace Nemuri.CameraEffects
         {
             if (_obstructedObjects.TryGetValue(rootObj, out ObstructedObject obs))
             {
+                // Restore all colliders
+                if (obs.colliders != null)
+                {
+                    foreach (var col in obs.colliders)
+                    {
+                        if (col != null)
+                        {
+                            col.enabled = true;
+                        }
+                    }
+                }
+
+                // Restore original materials
                 for (int i = 0; i < obs.renderers.Length; i++)
                 {
                     if (obs.renderers[i] != null)
                     {
-                        // Restore original shared materials
                         obs.renderers[i].sharedMaterials = obs.originalMaterials[i];
                     }
                 }
@@ -165,43 +188,41 @@ namespace Nemuri.CameraEffects
         {
             if (mat == null) return;
 
+            // Preserve original texture and color before changing shader
+            Texture mainTex = null;
+            if (mat.HasProperty("_BaseMap")) mainTex = mat.GetTexture("_BaseMap");
+            else if (mat.HasProperty("_MainTex")) mainTex = mat.GetTexture("_MainTex");
+
             Color col = Color.white;
-            if (mat.HasProperty("_Color"))
+            if (mat.HasProperty("_BaseColor")) col = mat.GetColor("_BaseColor");
+            else if (mat.HasProperty("_Color")) col = mat.GetColor("_Color");
+
+            // Force change to URP Lit shader to guarantee runtime transparency support
+            Shader urpLit = Shader.Find("Universal Render Pipeline/Lit");
+            if (urpLit != null)
             {
-                col = mat.GetColor("_Color");
-                mat.SetColor("_Color", new Color(col.r, col.g, col.b, _targetAlpha));
-            }
-            else if (mat.HasProperty("_BaseColor"))
-            {
-                col = mat.GetColor("_BaseColor");
-                mat.SetColor("_BaseColor", new Color(col.r, col.g, col.b, _targetAlpha));
+                mat.shader = urpLit;
             }
 
-            string shaderName = mat.shader.name;
-            if (shaderName.Contains("Universal Render Pipeline") || shaderName.Contains("URP"))
+            // Set transparency rendering properties for URP Lit shader
+            mat.SetFloat("_Surface", 1f); // Transparent
+            mat.SetFloat("_Blend", 0f); // Alpha Blend
+            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetInt("_ZWrite", 0);
+            mat.DisableKeyword("_ALPHATEST_ON");
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.EnableKeyword("_ALPHABLEND_ON");
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+            // Restore texture and apply faded color
+            if (mainTex != null)
             {
-                mat.SetFloat("_Surface", 1f); // Transparent
-                mat.SetFloat("_Blend", 0f); // Alpha Blend
-                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                mat.SetInt("_ZWrite", 0);
-                mat.DisableKeyword("_ALPHATEST_ON");
-                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                mat.EnableKeyword("_ALPHABLEND_ON");
-                mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", mainTex);
+                else if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", mainTex);
             }
-            else
-            {
-                // Standard Shader fallback
-                mat.SetFloat("_Mode", 3f); // Transparent
-                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                mat.SetInt("_ZWrite", 0);
-                mat.DisableKeyword("_ALPHATEST_ON");
-                mat.DisableKeyword("_ALPHABLEND_ON");
-                mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
-                mat.renderQueue = 3000;
-            }
+
+            mat.SetColor("_BaseColor", new Color(col.r, col.g, col.b, _targetAlpha));
         }
 
         private void FindActivePlayer()

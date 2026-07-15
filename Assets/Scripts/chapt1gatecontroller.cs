@@ -24,6 +24,7 @@ public class Chapt1gatecontroller : MonoBehaviour
     private float _holdTimer;
     private Interactable _interactable;
     private float _wrongPlayerTimer = 0f;
+    private bool _movementStarted = false;
 
     void Start()
     {
@@ -40,7 +41,7 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void Update()
     {
-        if (isTriggered) return;
+        if (isTriggered || _movementStarted) return;
 
         // Wrong player warning feedback timer
         if (_wrongPlayerTimer > 0f)
@@ -167,6 +168,7 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void TriggerMovement()
     {
+        _movementStarted = true;
         HideInteraction();
         Interactable.ForceHidePrompt();
         

@@ -151,6 +151,15 @@ namespace Nemuri.Core
             Transform walkingPlayer = currentCharacterObj.transform.parent;
             if (walkingPlayer == null) walkingPlayer = transform;
 
+            // Temporarily disable CharacterController on Walking Player during teleportation
+            var pcCc = walkingPlayer.GetComponent<CharacterController>();
+            bool pcCcWasEnabled = false;
+            if (pcCc != null)
+            {
+                pcCcWasEnabled = pcCc.enabled;
+                pcCc.enabled = false;
+            }
+
             if (isDialogueSwap)
             {
                 // Dialogue Mode: local swap at current location (appear where active)
@@ -160,8 +169,7 @@ namespace Nemuri.Core
                 GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
                 if (previousNpc != null)
                 {
-                    previousNpc.transform.position = walkingPlayer.position;
-                    previousNpc.transform.rotation = walkingPlayer.rotation;
+                    SetNpcPositionAndRotation(previousNpc, walkingPlayer.position, walkingPlayer.rotation);
                     SnapToGround(previousNpc);
                     previousNpc.SetActive(true);
                 }
@@ -192,16 +200,43 @@ namespace Nemuri.Core
                 GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
                 if (previousNpc != null)
                 {
-                    previousNpc.transform.position = oldPlayerPos;
-                    previousNpc.transform.rotation = oldPlayerRot;
+                    SetNpcPositionAndRotation(previousNpc, oldPlayerPos, oldPlayerRot);
                     SnapToGround(previousNpc);
                     previousNpc.SetActive(true);
                 }
             }
 
+            // Restore CharacterController on Walking Player
+            if (pcCc != null)
+            {
+                pcCc.enabled = pcCcWasEnabled;
+            }
+
             UpdateCameraTargets(targetCharacterObj.transform);
 
             _activeCharacterIndex = index;
+        }
+
+        private void SetNpcPositionAndRotation(GameObject npc, Vector3 position, Quaternion rotation)
+        {
+            if (npc == null) return;
+            var cc = npc.GetComponent<CharacterController>();
+            if (cc == null) cc = npc.GetComponentInChildren<CharacterController>();
+
+            bool ccWasEnabled = false;
+            if (cc != null)
+            {
+                ccWasEnabled = cc.enabled;
+                cc.enabled = false;
+            }
+
+            npc.transform.position = position;
+            npc.transform.rotation = rotation;
+
+            if (cc != null)
+            {
+                cc.enabled = ccWasEnabled;
+            }
         }
 
         private void SnapToGround(GameObject npc)
