@@ -29,7 +29,8 @@ namespace Nemuri.Scenes
             CrescentTearPart2,
             WaitingForCrescentDialogue,
             SomniaSeedPart1,
-            SomniaSeedPart2
+            SomniaSeedPart2,
+            SomniaSeedCollectedDialogue
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -1639,6 +1640,11 @@ namespace Nemuri.Scenes
 
                     Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended.");
                     break;
+
+                case IntroState.SomniaSeedCollectedDialogue:
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Somnia Seed collected dialogue ended.");
+                    break;
             }
         }
 
@@ -1811,6 +1817,28 @@ namespace Nemuri.Scenes
             if (DialogueManager.Instance != null)
             {
                 DialogueManager.Instance.StartConversation(part2Nodes);
+            }
+        }
+
+        public void TriggerSomniaSeedCollectedDialogue()
+        {
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode()
+                {
+                    speaker = "Kael",
+                    text = "Nice! We got the Somnia Seed. Now, let's look for the next source of resonance... the Crescent Tear.",
+                    portraitName = "Kael",
+                    typingSpeed = 0.05f
+                }
+            };
+            
+            _state = IntroState.SomniaSeedCollectedDialogue;
+            SetPlayerMovementEnabled(false);
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
             }
         }
 

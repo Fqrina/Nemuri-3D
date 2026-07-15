@@ -33,6 +33,14 @@ namespace Nemuri.Interactions
             _collected = true;
             PuzzleManager.Instance.CollectCrystal(_crystalIndex);
             gameObject.SetActive(false);
+
+            if (gameObject.name == "dobj.001")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerSomniaSeedCollectedDialogue();
+                }
+            }
         }
 
         private static void EnsurePuzzleManager()

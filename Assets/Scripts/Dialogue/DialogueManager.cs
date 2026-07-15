@@ -455,24 +455,28 @@ namespace Nemuri.Dialogue
 
         private AudioClip ResolveClipForSpeaker(string speaker)
         {
-            if (string.Equals(speaker, "Kael", System.StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(speaker))
+            {
+                return _thirdDialogueClip;
+            }
+
+            if (string.Equals(speaker, "Kael", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Rona", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Murial", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Keiko", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Feanor", System.StringComparison.OrdinalIgnoreCase))
             {
                 return _playerDialogueClip;
             }
 
-            if (string.Equals(speaker, "Ignore Animal", System.StringComparison.OrdinalIgnoreCase) ||
+            if (string.Equals(speaker, "Ferry", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Animal", System.StringComparison.OrdinalIgnoreCase) ||
                 speaker.IndexOf("Animal", System.StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 return _animalDialogueClip;
             }
 
-            if (string.Equals(speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(speaker, "Objective", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return _thirdDialogueClip;
-            }
-
-            return null;
+            return _thirdDialogueClip;
         }
 
         private void PlayDialogueAudio(string speaker)
