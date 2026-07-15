@@ -37,7 +37,8 @@ namespace Nemuri.Scenes
             BridgeSuccessDialogue,
             Puzzle3IntroDialogue,
             Puzzle3SuccessDialogue,
-            Puzzle3CollectedDialogue
+            Puzzle3CollectedDialogue,
+            WaitingForBridge1Dialogue
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -293,6 +294,41 @@ namespace Nemuri.Scenes
 
         private bool _startCrescentWalk = false;
         private bool _crescentDialogueStarted = false;
+
+        private bool _startBridge1Walk = false;
+        private bool _bridge1DialogueStarted = false;
+
+        private List<Vector2> _ronaPathToBridge1 = new List<Vector2>()
+        {
+            new Vector2(-10.86f, 104.96f),
+            new Vector2(-12.57f, 104.03f),
+            new Vector2(-14.04f, 103.06f),
+            new Vector2(-16.73f, 102.8f)
+        };
+
+        private List<Vector2> _murialPathToBridge1 = new List<Vector2>()
+        {
+            new Vector2(-10.86f, 104.96f),
+            new Vector2(-12.57f, 104.03f),
+            new Vector2(-14.04f, 103.06f),
+            new Vector2(-16.77f, 101.65f)
+        };
+
+        private List<Vector2> _keikoPathToBridge1 = new List<Vector2>()
+        {
+            new Vector2(-10.86f, 104.96f),
+            new Vector2(-12.57f, 104.03f),
+            new Vector2(-14.04f, 103.06f),
+            new Vector2(-16.88f, 100.33f)
+        };
+
+        private List<Vector2> _feanorPathToBridge1 = new List<Vector2>()
+        {
+            new Vector2(-10.86f, 104.96f),
+            new Vector2(-12.57f, 104.03f),
+            new Vector2(-14.04f, 103.06f),
+            new Vector2(-17.0f, 98.61f)
+        };
 
         private List<Vector2> _ronaPathToCrescent = new List<Vector2>()
         {
@@ -1315,6 +1351,161 @@ namespace Nemuri.Scenes
                         }
                     }
                     break;
+
+                case IntroState.WaitingForBridge1Dialogue:
+                    if (_startBridge1Walk)
+                    {
+                        Transform activePlayer = FindActivePlayerTransform();
+
+                        // 1. Rona
+                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToBridge1.Count)
+                        {
+                            Vector2 target2D = _ronaPathToBridge1[_ronaPathIndex];
+                            float currentY = _ronaNpc.transform.position.y;
+                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            ronaTarget.y = GetGroundHeight(ronaTarget);
+
+                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                            if (dist > 0.2f)
+                            {
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_ronaNpc, true);
+                            }
+                            else
+                            {
+                                _ronaPathIndex++;
+                                if (_ronaPathIndex >= _ronaPathToBridge1.Count) SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                        else if (_ronaNpc != null)
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                            if (activePlayer != null) RotateNpcToFaceTarget(_ronaNpc, activePlayer.gameObject);
+                        }
+
+                        // 2. Murial
+                        if (_murialNpc != null && _murialPathIndex < _murialPathToBridge1.Count)
+                        {
+                            Vector2 target2D = _murialPathToBridge1[_murialPathIndex];
+                            float currentY = _murialNpc.transform.position.y;
+                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            murialTarget.y = GetGroundHeight(murialTarget);
+
+                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                            if (dist > 0.2f)
+                            {
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_murialNpc, true);
+                            }
+                            else
+                            {
+                                _murialPathIndex++;
+                                if (_murialPathIndex >= _murialPathToBridge1.Count) SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                        else if (_murialNpc != null)
+                        {
+                            SetNpcMoving(_murialNpc, false);
+                            if (activePlayer != null) RotateNpcToFaceTarget(_murialNpc, activePlayer.gameObject);
+                        }
+
+                        // 3. Keiko
+                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToBridge1.Count)
+                        {
+                            Vector2 target2D = _keikoPathToBridge1[_keikoPathIndex];
+                            float currentY = _keikoNpc.transform.position.y;
+                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            keikoTarget.y = GetGroundHeight(keikoTarget);
+
+                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                            if (dist > 0.2f)
+                            {
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_keikoNpc, true);
+                            }
+                            else
+                            {
+                                _keikoPathIndex++;
+                                if (_keikoPathIndex >= _keikoPathToBridge1.Count) SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                        else if (_keikoNpc != null)
+                        {
+                            SetNpcMoving(_keikoNpc, false);
+                            if (activePlayer != null) RotateNpcToFaceTarget(_keikoNpc, activePlayer.gameObject);
+                        }
+
+                        // 4. Feanor
+                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToBridge1.Count)
+                        {
+                            Vector2 target2D = _feanorPathToBridge1[_feanorPathIndex];
+                            float currentY = _feanorNpc.transform.position.y;
+                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            feanorTarget.y = GetGroundHeight(feanorTarget);
+
+                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                            if (dist > 0.2f)
+                            {
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_feanorNpc, true);
+                            }
+                            else
+                            {
+                                _feanorPathIndex++;
+                                if (_feanorPathIndex >= _feanorPathToBridge1.Count) SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                        else if (_feanorNpc != null)
+                        {
+                            SetNpcMoving(_feanorNpc, false);
+                            if (activePlayer != null) RotateNpcToFaceTarget(_feanorNpc, activePlayer.gameObject);
+                        }
+
+                        // Check if all arrived to trigger Bridge Dialogue
+                        if (!_bridge1DialogueStarted)
+                        {
+                            bool allArrived = true;
+                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToBridge1.Count) allArrived = false;
+                            if (_murialNpc != null && _murialPathIndex < _murialPathToBridge1.Count) allArrived = false;
+                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToBridge1.Count) allArrived = false;
+                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToBridge1.Count) allArrived = false;
+
+                            if (allArrived)
+                            {
+                                _bridge1DialogueStarted = true;
+                                TriggerBridge1Dialogue();
+                            }
+                        }
+                    }
+                    break;
             }
         }
 
@@ -2274,6 +2465,25 @@ namespace Nemuri.Scenes
         }
 
         public void OnBridgeInteracted()
+        {
+            if (!_startBridge1Walk)
+            {
+                _startBridge1Walk = true;
+                
+                // Set movement disabled to lock Kael in place
+                SetPlayerMovementEnabled(false);
+
+                // Reset indices for the bridge path walk
+                _ronaPathIndex = 0;
+                _murialPathIndex = 0;
+                _keikoPathIndex = 0;
+                _feanorPathIndex = 0;
+
+                _state = IntroState.WaitingForBridge1Dialogue;
+            }
+        }
+
+        public void TriggerBridge1Dialogue()
         {
             if (!HasBridgeIntroStarted)
             {
