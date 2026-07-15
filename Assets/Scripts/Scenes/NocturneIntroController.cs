@@ -1020,7 +1020,7 @@ namespace Nemuri.Scenes
                     if (IsIntroCompleted && !_hasTriggeredGemPuzzle && _crystalObject != null)
                     {
                         Transform activePlayer = FindActivePlayerTransform();
-                        if (activePlayer != null)
+                        if (activePlayer != null && activePlayer.name.Contains("MURIALCHARA"))
                         {
                             float distToCrystal = Vector3.Distance(activePlayer.position, _crystalObject.transform.position);
                             if (distToCrystal <= 3.0f)
@@ -1041,7 +1041,7 @@ namespace Nemuri.Scenes
                                 _feanorPathIndex = 0;
 
                                 _startGemPuzzleWalk = true;
-                                Debug.Log("[NocturneIntroController] Player approached dobj.001! Commencing NPC walking sequence.");
+                                Debug.Log("[NocturneIntroController] Murial approached dobj.001! Commencing NPC walking sequence.");
                             }
                         }
                     }
