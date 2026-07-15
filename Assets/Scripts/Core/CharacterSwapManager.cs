@@ -77,12 +77,58 @@ namespace Nemuri.Core
 
         private void Update()
         {
-            if (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive)
+            bool isDialogueActive = DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive;
+            bool isCutsceneActive = false;
+
+            if (Nemuri.Scenes.NocturneIntroController.Instance != null)
             {
-                return;
+                isCutsceneActive = !Nemuri.Scenes.NocturneIntroController.Instance.IsPlayerMovementActive;
             }
 
-            HandleInput();
+            // Play Mode (Free Roaming): Hide all NPCs
+            if (!isDialogueActive && !isCutsceneActive)
+            {
+                for (int i = 0; i < _characters.Count; i++)
+                {
+                    if (_characters[i].npcObject == null)
+                    {
+                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
+                        GameObject found = GameObject.Find(searchName);
+                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+                        if (found != null) _characters[i].npcObject = found;
+                    }
+
+                    if (_characters[i].npcObject != null && _characters[i].npcObject.activeSelf)
+                    {
+                        _characters[i].npcObject.SetActive(false);
+                    }
+                }
+
+                HandleInput();
+            }
+            else
+            {
+                // Cutscene / Dialogue Mode: Enable cutscene NPCs (except the active player's NPC representation)
+                for (int i = 0; i < _characters.Count; i++)
+                {
+                    if (_characters[i].npcObject == null)
+                    {
+                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
+                        GameObject found = GameObject.Find(searchName);
+                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+                        if (found != null) _characters[i].npcObject = found;
+                    }
+
+                    if (_characters[i].npcObject != null)
+                    {
+                        bool shouldBeActive = (i != _activeCharacterIndex);
+                        if (_characters[i].npcObject.activeSelf != shouldBeActive)
+                        {
+                            _characters[i].npcObject.SetActive(shouldBeActive);
+                        }
+                    }
+                }
+            }
         }
 
         private void InitializeCharacters()
@@ -160,89 +206,9 @@ namespace Nemuri.Core
                 return;
             }
 
-            // Automatically find target npcObject if null in Inspector
-            if (_characters[index].npcObject == null)
-            {
-                string searchName = index == 0 ? "KAELNPC" : _characters[index].characterName.Replace("CHARA", "").Trim() + "NPC";
-                GameObject found = GameObject.Find(searchName);
-                if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                if (found != null) _characters[index].npcObject = found;
-            }
-
-            // Automatically find previous npcObject if null in Inspector
-            if (_characters[_activeCharacterIndex].npcObject == null)
-            {
-                string searchName = _activeCharacterIndex == 0 ? "KAELNPC" : _characters[_activeCharacterIndex].characterName.Replace("CHARA", "").Trim() + "NPC";
-                GameObject found = GameObject.Find(searchName);
-                if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                if (found != null) _characters[_activeCharacterIndex].npcObject = found;
-            }
-
-            Transform walkingPlayer = currentCharacterObj.transform.parent;
-            if (walkingPlayer == null) walkingPlayer = transform;
-
-            // Temporarily disable CharacterController on Walking Player during teleportation
-            var pcCc = walkingPlayer.GetComponent<CharacterController>();
-            bool pcCcWasEnabled = false;
-            if (pcCc != null)
-            {
-                pcCcWasEnabled = pcCc.enabled;
-                pcCc.enabled = false;
-            }
-
-            if (isDialogueSwap)
-            {
-                // Dialogue Mode: local swap at current location (appear where active)
-                currentCharacterObj.SetActive(false);
-                targetCharacterObj.SetActive(true);
-
-                GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
-                if (previousNpc != null)
-                {
-                    Vector3 targetPos = walkingPlayer.position;
-                    targetPos.y -= 1.82f; // Apply -1.82f offset strictly to character swap positioning
-                    SetNpcPositionAndRotation(previousNpc, targetPos, walkingPlayer.rotation);
-                    previousNpc.SetActive(true);
-                }
-
-                GameObject targetNpc = _characters[index].npcObject;
-                if (targetNpc != null)
-                {
-                    targetNpc.SetActive(false);
-                }
-            }
-            else
-            {
-                // Play Mode: teleport to target NPC position, swap active bodies
-                Vector3 oldPlayerPos = walkingPlayer.position;
-                Quaternion oldPlayerRot = walkingPlayer.rotation;
-
-                GameObject targetNpc = _characters[index].npcObject;
-                if (targetNpc != null)
-                {
-                    walkingPlayer.position = targetNpc.transform.position;
-                    walkingPlayer.rotation = targetNpc.transform.rotation;
-                    targetNpc.SetActive(false);
-                }
-
-                currentCharacterObj.SetActive(false);
-                targetCharacterObj.SetActive(true);
-
-                GameObject previousNpc = _characters[_activeCharacterIndex].npcObject;
-                if (previousNpc != null)
-                {
-                    Vector3 targetPos = oldPlayerPos;
-                    targetPos.y -= 1.82f; // Apply -1.82f offset strictly to character swap positioning
-                    SetNpcPositionAndRotation(previousNpc, targetPos, oldPlayerRot);
-                    previousNpc.SetActive(true);
-                }
-            }
-
-            // Restore CharacterController on Walking Player
-            if (pcCc != null)
-            {
-                pcCc.enabled = pcCcWasEnabled;
-            }
+            // In-place mesh swap: no teleportation of player and no NPC positioning!
+            currentCharacterObj.SetActive(false);
+            targetCharacterObj.SetActive(true);
 
             UpdateCameraTargets(targetCharacterObj.transform);
 

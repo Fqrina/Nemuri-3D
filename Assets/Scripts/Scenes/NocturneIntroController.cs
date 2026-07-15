@@ -29,6 +29,7 @@ namespace Nemuri.Scenes
 
         public static NocturneIntroController Instance { get; private set; }
         public static bool IsIntroCompleted { get; private set; } = false;
+        public bool IsPlayerMovementActive { get; private set; } = true;
 
         public static bool CanSwapTo(int characterIndex)
         {
@@ -1455,6 +1456,7 @@ namespace Nemuri.Scenes
 
         private void SetPlayerMovementEnabled(bool enabled)
         {
+            IsPlayerMovementActive = enabled;
             if (PlayerMovement.Instance != null)
             {
                 PlayerMovement.Instance.SetCanMove(enabled);
