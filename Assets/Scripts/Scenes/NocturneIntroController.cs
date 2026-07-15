@@ -73,6 +73,39 @@ namespace Nemuri.Scenes
             new Vector2(-20.44f, 104.67f)
         };
 
+        private List<Vector2> _ronaPathToFeanor = new List<Vector2>()
+        {
+            new Vector2(-16.21f, 104.38f),
+            new Vector2(-13.42f, 100.42f),
+            new Vector2(-13.42f, 96.54f),
+            new Vector2(-19.94f, 92.69f),
+            new Vector2(-26.42f, 89.76f),
+            new Vector2(-29.11f, 84.72f),
+            new Vector2(-29.44f, 74.89f)
+        };
+
+        // Murial NPC Path movement variables
+        private int _murialPathIndex = 0;
+        private List<Vector2> _murialPath = new List<Vector2>()
+        {
+            new Vector2(-21.8f, 122.85f),
+            new Vector2(-21.31f, 119.03f),
+            new Vector2(-25.07f, 114.66f),
+            new Vector2(-24.86f, 107.11f),
+            new Vector2(-19.37f, 106.16f)
+        };
+
+        private List<Vector2> _murialPathToFeanor = new List<Vector2>()
+        {
+            new Vector2(-13.21f, 103.38f),
+            new Vector2(-10.42f, 99.42f),
+            new Vector2(-10.42f, 95.54f),
+            new Vector2(-16.94f, 91.69f),
+            new Vector2(-23.42f, 88.76f),
+            new Vector2(-26.11f, 83.72f),
+            new Vector2(-26.44f, 73.89f)
+        };
+
         // Keiko NPC Path movement variables
         private int _keikoPathIndex = 0;
         private List<Vector2> _keikoPath = new List<Vector2>()
@@ -138,7 +171,6 @@ namespace Nemuri.Scenes
             {
                 _gateController.enabled = false;
                 
-                // Disable all gate Interactable components (including in children) at start
                 var interactables = _gateController.GetComponentsInChildren<Interactable>(true);
                 foreach (var interactable in interactables)
                 {
@@ -158,7 +190,6 @@ namespace Nemuri.Scenes
                 CharacterSwapManager.Instance.SetCharacterUnlocked(4, false); // Feanor (Locked)
             }
 
-            // Look up the portal GameObject cube.015 under PINEALGRAND
             _portalObject = FindPortalObject();
 
             StartCoroutine(IntroStartRoutine());
@@ -249,6 +280,7 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForKeiko:
+                    // Rona NPC walks to Keiko
                     if (_ronaNpc != null && _ronaPathIndex < _ronaPath.Count)
                     {
                         Vector2 target2D = _ronaPath[_ronaPathIndex];
@@ -301,10 +333,64 @@ namespace Nemuri.Scenes
                         }
                     }
 
+                    // Murial NPC walks to Keiko (with Rona)
+                    if (_murialNpc != null && _murialPathIndex < _murialPath.Count)
+                    {
+                        Vector2 target2D = _murialPath[_murialPathIndex];
+                        float currentY = _murialNpc.transform.position.y;
+                        Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            murialTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_murialNpc, true);
+                        }
+                        else
+                        {
+                            _murialPathIndex++;
+                            if (_murialPathIndex >= _murialPath.Count)
+                            {
+                                SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                    }
+                    else if (_murialNpc != null)
+                    {
+                        SetNpcMoving(_murialNpc, false);
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            Vector3 toPlayer = (activePlayer.position - _murialNpc.transform.position);
+                            toPlayer.y = 0f;
+                            toPlayer.Normalize();
+                            if (toPlayer != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                            }
+                        }
+                    }
+
                     CheckApproach(_keikoNpc, () => TriggerThirdDialogue());
                     break;
 
                 case IntroState.WaitingForFeanor:
+                    // Keiko NPC walks to Feanor
                     if (_keikoNpc != null && _keikoPathIndex < _keikoPath.Count)
                     {
                         Vector2 target2D = _keikoPath[_keikoPathIndex];
@@ -353,6 +439,112 @@ namespace Nemuri.Scenes
                             if (toPlayer != Vector3.zero)
                             {
                                 _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                            }
+                        }
+                    }
+
+                    // Rona NPC walks to Feanor (along with Keiko)
+                    if (_ronaNpc != null && _ronaPathIndex < _ronaPathToFeanor.Count)
+                    {
+                        Vector2 target2D = _ronaPathToFeanor[_ronaPathIndex];
+                        float currentY = _ronaNpc.transform.position.y;
+                        Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            ronaTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_ronaNpc, true);
+                        }
+                        else
+                        {
+                            _ronaPathIndex++;
+                            if (_ronaPathIndex >= _ronaPathToFeanor.Count)
+                            {
+                                SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                    }
+                    else if (_ronaNpc != null)
+                    {
+                        SetNpcMoving(_ronaNpc, false);
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            Vector3 toPlayer = (activePlayer.position - _ronaNpc.transform.position);
+                            toPlayer.y = 0f;
+                            toPlayer.Normalize();
+                            if (toPlayer != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
+                            }
+                        }
+                    }
+
+                    // Murial NPC walks to Feanor (along with Keiko)
+                    if (_murialNpc != null && _murialPathIndex < _murialPathToFeanor.Count)
+                    {
+                        Vector2 target2D = _murialPathToFeanor[_murialPathIndex];
+                        float currentY = _murialNpc.transform.position.y;
+                        Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            murialTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            
+                            Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+
+                            SetNpcMoving(_murialNpc, true);
+                        }
+                        else
+                        {
+                            _murialPathIndex++;
+                            if (_murialPathIndex >= _murialPathToFeanor.Count)
+                            {
+                                SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                    }
+                    else if (_murialNpc != null)
+                    {
+                        SetNpcMoving(_murialNpc, false);
+                        Transform activePlayer = FindActivePlayerTransform();
+                        if (activePlayer != null)
+                        {
+                            Vector3 toPlayer = (activePlayer.position - _murialNpc.transform.position);
+                            toPlayer.y = 0f;
+                            toPlayer.Normalize();
+                            if (toPlayer != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(toPlayer, Vector3.up), 5f * Time.deltaTime);
                             }
                         }
                     }
@@ -424,7 +616,6 @@ namespace Nemuri.Scenes
                 StartCoroutine(LookAtRabbitRoutine());
             }
 
-            // Align Feanor, Keiko, and Player to face the Portal on specific shrine restoration dialogue nodes
             if (node.text.Contains("key to restoring the Nocturne Heart") ||
                 node.text.Contains("do something with this") ||
                 node.text.Contains("Keiko concentrates her power"))
@@ -471,7 +662,7 @@ namespace Nemuri.Scenes
                 }
                 _murialNpc.transform.position = endPos;
                 Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
-                RotateNpcToFacePlayer(_murialNpc); // Face player after landing
+                RotateNpcToFacePlayer(_murialNpc);
             }
         }
 
@@ -481,7 +672,7 @@ namespace Nemuri.Scenes
 
             if (DialogueManager.Instance != null)
             {
-                DialogueManager.Instance.canProceed = false; // Lock progression during camera panning
+                DialogueManager.Instance.canProceed = false;
             }
 
             var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
@@ -490,7 +681,6 @@ namespace Nemuri.Scenes
             Vector3 startPos = Camera.main.transform.position;
             Quaternion startRot = Camera.main.transform.rotation;
 
-            // Position the camera to view the rabbit sitting at the floating table
             Vector3 targetPos = _ferryNpc.transform.position + new Vector3(-6f, 4f, 5f);
             Vector3 lookDir = (_ferryNpc.transform.position + Vector3.up * 1f - targetPos).normalized;
             Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
@@ -514,7 +704,7 @@ namespace Nemuri.Scenes
 
             if (DialogueManager.Instance != null)
             {
-                DialogueManager.Instance.canProceed = true; // Unlock progression
+                DialogueManager.Instance.canProceed = true;
             }
         }
 
@@ -552,7 +742,6 @@ namespace Nemuri.Scenes
         {
             _state = IntroState.FourthDialogue;
             
-            // Align characters: Feanor to face player, Keiko and Player to face Feanor
             RotateNpcToFacePlayer(_feanorNpc);
             RotateNpcToFaceTarget(_keikoNpc, _feanorNpc);
             RotatePlayerToFaceTarget(_feanorNpc);
@@ -614,6 +803,11 @@ namespace Nemuri.Scenes
                     {
                         CharacterSwapManager.Instance.SetCharacterUnlocked(3, true); // Unlock Keiko
                     }
+                    
+                    // Reset path indices for Rona and Murial so they start walking to Feanor
+                    _ronaPathIndex = 0;
+                    _murialPathIndex = 0;
+                    
                     _state = IntroState.WaitingForFeanor;
                     break;
 
@@ -735,7 +929,6 @@ namespace Nemuri.Scenes
 
             if (anim != null)
             {
-                // Safely verify if Animator parameters exist to prevent Unity Console spam warnings
                 foreach (AnimatorControllerParameter param in anim.parameters)
                 {
                     if (param.name == "IsMoving")
