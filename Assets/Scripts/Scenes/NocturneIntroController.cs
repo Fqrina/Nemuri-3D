@@ -194,6 +194,56 @@ namespace Nemuri.Scenes
             new Vector2(-19.48f, 83.77f)  // Final
         };
 
+        private GameObject _crystalObject;
+
+        private List<Vector2> _ronaPathToGem = new List<Vector2>()
+        {
+            new Vector2(-16.33f, 88.08f),
+            new Vector2(-15.83f, 89.96f), // Gate (exact)
+            new Vector2(-15.99f, 92.55f),
+            new Vector2(-12.36f, 98.18f),
+            new Vector2(-12.36f, 105.85f),
+            new Vector2(-15.43f, 107.92f), // Path 3 start
+            new Vector2(-14.984f, 111.964f) // Path 3 end
+        };
+
+        private List<Vector2> _murialPathToGem = new List<Vector2>()
+        {
+            new Vector2(-15.33f, 87.08f),
+            new Vector2(-15.83f, 89.96f), // Gate (exact)
+            new Vector2(-14.99f, 91.55f),
+            new Vector2(-11.36f, 97.18f),
+            new Vector2(-11.36f, 104.85f),
+            new Vector2(-15.43f, 107.92f), // Path 4 start
+            new Vector2(-14.984f, 111.964f),
+            new Vector2(-16.14f, 112.703f) // Path 4 end
+        };
+
+        private List<Vector2> _keikoPathToGem = new List<Vector2>()
+        {
+            new Vector2(-16.03f, 87.78f),
+            new Vector2(-15.83f, 89.96f), // Gate (exact)
+            new Vector2(-15.69f, 92.25f),
+            new Vector2(-12.06f, 97.88f),
+            new Vector2(-12.06f, 105.55f),
+            new Vector2(-11.86f, 109.19f), // Path 2 start
+            new Vector2(-12.085f, 111.217f),
+            new Vector2(-14.361f, 112.13f),
+            new Vector2(-13.787f, 113.613f) // Path 2 end
+        };
+
+        private List<Vector2> _feanorPathToGem = new List<Vector2>()
+        {
+            new Vector2(-15.63f, 87.38f),
+            new Vector2(-15.83f, 89.96f), // Gate (exact)
+            new Vector2(-15.29f, 91.85f),
+            new Vector2(-11.66f, 97.48f),
+            new Vector2(-11.66f, 105.15f),
+            new Vector2(-11.86f, 109.19f), // Path 1 start
+            new Vector2(-12.085f, 111.217f),
+            new Vector2(-14.361f, 112.13f) // Path 1 end
+        };
+
         private void Start()
         {
             Instance = this;
@@ -831,6 +881,186 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.Completed:
+                    if (_crystalObject == null)
+                    {
+                        _crystalObject = FindCrystalObject();
+                    }
+
+                    // 1. Rona NPC path movement to Gem Puzzle
+                    if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count)
+                    {
+                        Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
+                        float currentY = _ronaNpc.transform.position.y;
+                        Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            ronaTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+                            SetNpcMoving(_ronaNpc, true);
+                        }
+                        else
+                        {
+                            _ronaPathIndex++;
+                            if (_ronaPathIndex >= _ronaPathToGem.Count)
+                            {
+                                SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                    }
+                    else if (_ronaNpc != null)
+                    {
+                        SetNpcMoving(_ronaNpc, false);
+                        if (_crystalObject != null)
+                        {
+                            RotateNpcToFaceTarget(_ronaNpc, _crystalObject);
+                        }
+                    }
+
+                    // 2. Murial NPC path movement to Gem Puzzle
+                    if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count)
+                    {
+                        Vector2 target2D = _murialPathToGem[_murialPathIndex];
+                        float currentY = _murialNpc.transform.position.y;
+                        Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            murialTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+                            SetNpcMoving(_murialNpc, true);
+                        }
+                        else
+                        {
+                            _murialPathIndex++;
+                            if (_murialPathIndex >= _murialPathToGem.Count)
+                            {
+                                SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                    }
+                    else if (_murialNpc != null)
+                    {
+                        SetNpcMoving(_murialNpc, false);
+                        if (_crystalObject != null)
+                        {
+                            RotateNpcToFaceTarget(_murialNpc, _crystalObject);
+                        }
+                    }
+
+                    // 3. Keiko NPC path movement to Gem Puzzle
+                    if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count)
+                    {
+                        Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
+                        float currentY = _keikoNpc.transform.position.y;
+                        Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            keikoTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                            Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+                            SetNpcMoving(_keikoNpc, true);
+                        }
+                        else
+                        {
+                            _keikoPathIndex++;
+                            if (_keikoPathIndex >= _keikoPathToGem.Count)
+                            {
+                                SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                    }
+                    else if (_keikoNpc != null)
+                    {
+                        SetNpcMoving(_keikoNpc, false);
+                        if (_crystalObject != null)
+                        {
+                            RotateNpcToFaceTarget(_keikoNpc, _crystalObject);
+                        }
+                    }
+
+                    // 4. Feanor NPC path movement to Gem Puzzle
+                    if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count)
+                    {
+                        Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
+                        float currentY = _feanorNpc.transform.position.y;
+                        Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                        Ray ray = new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down);
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        {
+                            feanorTarget.y = hit.point.y;
+                        }
+
+                        float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                        if (distToTarget > 0.2f)
+                        {
+                            _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                            Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                            dir.y = 0f;
+                            dir.Normalize();
+                            if (dir != Vector3.zero)
+                            {
+                                _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                            }
+                            SetNpcMoving(_feanorNpc, true);
+                        }
+                        else
+                        {
+                            _feanorPathIndex++;
+                            if (_feanorPathIndex >= _feanorPathToGem.Count)
+                            {
+                                SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                    }
+                    else if (_feanorNpc != null)
+                    {
+                        SetNpcMoving(_feanorNpc, false);
+                        if (_crystalObject != null)
+                        {
+                            RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
+                        }
+                    }
                     break;
             }
         }
@@ -1108,9 +1338,18 @@ namespace Nemuri.Scenes
                 case IntroState.FifthDialogue:
                     SetPlayerMovementEnabled(true);
                     SetCrystalsInteractable(true);
+                    
+                    // Reset path indices for all 4 NPCs so they start walking to the Gem Puzzle
+                    _ronaPathIndex = 0;
+                    _murialPathIndex = 0;
+                    _keikoPathIndex = 0;
+                    _feanorPathIndex = 0;
+
                     _state = IntroState.Completed;
                     IsIntroCompleted = true; // Unlock character swaps!
-                    Debug.Log("[NocturneIntroController] Intro flow sequence fully completed!");
+                    _crystalObject = FindCrystalObject();
+                    
+                    Debug.Log("[NocturneIntroController] Intro flow sequence fully completed! NPCs walking to Gem Puzzle.");
                     break;
             }
         }
