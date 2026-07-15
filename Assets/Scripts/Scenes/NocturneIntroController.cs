@@ -174,7 +174,7 @@ namespace Nemuri.Scenes
             new Vector2(-16.94f, 91.69f),
             new Vector2(-23.42f, 88.76f),
             new Vector2(-26.11f, 83.72f),
-            new Vector2(-23.44f, 73.89f)
+            new Vector2(-28.61f, 77.21f)
         };
 
         // 4. Group Paths to Ferry (8 Waypoints each, sharing the narrow gate at point 6)
@@ -2017,6 +2017,10 @@ namespace Nemuri.Scenes
         private IEnumerator IntroStartRoutine()
         {
             SetPlayerMovementEnabled(false);
+            if (_keikoNpc != null)
+            {
+                RotateNpcToFacePlayer(_keikoNpc);
+            }
             yield return new WaitForSeconds(2f);
             _state = IntroState.FirstDialogue;
             PlayDialogue(_dialogueJson1);
@@ -2183,6 +2187,8 @@ namespace Nemuri.Scenes
             
             RotateNpcToFacePlayer(_feanorNpc);
             RotateNpcToFaceTarget(_keikoNpc, _feanorNpc);
+            RotateNpcToFaceTarget(_ronaNpc, _feanorNpc);
+            RotateNpcToFaceTarget(_murialNpc, _feanorNpc);
             RotatePlayerToFaceTarget(_feanorNpc);
 
             SetPlayerMovementEnabled(false);
@@ -2193,6 +2199,11 @@ namespace Nemuri.Scenes
         {
             _state = IntroState.FifthDialogue;
             RotateNpcToFacePlayer(_ferryNpc);
+            RotateNpcToFaceTarget(_ronaNpc, _ferryNpc);
+            RotateNpcToFaceTarget(_murialNpc, _ferryNpc);
+            RotateNpcToFaceTarget(_keikoNpc, _ferryNpc);
+            RotateNpcToFaceTarget(_feanorNpc, _ferryNpc);
+            RotatePlayerToFaceTarget(_ferryNpc);
             SetPlayerMovementEnabled(false);
             PlayDialogue(_dialogueJson5);
         }
@@ -2572,6 +2583,16 @@ namespace Nemuri.Scenes
             DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(_dialogueJsonSomnia.text);
             if (seq == null || seq.nodes == null) return;
 
+            GameObject rock1 = GameObject.Find("rockpuzzle1");
+            if (rock1 != null)
+            {
+                RotateNpcToFaceTarget(_ronaNpc, rock1);
+                RotateNpcToFaceTarget(_murialNpc, rock1);
+                RotateNpcToFaceTarget(_keikoNpc, rock1);
+                RotateNpcToFaceTarget(_feanorNpc, rock1);
+                RotatePlayerToFaceTarget(rock1);
+            }
+
             // Part 1: nodes 0 to 5 (D53 - T7)
             List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 6);
 
@@ -2788,6 +2809,16 @@ namespace Nemuri.Scenes
             DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
             if (seq == null || seq.nodes == null) return;
 
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            if (p2Ip != null)
+            {
+                RotateNpcToFaceTarget(_ronaNpc, p2Ip);
+                RotateNpcToFaceTarget(_murialNpc, p2Ip);
+                RotateNpcToFaceTarget(_keikoNpc, p2Ip);
+                RotateNpcToFaceTarget(_feanorNpc, p2Ip);
+                RotatePlayerToFaceTarget(p2Ip);
+            }
+
             // Part 1: nodes 0 to 4 (N12 - D61 + T9)
             List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 5);
 
@@ -2975,6 +3006,16 @@ namespace Nemuri.Scenes
             if (!HasBridgeIntroStarted)
             {
                 HasBridgeIntroStarted = true;
+
+                GameObject dreampearl = FindCrystalByName("dobj.002");
+                if (dreampearl != null)
+                {
+                    RotateNpcToFaceTarget(_ronaNpc, dreampearl);
+                    RotateNpcToFaceTarget(_murialNpc, dreampearl);
+                    RotateNpcToFaceTarget(_keikoNpc, dreampearl);
+                    RotateNpcToFaceTarget(_feanorNpc, dreampearl);
+                    RotatePlayerToFaceTarget(dreampearl);
+                }
                 
                 // Show bridge intro dialogue
                 List<DialogueNode> nodes = new List<DialogueNode>()
@@ -3035,10 +3076,22 @@ namespace Nemuri.Scenes
         private void OnPuzzle3Interacted()
         {
             GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            Interactable inter = null;
+            if (p3Ip != null) inter = p3Ip.GetComponent<Interactable>();
 
             if (!HasPuzzle3IntroStarted)
             {
                 HasPuzzle3IntroStarted = true;
+
+                GameObject dreampearl = FindCrystalByName("dobj.002");
+                if (dreampearl != null)
+                {
+                    RotateNpcToFaceTarget(_ronaNpc, dreampearl);
+                    RotateNpcToFaceTarget(_murialNpc, dreampearl);
+                    RotateNpcToFaceTarget(_keikoNpc, dreampearl);
+                    RotateNpcToFaceTarget(_feanorNpc, dreampearl);
+                    RotatePlayerToFaceTarget(dreampearl);
+                }
 
                 // Show Puzzle 3 intro dialogue
                 List<DialogueNode> nodes = new List<DialogueNode>()
@@ -3054,11 +3107,7 @@ namespace Nemuri.Scenes
                     DialogueManager.Instance.StartConversation(nodes);
                 }
 
-                if (p3Ip != null)
-                {
-                    var inter = p3Ip.GetComponent<Interactable>();
-                    if (inter != null) inter.DismissInteraction();
-                }
+                if (inter != null) inter.DismissInteraction();
             }
             else if (HasPuzzle3IntroEnded && !HasPuzzle3BridgeCreated)
             {
@@ -3068,23 +3117,18 @@ namespace Nemuri.Scenes
                     HasPuzzle3BridgeCreated = true;
 
                     // Disable interactable temporarily
-                    if (p3Ip != null)
-                    {
-                        var inter = p3Ip.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
-                    }
+                    if (inter != null) inter.enabled = false;
 
                     TriggerPuzzle3BridgeSuccess();
+                    if (inter != null) inter.DismissInteraction();
                 }
                 else
                 {
+                    if (inter != null)
+                    {
+                        inter.DisplayInteraction("You must use Rona as player to interact", 0f);
+                    }
                     Debug.Log("[NocturneIntroController] Only Rona can create the second bridge!");
-                }
-
-                if (p3Ip != null)
-                {
-                    var inter = p3Ip.GetComponent<Interactable>();
-                    if (inter != null) inter.DismissInteraction();
                 }
             }
         }
