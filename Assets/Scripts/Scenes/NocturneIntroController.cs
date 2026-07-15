@@ -2698,6 +2698,13 @@ namespace Nemuri.Scenes
 
         private void OnPuzzle2Interacted()
         {
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            Interactable inter = null;
+            if (p2Ip != null)
+            {
+                inter = p2Ip.GetComponent<Interactable>();
+            }
+
             if (!HasCrescentTearPart1Started)
             {
                 TriggerCrescentTearWalkSequence();
@@ -2710,26 +2717,20 @@ namespace Nemuri.Scenes
                     HasMurialInteracted = true;
                     
                     // Disable interactable temporarily
-                    GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-                    if (p2Ip != null)
-                    {
-                        var inter = p2Ip.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
-                    }
+                    if (inter != null) inter.enabled = false;
                     
                     TriggerCrescentTearPart2Dialogue();
                 }
                 else
                 {
+                    if (inter != null)
+                    {
+                        inter.DisplayInteraction("You must use Murial as player to interact", 0f);
+                    }
                     Debug.Log("[NocturneIntroController] Only Murial can rip the vines!");
                 }
 
-                GameObject p2IpObj = GameObject.Find("Puzzle2InteractionPoint");
-                if (p2IpObj != null)
-                {
-                    var inter = p2IpObj.GetComponent<Interactable>();
-                    if (inter != null) inter.DismissInteraction();
-                }
+                if (inter != null) inter.DismissInteraction();
             }
             else if (HasCrescentTearPart2Ended && !HasFeanorInteracted)
             {
@@ -2739,26 +2740,20 @@ namespace Nemuri.Scenes
                     HasFeanorInteracted = true;
 
                     // Disable interactable temporarily
-                    GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-                    if (p2Ip != null)
-                    {
-                        var inter = p2Ip.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
-                    }
+                    if (inter != null) inter.enabled = false;
 
                     TriggerFeanorPuzzle2Interaction();
                 }
                 else
                 {
+                    if (inter != null)
+                    {
+                        inter.DisplayInteraction("You must use Feanor as player to interact", 0f);
+                    }
                     Debug.Log("[NocturneIntroController] Only Feanor can untangle the vines!");
                 }
 
-                GameObject p2IpObj = GameObject.Find("Puzzle2InteractionPoint");
-                if (p2IpObj != null)
-                {
-                    var inter = p2IpObj.GetComponent<Interactable>();
-                    if (inter != null) inter.DismissInteraction();
-                }
+                if (inter != null) inter.DismissInteraction();
             }
         }
 

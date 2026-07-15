@@ -330,7 +330,7 @@ namespace Nemuri.Interactions
             GameObject titleGo = new GameObject("Title Text");
             titleGo.transform.SetParent(panel.transform, false);
             Text titleText = titleGo.AddComponent<Text>();
-            titleText.text = "STABILIZING CRYSTAL";
+            titleText.text = gameObject.name == "dobj.001" ? "SHATTERING ROCK" : "STABILIZING CRYSTAL";
             titleText.fontSize = 24;
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = new Color(0.92f, 0.84f, 0.38f, 1f);

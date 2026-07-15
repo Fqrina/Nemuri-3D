@@ -69,19 +69,15 @@ public class BridgeController : MonoBehaviour
             return;
         }
 
+        FindActivePlayer();
+
         if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
         {
-            searchTimer += Time.deltaTime;
-            if (searchTimer >= 0.5f)
-            {
-                FindActivePlayer();
-                searchTimer = 0f;
-            }
             HideInteraction();
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, activePlayerTransform.position);
+        float distance = Vector3.Distance(GetBridgeDetectionCenter().position, activePlayerTransform.position);
 
         if (distance <= activationDistance)
         {
@@ -153,12 +149,48 @@ public class BridgeController : MonoBehaviour
         _holdTimer = 0f;
     }
 
+    private Transform GetBridgeDetectionCenter()
+    {
+        GameObject pg = GameObject.Find("PINEALGRAND");
+        if (pg != null)
+        {
+            Transform pivotBridge = pg.transform.Find("pivot bridge");
+            if (pivotBridge == null) pivotBridge = pg.transform.Find("pivot_bridge");
+            if (pivotBridge == null) pivotBridge = FindChildRecursiveTransform(pg.transform, "pivot bridge");
+            if (pivotBridge == null) pivotBridge = FindChildRecursiveTransform(pg.transform, "pivot_bridge");
+            if (pivotBridge != null) return pivotBridge;
+        }
+        return transform;
+    }
+
+    private Transform FindChildRecursiveTransform(Transform parent, string name)
+    {
+        if (parent.name.Equals(name, System.StringComparison.OrdinalIgnoreCase)) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform result = FindChildRecursiveTransform(parent.GetChild(i), name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
     void FindActivePlayer()
     {
+        if (Nemuri.Core.CharacterSwapManager.Instance != null)
+        {
+            GameObject activeObj = Nemuri.Core.CharacterSwapManager.Instance.GetActivePlayerObject();
+            if (activeObj != null && activeObj.activeInHierarchy)
+            {
+                activePlayerTransform = activeObj.transform;
+                return;
+            }
+        }
+
         Transform closest = null;
         float closestDist = float.MaxValue;
 
-        foreach (string charName in allCharacterNames)
+        string[] fallbacks = { "KAELCHARA", "RONACHARA", "MURIALCHARA", "KEIKOCHARA", "FEANORCHARA", "KAEL", "RONA", "MURIAL", "KEIKO", "FEANOR" };
+        foreach (string charName in fallbacks)
         {
             GameObject obj = GameObject.Find(charName);
             if (obj != null && obj.activeInHierarchy)
@@ -168,19 +200,6 @@ public class BridgeController : MonoBehaviour
                 {
                     closestDist = dist;
                     closest = obj.transform;
-                }
-            }
-        }
-
-        if (closest == null)
-        {
-            foreach (string charName in targetCharacterNames)
-            {
-                GameObject obj = GameObject.Find(charName);
-                if (obj != null && obj.activeInHierarchy)
-                {
-                    activePlayerTransform = obj.transform;
-                    return;
                 }
             }
         }
@@ -221,6 +240,6 @@ public class BridgeController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, activationDistance);
+        Gizmos.DrawWireSphere(GetBridgeDetectionCenter().position, activationDistance);
     }
 }
