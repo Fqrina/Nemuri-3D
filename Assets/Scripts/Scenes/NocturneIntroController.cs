@@ -36,7 +36,7 @@ namespace Nemuri.Scenes
             if (Instance != null)
             {
                 // Lock character swaps during Somnia Seed puzzle approach/walk and dialogue phase
-                if (Instance._startGemPuzzleWalk && !Instance._hasDialogueSomniaEnded)
+                if (Instance._startGemPuzzleWalk && !Instance.HasDialogueSomniaEnded)
                 {
                     return false;
                 }
@@ -339,6 +339,16 @@ namespace Nemuri.Scenes
             }
 
             _portalObject = FindPortalObject();
+
+            // Speed up all animators in the scene by 1.5x
+            Animator[] allAnimators = FindObjectsByType<Animator>(FindObjectsInactive.Include);
+            foreach (var anim in allAnimators)
+            {
+                if (anim != null)
+                {
+                    anim.speed = 1.5f;
+                }
+            }
 
             StartCoroutine(IntroStartRoutine());
         }
@@ -1322,7 +1332,7 @@ namespace Nemuri.Scenes
 
                 case IntroState.Completed:
                     SetPlayerMovementEnabled(true);
-                    _hasDialogueSomniaEnded = true;
+                    HasDialogueSomniaEnded = true;
                     Debug.Log("[NocturneIntroController] Somnia Seed dialogue ended.");
                     break;
             }
