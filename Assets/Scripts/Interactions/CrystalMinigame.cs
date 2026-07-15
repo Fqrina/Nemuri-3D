@@ -69,6 +69,19 @@ namespace Nemuri.Interactions
 
         private void StartMinigame()
         {
+            if (gameObject.name == "dobj.001")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasDialogueSomniaEnded)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerSomniaSeedWalkSequence();
+                    if (_interactable != null)
+                    {
+                        _interactable.DismissInteraction();
+                    }
+                    return;
+                }
+            }
+
             if (_isPlaying) return;
 
             _isPlaying = true;

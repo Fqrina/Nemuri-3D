@@ -254,7 +254,7 @@ namespace Nemuri.Scenes
         private TextAsset _dialogueJsonSomnia;
         private bool _startGemPuzzleWalk = false;
         private bool _dialogueSomniaStarted = false;
-        private bool _hasDialogueSomniaEnded = false;
+        public bool HasDialogueSomniaEnded { get; private set; } = false;
 
         private void Start()
         {
@@ -1024,35 +1024,7 @@ namespace Nemuri.Scenes
                         }
                     }
 
-                    // 5. Proximity trigger for the Gem Puzzle 1 (dobj.001)
-                    if (IsIntroCompleted && !_hasTriggeredGemPuzzle && _crystalObject != null)
-                    {
-                        Transform activePlayer = FindActivePlayerTransform();
-                        if (activePlayer != null && activePlayer.name.Contains("MURIALCHARA"))
-                        {
-                            float distToCrystal = Vector3.Distance(activePlayer.position, _crystalObject.transform.position);
-                            if (distToCrystal <= 3.0f)
-                            {
-                                _hasTriggeredGemPuzzle = true;
-                                SetPlayerMovementEnabled(false);
-                                
-                                // Perform local swap to Kael so Kael appears at the activation spot
-                                if (CharacterSwapManager.Instance != null)
-                                {
-                                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
-                                }
-
-                                // Reset path indices to 0 to start NPC walk sequence
-                                _ronaPathIndex = 0;
-                                _murialPathIndex = 0;
-                                _keikoPathIndex = 0;
-                                _feanorPathIndex = 0;
-
-                                _startGemPuzzleWalk = true;
-                                Debug.Log("[NocturneIntroController] Murial approached dobj.001! Commencing NPC walking sequence.");
-                            }
-                        }
-                    }
+                    // Proximity trigger removed: walk sequence is now triggered explicitly via interaction
                     break;
             }
         }
@@ -1374,6 +1346,29 @@ namespace Nemuri.Scenes
             {
                 onApproach?.Invoke();
             }
+        }
+
+        public void TriggerSomniaSeedWalkSequence()
+        {
+            if (_hasTriggeredGemPuzzle) return;
+            
+            _hasTriggeredGemPuzzle = true;
+            SetPlayerMovementEnabled(false);
+            
+            // Perform local swap to Kael so Kael appears at the activation spot
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+            }
+
+            // Reset path indices to 0 to start NPC walk sequence
+            _ronaPathIndex = 0;
+            _murialPathIndex = 0;
+            _keikoPathIndex = 0;
+            _feanorPathIndex = 0;
+
+            _startGemPuzzleWalk = true;
+            Debug.Log("[NocturneIntroController] Player interacted with dobj.001! Commencing NPC walking sequence.");
         }
 
         private void TriggerGemPuzzleDialogue()
