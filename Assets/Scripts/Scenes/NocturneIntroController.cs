@@ -615,6 +615,36 @@ namespace Nemuri.Scenes
                 _ferryInitialPosition = _ferryNpc.transform.position;
             }
 
+            // Submerge and hide Puzzle3 Bridge on start
+            GameObject startP3Bridge = FindPuzzle3Bridge();
+            if (startP3Bridge != null)
+            {
+                Vector3 pos = startP3Bridge.transform.position;
+                pos.y = 0.92f;
+                startP3Bridge.transform.position = pos;
+
+                Renderer[] renderers = startP3Bridge.GetComponentsInChildren<Renderer>(true);
+                foreach (var r in renderers)
+                {
+                    if (r != null && r.material != null)
+                    {
+                        Material mat = r.material;
+                        mat.SetFloat("_Surface", 1f); // 1 is transparent
+                        mat.SetFloat("_Blend", 0f);   // 0 is alpha blend
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        mat.SetInt("_ZWrite", 0);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                        Color c = mat.color;
+                        c.a = 0f;
+                        mat.color = c;
+                    }
+                }
+            }
+
             StartCoroutine(IntroStartRoutine());
         }
 
@@ -3075,11 +3105,18 @@ namespace Nemuri.Scenes
             }
         }
 
+        private GameObject FindPuzzle3Bridge()
+        {
+            GameObject bridge = GameObject.Find("PuzzleBridge");
+            if (bridge == null) bridge = GameObject.Find("puzzle bridge");
+            return bridge;
+        }
+
         private void TriggerPuzzle3BridgeSuccess()
         {
             SetPlayerMovementEnabled(false);
 
-            GameObject p3Bridge = GameObject.Find("puzzle bridge");
+            GameObject p3Bridge = FindPuzzle3Bridge();
             StartCoroutine(SmoothMovePuzzle3BridgeRoutine(p3Bridge));
         }
 
@@ -3096,7 +3133,7 @@ namespace Nemuri.Scenes
             float elapsed = 0f;
 
             Vector3 startPos = p3Bridge != null ? p3Bridge.transform.position : Vector3.zero;
-            float startY = startPos.y;
+            float startY = 0.92f;
             float endY = 2.985f; // puzzle bridge Y dari 0.92 ke 2.985
 
             // Setup fade-in materials if they are URP
