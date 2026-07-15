@@ -300,33 +300,33 @@ namespace Nemuri.Scenes
 
         private List<Vector2> _ronaPathToBridge1 = new List<Vector2>()
         {
-            new Vector2(-10.86f, 104.96f),
-            new Vector2(-12.57f, 104.03f),
-            new Vector2(-14.04f, 103.06f),
+            new Vector2(-10.86f + 0.15f, 104.96f - 0.1f),
+            new Vector2(-12.57f + 0.15f, 104.03f - 0.1f),
+            new Vector2(-14.04f + 0.15f, 103.06f - 0.1f),
             new Vector2(-16.73f, 102.8f)
         };
 
         private List<Vector2> _murialPathToBridge1 = new List<Vector2>()
         {
-            new Vector2(-10.86f, 104.96f),
-            new Vector2(-12.57f, 104.03f),
-            new Vector2(-14.04f, 103.06f),
+            new Vector2(-10.86f - 0.15f, 104.96f + 0.1f),
+            new Vector2(-12.57f - 0.15f, 104.03f + 0.1f),
+            new Vector2(-14.04f - 0.15f, 103.06f + 0.1f),
             new Vector2(-16.77f, 101.65f)
         };
 
         private List<Vector2> _keikoPathToBridge1 = new List<Vector2>()
         {
-            new Vector2(-10.86f, 104.96f),
-            new Vector2(-12.57f, 104.03f),
-            new Vector2(-14.04f, 103.06f),
+            new Vector2(-10.86f + 0.1f, 104.96f + 0.15f),
+            new Vector2(-12.57f + 0.1f, 104.03f + 0.15f),
+            new Vector2(-14.04f + 0.1f, 103.06f + 0.15f),
             new Vector2(-16.88f, 100.33f)
         };
 
         private List<Vector2> _feanorPathToBridge1 = new List<Vector2>()
         {
-            new Vector2(-10.86f, 104.96f),
-            new Vector2(-12.57f, 104.03f),
-            new Vector2(-14.04f, 103.06f),
+            new Vector2(-10.86f - 0.1f, 104.96f - 0.15f),
+            new Vector2(-12.57f - 0.1f, 104.03f - 0.15f),
+            new Vector2(-14.04f - 0.1f, 103.06f - 0.15f),
             new Vector2(-17.0f, 98.61f)
         };
 
