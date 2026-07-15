@@ -268,7 +268,7 @@ namespace Nemuri.Scenes
             new Vector2(-12.085f, 111.217f),
             new Vector2(-14.361f, 112.13f) // Path 1 end
         };
-        private bool _hasTriggeredGemPuzzle = false;
+
         private TextAsset _dialogueJsonSomnia;
         private bool _startGemPuzzleWalk = false;
         private bool _dialogueSomniaStarted = false;
@@ -1860,7 +1860,6 @@ namespace Nemuri.Scenes
         {
             if (HasSomniaSeedPart1Started) return;
             HasSomniaSeedPart1Started = true;
-            _hasTriggeredGemPuzzle = true;
             SetPlayerMovementEnabled(false);
             
             // Perform local swap to Kael so Kael appears at the activation spot
@@ -2243,7 +2242,7 @@ namespace Nemuri.Scenes
 
         public void SetBridgeInteractionActive(bool active, string promptText, float holdSeconds)
         {
-            BridgeController bridge = FindFirstObjectByType<BridgeController>();
+            BridgeController bridge = FindAnyObjectByType<BridgeController>();
             if (bridge != null)
             {
                 var inter = bridge.GetComponent<Interactable>();
@@ -2320,6 +2319,8 @@ namespace Nemuri.Scenes
 
         private void OnPuzzle3Interacted()
         {
+            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+
             if (!HasPuzzle3IntroStarted)
             {
                 HasPuzzle3IntroStarted = true;
@@ -2338,7 +2339,6 @@ namespace Nemuri.Scenes
                     DialogueManager.Instance.StartConversation(nodes);
                 }
 
-                GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
                 if (p3Ip != null)
                 {
                     var inter = p3Ip.GetComponent<Interactable>();
@@ -2353,7 +2353,6 @@ namespace Nemuri.Scenes
                     HasPuzzle3BridgeCreated = true;
 
                     // Disable interactable temporarily
-                    GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
                     if (p3Ip != null)
                     {
                         var inter = p3Ip.GetComponent<Interactable>();
@@ -2367,7 +2366,6 @@ namespace Nemuri.Scenes
                     Debug.Log("[NocturneIntroController] Only Rona can create the second bridge!");
                 }
 
-                GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
                 if (p3Ip != null)
                 {
                     var inter = p3Ip.GetComponent<Interactable>();
