@@ -133,6 +133,14 @@ namespace Nemuri.Scenes
                 }
             }
 
+            if (Camera.main != null)
+            {
+                if (Camera.main.GetComponent<Nemuri.CameraEffects.CameraObstructionManager>() == null)
+                {
+                    Camera.main.gameObject.AddComponent<Nemuri.CameraEffects.CameraObstructionManager>();
+                }
+            }
+
             _dialogueJson1 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1a");
             _dialogueJson1b = Resources.Load<TextAsset>("Dialogue/nocturne_intro_1b");
             _dialogueJson2 = Resources.Load<TextAsset>("Dialogue/nocturne_intro_2");
