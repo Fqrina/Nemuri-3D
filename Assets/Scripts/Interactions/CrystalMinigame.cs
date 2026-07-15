@@ -81,7 +81,32 @@ namespace Nemuri.Interactions
                     return;
                 }
             }
-
+            else if (gameObject.name == "dobj.002")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    var intro = Nemuri.Scenes.NocturneIntroController.Instance;
+                    if (!intro.HasCrescentTearPart1Started)
+                    {
+                        intro.TriggerCrescentTearPart1Dialogue();
+                        if (_interactable != null) _interactable.DismissInteraction();
+                        return;
+                    }
+                    else if (!intro.HasFeanorInteractedPuzzle2)
+                    {
+                        if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
+                        {
+                            intro.TriggerFeanorPuzzle2Interaction();
+                        }
+                        else
+                        {
+                            Debug.Log("[CrystalMinigame] Must use Feanor to interact with Crescent Tear vines!");
+                        }
+                        if (_interactable != null) _interactable.DismissInteraction();
+                        return;
+                    }
+                }
+            }
             if (_isPlaying) return;
 
             _isPlaying = true;

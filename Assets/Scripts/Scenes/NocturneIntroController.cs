@@ -24,7 +24,9 @@ namespace Nemuri.Scenes
             FourthDialogue,
             WaitingForFerry,
             FifthDialogue,
-            Completed
+            Completed,
+            CrescentTearPart1,
+            CrescentTearPart2
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -255,6 +257,8 @@ namespace Nemuri.Scenes
         private bool _startGemPuzzleWalk = false;
         private bool _dialogueSomniaStarted = false;
         public bool HasDialogueSomniaEnded { get; private set; } = false;
+        public bool HasCrescentTearPart1Started { get; private set; } = false;
+        public bool HasFeanorInteractedPuzzle2 { get; private set; } = false;
 
         private void Start()
         {
@@ -1335,6 +1339,22 @@ namespace Nemuri.Scenes
                     HasDialogueSomniaEnded = true;
                     Debug.Log("[NocturneIntroController] Somnia Seed dialogue ended.");
                     break;
+
+                case IntroState.CrescentTearPart1:
+                    // Unlock Feanor (index 4) and force swap to Feanor
+                    if (CharacterSwapManager.Instance != null)
+                    {
+                        CharacterSwapManager.Instance.SetCharacterUnlocked(4, true);
+                        CharacterSwapManager.Instance.SwapToCharacter(4);
+                    }
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Crescent Tear Part 1 ended. Forced swap to Feanor.");
+                    break;
+
+                case IntroState.CrescentTearPart2:
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended.");
+                    break;
             }
         }
 
@@ -1391,6 +1411,124 @@ namespace Nemuri.Scenes
                 _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
             }
             PlayDialogue(_dialogueJsonSomnia);
+        }
+
+        public void TriggerCrescentTearPart1Dialogue()
+        {
+            if (HasCrescentTearPart1Started) return;
+            HasCrescentTearPart1Started = true;
+
+            TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
+            if (dialogueJson == null) return;
+
+            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
+            if (seq == null || seq.nodes == null) return;
+
+            // Part 1: nodes 0 to 9 (N12 - D64)
+            List<DialogueNode> part1Nodes = seq.nodes.GetRange(0, 10);
+
+            _state = IntroState.CrescentTearPart1;
+            SetPlayerMovementEnabled(false);
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part1Nodes);
+            }
+        }
+
+        public void TriggerFeanorPuzzle2Interaction()
+        {
+            if (HasFeanorInteractedPuzzle2) return;
+            HasFeanorInteractedPuzzle2 = true;
+
+            SetPlayerMovementEnabled(false);
+
+            GameObject cubeObj = null;
+            GameObject dobjObj = null;
+
+            var allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (var obj in allObjects)
+            {
+                if (obj.name == "Cube.001 (1)") cubeObj = obj;
+                if (obj.name == "dobj") dobjObj = obj;
+            }
+
+            if (cubeObj == null) cubeObj = GameObject.Find("Cube.001 (1)");
+            if (dobjObj == null) dobjObj = GameObject.Find("dobj");
+
+            StartCoroutine(SmoothMovePuzzle2Routine(cubeObj, dobjObj));
+        }
+
+        private void TriggerCrescentTearPart2Dialogue()
+        {
+            TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
+            if (dialogueJson == null) return;
+
+            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
+            if (seq == null || seq.nodes == null) return;
+
+            // Part 2: nodes 10 to end (N14 - T11)
+            List<DialogueNode> part2Nodes = seq.nodes.GetRange(10, seq.nodes.Count - 10);
+
+            _state = IntroState.CrescentTearPart2;
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part2Nodes);
+            }
+        }
+
+        private IEnumerator SmoothMovePuzzle2Routine(GameObject cubeObj, GameObject dobjObj)
+        {
+            float duration = 2.0f; // Smooth move over 2 seconds
+            float elapsed = 0f;
+
+            Vector3 startCubePos = cubeObj != null ? cubeObj.transform.position : Vector3.zero;
+            Vector3 startDobjPos = dobjObj != null ? dobjObj.transform.position : Vector3.zero;
+
+            float startX = startCubePos.x;
+            float endX = 18.21f;
+            float startY = startDobjPos.y;
+            float endY = 0.46f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float tSmooth = Mathf.SmoothStep(0f, 1f, t);
+
+                if (cubeObj != null)
+                {
+                    Vector3 currentCubePos = cubeObj.transform.position;
+                    currentCubePos.x = Mathf.Lerp(startX, endX, tSmooth);
+                    cubeObj.transform.position = currentCubePos;
+                }
+
+                if (dobjObj != null)
+                {
+                    Vector3 currentDobjPos = dobjObj.transform.position;
+                    currentDobjPos.y = Mathf.Lerp(startY, endY, tSmooth);
+                    dobjObj.transform.position = currentDobjPos;
+                }
+
+                yield return null;
+            }
+
+            if (cubeObj != null)
+            {
+                Vector3 finalCubePos = cubeObj.transform.position;
+                finalCubePos.x = endX;
+                cubeObj.transform.position = finalCubePos;
+            }
+
+            if (dobjObj != null)
+            {
+                Vector3 finalDobjPos = dobjObj.transform.position;
+                finalDobjPos.y = endY;
+                dobjObj.transform.position = finalDobjPos;
+            }
+
+            TriggerCrescentTearPart2Dialogue();
         }
 
         private GameObject FindCrystalObject()

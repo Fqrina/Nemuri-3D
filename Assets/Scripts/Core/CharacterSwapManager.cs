@@ -21,6 +21,7 @@ namespace Nemuri.Core
         [Header("Character Configurations")]
         [SerializeField] private List<CharacterBinding> _characters = new List<CharacterBinding>();
         [SerializeField] private int _activeCharacterIndex = 0;
+        public int ActiveCharacterIndex => _activeCharacterIndex;
 
         [Header("Camera Configurations")]
         [SerializeField] private FixedWorldOffsetCamera _followCamera;
