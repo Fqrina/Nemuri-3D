@@ -149,6 +149,11 @@ namespace Nemuri.Core
                     if (_characters[i].npcObject != null)
                     {
                         bool shouldBeActive = (i != _activeCharacterIndex);
+                        if (i == 2 && Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasMurialFallen)
+                        {
+                            shouldBeActive = false;
+                        }
+
                         if (_characters[i].npcObject.activeSelf != shouldBeActive)
                         {
                             _characters[i].npcObject.SetActive(shouldBeActive);

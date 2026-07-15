@@ -338,6 +338,7 @@ namespace Nemuri.Scenes
 
         public bool HasBunnyDialogueEnded { get; private set; } = false;
         public bool HasPortalFixed { get; private set; } = false;
+        public bool HasMurialFallen { get; private set; } = false;
 
         private bool _startBunnyWalkPostDreampearl = false;
         private bool _bunnyDialoguePostDreampearlStarted = false;
@@ -2064,6 +2065,7 @@ namespace Nemuri.Scenes
                     yield return null;
                 }
                 _murialNpc.transform.position = endPos;
+                HasMurialFallen = true;
                 Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
                 RotateNpcToFacePlayer(_murialNpc);
             }
@@ -3356,6 +3358,18 @@ namespace Nemuri.Scenes
             if (cc != null)
             {
                 cc.enabled = false;
+            }
+
+            var pm = npc.GetComponent<Nemuri.Player.PlayerMovement>();
+            if (pm != null)
+            {
+                pm.enabled = false;
+            }
+
+            var pmC1 = npc.GetComponent<Nemuri.Player.PlayerMovementChapt1>();
+            if (pmC1 != null)
+            {
+                pmC1.enabled = false;
             }
         }
 
