@@ -32,7 +32,12 @@ namespace Nemuri.Scenes
             WaitingForCrescentDialogue,
             SomniaSeedPart1,
             SomniaSeedPart2,
-            SomniaSeedCollectedDialogue
+            SomniaSeedCollectedDialogue,
+            BridgeIntroDialogue,
+            BridgeSuccessDialogue,
+            Puzzle3IntroDialogue,
+            Puzzle3SuccessDialogue,
+            Puzzle3CollectedDialogue
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -278,6 +283,13 @@ namespace Nemuri.Scenes
         public bool HasSomniaSeedPart1Started { get; private set; } = false;
         public bool HasSomniaSeedPart1Ended { get; private set; } = false;
         public bool HasSomniaSeedPuzzleCompleted { get; private set; } = false;
+        public bool HasBridgeIntroStarted { get; private set; } = false;
+        public bool HasBridgeIntroEnded { get; private set; } = false;
+        public bool HasBridgeFixed { get; private set; } = false;
+        public bool HasPuzzle3IntroStarted { get; private set; } = false;
+        public bool HasPuzzle3IntroEnded { get; private set; } = false;
+        public bool HasPuzzle3BridgeCreated { get; private set; } = false;
+        public bool HasPuzzle3Collected { get; private set; } = false;
 
         private bool _startCrescentWalk = false;
         private bool _crescentDialogueStarted = false;
@@ -415,6 +427,21 @@ namespace Nemuri.Scenes
                 interactable.OnInteract.RemoveAllListeners();
                 interactable.OnInteract.AddListener(OnPuzzle2Interacted);
                 interactable.enabled = false; // Initially inactive until Somnia Seed dialogue ends
+            }
+
+            // Dynamically configure Puzzle3InteractionPoint
+            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            if (p3Ip != null)
+            {
+                var interactable = p3Ip.GetComponent<Interactable>();
+                if (interactable == null) interactable = p3Ip.AddComponent<Interactable>();
+                interactable.PromptText = "Investigate Shell (E)";
+                interactable.InteractionRange = 4.0f;
+                interactable.HoldSeconds = 0f;
+                if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
+                interactable.OnInteract.RemoveAllListeners();
+                interactable.OnInteract.AddListener(OnPuzzle3Interacted);
+                interactable.enabled = false; // Initially inactive until Crescent Tear is collected
             }
 
             if (CharacterSwapManager.Instance != null)
@@ -1692,12 +1719,74 @@ namespace Nemuri.Scenes
 
                 case IntroState.CrescentTearCollectedDialogue:
                     SetPlayerMovementEnabled(true);
-                    Debug.Log("[NocturneIntroController] Crescent Tear collected dialogue ended.");
+                    SetBridgeInteractionActive(true, "Press E to Interact", 0f);
+                    Debug.Log("[NocturneIntroController] Crescent Tear collected dialogue ended. Enabled first bridge interaction.");
                     break;
 
                 case IntroState.SomniaSeedCollectedDialogue:
                     SetPlayerMovementEnabled(true);
                     Debug.Log("[NocturneIntroController] Somnia Seed collected dialogue ended.");
+                    break;
+
+                case IntroState.BridgeIntroDialogue:
+                    HasBridgeIntroEnded = true;
+                    SetPlayerMovementEnabled(true);
+                    SetBridgeInteractionActive(true, "Press E to fix bridge", 3.0f);
+                    Debug.Log("[NocturneIntroController] Bridge intro dialogue ended. Enabled fix bridge interaction.");
+                    break;
+
+                case IntroState.BridgeSuccessDialogue:
+                    SetPlayerMovementEnabled(true);
+                    SetBridgeInteractionActive(false, "", 0f);
+                    GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+                    if (p3Ip != null)
+                    {
+                        var inter = p3Ip.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = true;
+                    }
+                    Debug.Log("[NocturneIntroController] Bridge success dialogue ended. Activated Puzzle3InteractionPoint.");
+                    break;
+
+                case IntroState.Puzzle3IntroDialogue:
+                    HasPuzzle3IntroEnded = true;
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3IpObj = GameObject.Find("Puzzle3InteractionPoint");
+                    if (p3IpObj != null)
+                    {
+                        var inter = p3IpObj.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Press E to create bridge";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 intro dialogue ended. Prompt changed to Press E to create bridge.");
+                    break;
+
+                case IntroState.Puzzle3SuccessDialogue:
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3IpObj2 = GameObject.Find("Puzzle3InteractionPoint");
+                    if (p3IpObj2 != null)
+                    {
+                        var inter = p3IpObj2.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    GameObject dobj002 = FindCrystalByName("dobj.002");
+                    if (dobj002 != null)
+                    {
+                        var col = dobj002.GetComponent<Collider>();
+                        if (col != null) col.enabled = true;
+                        var inter = dobj002.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = true;
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 success dialogue ended. Dreampearl is now collectable.");
+                    break;
+
+                case IntroState.Puzzle3CollectedDialogue:
+                    SetPlayerMovementEnabled(true);
+                    Debug.Log("[NocturneIntroController] Puzzle 3 collected dialogue ended.");
                     break;
             }
         }
@@ -2144,6 +2233,285 @@ namespace Nemuri.Scenes
             };
             
             _state = IntroState.CrescentTearCollectedDialogue;
+            SetPlayerMovementEnabled(false);
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        public void SetBridgeInteractionActive(bool active, string promptText, float holdSeconds)
+        {
+            BridgeController bridge = FindFirstObjectByType<BridgeController>();
+            if (bridge != null)
+            {
+                var inter = bridge.GetComponent<Interactable>();
+                if (inter != null)
+                {
+                    inter.PromptText = promptText;
+                    inter.HoldSeconds = holdSeconds;
+                    inter.enabled = active;
+                }
+            }
+        }
+
+        public void OnBridgeInteracted()
+        {
+            if (!HasBridgeIntroStarted)
+            {
+                HasBridgeIntroStarted = true;
+                
+                // Show bridge intro dialogue
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Narrator", text = "Following the resonance, you arrive at a tranquil lake. At its center rests a giant seashell, tightly closed around a faintly glowing Dreampearl.", portraitName = "", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Keiko", text = "It's there... I can hear it.", portraitName = "Keiko", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Kael", text = "But there's no way to reach it.", portraitName = "Kael", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Narrator", text = "The lake stretches endlessly before you. Every stepping stone has crumbled into the water, leaving the Dreampearl completely inaccessible.", portraitName = "", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Feanor", text = "The tremors destroyed the path long ago.", portraitName = "Feanor", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona", text = "Then we'll make our own.", portraitName = "Rona", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.BridgeIntroDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
+            }
+        }
+
+        public void OnBridgeFixedByRona(BridgeController bridge)
+        {
+            if (HasBridgeFixed) return;
+            HasBridgeFixed = true;
+
+            SetPlayerMovementEnabled(false);
+            SetBridgeInteractionActive(false, "", 0f);
+
+            // Call the TriggerBridge on the controller to trigger bridge animators
+            if (bridge != null)
+            {
+                bridge.TriggerBridgePublic();
+            }
+
+            StartCoroutine(WaitAndLowerBridgeRoutine());
+        }
+
+        private IEnumerator WaitAndLowerBridgeRoutine()
+        {
+            // Delay 6 seconds for bridge animation
+            yield return new WaitForSeconds(6.0f);
+
+            // Trigger Rona dialogue
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Rona", text = "A path isn't something you wait for...", portraitName = "Rona", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona", text = "It's something you create.", portraitName = "Rona", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.BridgeSuccessDialogue;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        private void OnPuzzle3Interacted()
+        {
+            if (!HasPuzzle3IntroStarted)
+            {
+                HasPuzzle3IntroStarted = true;
+
+                // Show Puzzle 3 intro dialogue
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Kael", text = "Oh, the pearl is still too far. We need another bridge.", portraitName = "Kael", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona", text = "Fine, I will prove that we're worthy.", portraitName = "Rona", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.Puzzle3IntroDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
+
+                GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+                if (p3Ip != null)
+                {
+                    var inter = p3Ip.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+            }
+            else if (HasPuzzle3IntroEnded && !HasPuzzle3BridgeCreated)
+            {
+                // Must be Rona to build the second bridge
+                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 1)
+                {
+                    HasPuzzle3BridgeCreated = true;
+
+                    // Disable interactable temporarily
+                    GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+                    if (p3Ip != null)
+                    {
+                        var inter = p3Ip.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    TriggerPuzzle3BridgeSuccess();
+                }
+                else
+                {
+                    Debug.Log("[NocturneIntroController] Only Rona can create the second bridge!");
+                }
+
+                GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+                if (p3Ip != null)
+                {
+                    var inter = p3Ip.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+            }
+        }
+
+        private void TriggerPuzzle3BridgeSuccess()
+        {
+            SetPlayerMovementEnabled(false);
+
+            GameObject p3Bridge = GameObject.Find("puzzle bridge");
+            StartCoroutine(SmoothMovePuzzle3BridgeRoutine(p3Bridge));
+        }
+
+        private IEnumerator SmoothMovePuzzle3BridgeRoutine(GameObject p3Bridge)
+        {
+            float duration = 3.0f; // Smooth move and fade-in over 3 seconds
+            float elapsed = 0f;
+
+            Vector3 startPos = p3Bridge != null ? p3Bridge.transform.position : Vector3.zero;
+            float startY = startPos.y;
+            float endY = 2.985f; // puzzle bridge Y dari 0.92 ke 2.985
+
+            // Setup fade-in materials if they are URP
+            Renderer[] renderers = p3Bridge != null ? p3Bridge.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
+            
+            // First pass: store original materials/colors and set to transparent blend
+            struct RendererMatInfo
+            {
+                public Renderer r;
+                public Material m;
+                public Color origColor;
+            }
+            List<RendererMatInfo> matInfos = new List<RendererMatInfo>();
+            
+            foreach (var r in renderers)
+            {
+                if (r != null && r.material != null)
+                {
+                    Material mat = r.material;
+                    // Switch to transparent mode in URP Lit
+                    mat.SetFloat("_Surface", 1f); // 1 is transparent
+                    mat.SetFloat("_Blend", 0f);   // 0 is alpha blend
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHATEST_ON");
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                    Color c = mat.color;
+                    c.a = 0f;
+                    mat.color = c;
+
+                    matInfos.Add(new RendererMatInfo { r = r, m = mat, origColor = mat.color });
+                }
+            }
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float tSmooth = Mathf.SmoothStep(0f, 1f, t);
+
+                if (p3Bridge != null)
+                {
+                    Vector3 currentPos = p3Bridge.transform.position;
+                    currentPos.y = Mathf.Lerp(startY, endY, tSmooth);
+                    p3Bridge.transform.position = currentPos;
+                }
+
+                // Smoothly fade-in renderers
+                foreach (var info in matInfos)
+                {
+                    if (info.m != null)
+                    {
+                        Color c = info.origColor;
+                        c.a = Mathf.Lerp(0f, 1f, tSmooth);
+                        info.m.color = c;
+                    }
+                }
+
+                yield return null;
+            }
+
+            if (p3Bridge != null)
+            {
+                Vector3 finalPos = p3Bridge.transform.position;
+                finalPos.y = endY;
+                p3Bridge.transform.position = finalPos;
+            }
+
+            // Restore opaque shaders and full alpha
+            foreach (var info in matInfos)
+            {
+                if (info.m != null)
+                {
+                    Color c = info.origColor;
+                    c.a = 1f;
+                    info.m.color = c;
+                    
+                    // Switch back to opaque mode
+                    info.m.SetFloat("_Surface", 0f); // 0 is opaque
+                    info.m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    info.m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    info.m.SetInt("_ZWrite", 1);
+                    info.m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    info.m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
+                }
+            }
+
+            // Trigger Puzzle 3 success dialogue: Keiko & Objective
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Keiko", text = "The bridge appeared, let's get the pearl.", portraitName = "Keiko", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Obtain the Dreampearl.", portraitName = "", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.Puzzle3SuccessDialogue;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        public void TriggerPuzzle3CollectedDialogue()
+        {
+            if (HasPuzzle3Collected) return;
+            HasPuzzle3Collected = true;
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode()
+                {
+                    speaker = "Rona",
+                    text = "We're finally done! Let's go back now!",
+                    portraitName = "Rona",
+                    typingSpeed = 0.05f
+                }
+            };
+            
+            _state = IntroState.Puzzle3CollectedDialogue;
             SetPlayerMovementEnabled(false);
 
             if (DialogueManager.Instance != null)

@@ -61,6 +61,14 @@ public class BridgeController : MonoBehaviour
     {
         if (isTriggered) return;
 
+        // Check if Crescent Tear is collected
+        if (Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasCrescentTearCollected)
+        {
+            if (_interactable != null) _interactable.enabled = false;
+            HideInteraction();
+            return;
+        }
+
         if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
         {
             searchTimer += Time.deltaTime;
@@ -77,47 +85,58 @@ public class BridgeController : MonoBehaviour
 
         if (distance <= activationDistance)
         {
-            bool isAllowed = System.Array.Exists(
-                targetCharacterNames, n => activePlayerTransform.name == n);
-
-            if (isAllowed)
+            var intro = Nemuri.Scenes.NocturneIntroController.Instance;
+            if (intro != null)
             {
-                if (Keyboard.current != null && Keyboard.current.eKey.isPressed)
-                {
-                    _holdTimer += Time.deltaTime;
-                    _interactable?.DisplayInteraction("Hold E to lower bridge", _holdTimer / holdDuration);
+                if (_interactable != null) _interactable.enabled = true;
 
-                    if (_holdTimer >= holdDuration)
+                if (!intro.HasBridgeIntroStarted)
+                {
+                    _interactable?.DisplayInteraction("Press E to Interact", 0f);
+                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                     {
-                        _holdTimer = 0f;
+                        intro.OnBridgeInteracted();
                         _interactable?.DismissInteraction();
-                        TriggerBridge();
                     }
                 }
-                else
+                else if (intro.HasBridgeIntroEnded && !intro.HasBridgeFixed)
                 {
-                    if (_holdTimer > 0f)
+                    bool isRona = (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1);
+
+                    if (isRona)
                     {
-                        HideInteraction();
+                        if (Keyboard.current != null && Keyboard.current.eKey.isPressed)
+                        {
+                            _holdTimer += Time.deltaTime;
+                            _interactable?.DisplayInteraction("Press E to fix bridge", _holdTimer / holdDuration);
+
+                            if (_holdTimer >= holdDuration)
+                            {
+                                _holdTimer = 0f;
+                                _interactable?.DismissInteraction();
+                                isTriggered = true;
+                                intro.OnBridgeFixedByRona(this);
+                            }
+                        }
+                        else
+                        {
+                            if (_holdTimer > 0f)
+                            {
+                                HideInteraction();
+                            }
+                            else
+                            {
+                                _interactable?.DisplayInteraction("Press E to fix bridge", 0f);
+                            }
+                        }
                     }
                     else
                     {
-                        _interactable?.DisplayInteraction("Hold E to lower bridge", 0f);
-                    }
-                }
-            }
-            else
-            {
-                if (!_hasShownWrongPlayerError)
-                {
-                    _interactable?.DisplayInteraction("Hold E to lower bridge", 0f);
-
-                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                    {
-                        _interactable?.DisplayInteraction("You must use KEIKOCHARA as player to interact", 0f);
-                        _hasShownWrongPlayerError = true;
-                        isTriggered = true;
-                        _interactable?.DismissInteraction();
+                        _interactable?.DisplayInteraction("Press E to fix bridge", 0f);
+                        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                        {
+                            _interactable?.DisplayInteraction("You must use Rona as player to interact", 0f);
+                        }
                     }
                 }
             }
@@ -167,6 +186,11 @@ public class BridgeController : MonoBehaviour
         }
 
         activePlayerTransform = closest;
+    }
+
+    public void TriggerBridgePublic()
+    {
+        TriggerBridge();
     }
 
     void TriggerBridge()

@@ -48,6 +48,13 @@ namespace Nemuri.Interactions
                     Nemuri.Scenes.NocturneIntroController.Instance.TriggerCrescentTearCollectedDialogue();
                 }
             }
+            else if (gameObject.name == "dobj.002")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerPuzzle3CollectedDialogue();
+                }
+            }
         }
 
         private static void EnsurePuzzleManager()

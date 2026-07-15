@@ -98,6 +98,15 @@ namespace Nemuri.Interactions
                     return;
                 }
             }
+            else if (gameObject.name == "dobj.002")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && Nemuri.Scenes.NocturneIntroController.Instance.HasPuzzle3BridgeCreated)
+                {
+                    if (_crystalPickup != null) _crystalPickup.Collect();
+                    if (_interactable != null) _interactable.DismissInteraction();
+                    return;
+                }
+            }
             if (_isPlaying) return;
 
             _isPlaying = true;
