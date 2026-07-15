@@ -260,6 +260,9 @@ namespace Nemuri.Core
                 cc.enabled = false;
             }
 
+            // Apply -1.82 Y offset to NPC teleports
+            position.y -= 1.82f;
+
             npc.transform.position = position;
             npc.transform.rotation = rotation;
 
@@ -273,12 +276,8 @@ namespace Nemuri.Core
         {
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
-            Ray ray = new Ray(pos + Vector3.up * 10f, Vector3.down);
-            if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
-            {
-                pos.y = hit.point.y;
-                npc.transform.position = pos;
-            }
+            pos.y = Nemuri.Scenes.NocturneIntroController.GetGroundHeight(pos) - 1.82f;
+            npc.transform.position = pos;
         }
 
         private void UpdateCameraTargets(Transform targetTransform)

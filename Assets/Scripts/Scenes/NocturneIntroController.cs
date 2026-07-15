@@ -1140,6 +1140,7 @@ namespace Nemuri.Scenes
 
                 Vector3 startPos = _murialSpawnPoint != null ? _murialSpawnPoint.position : _murialNpc.transform.position;
                 Vector3 endPos = _murialLandingPoint != null ? _murialLandingPoint.position : startPos + Vector3.down * 8f;
+                endPos.y -= 1.82f;
 
                 float elapsed = 0f;
                 while (elapsed < _fallDuration)
@@ -1549,7 +1550,7 @@ namespace Nemuri.Scenes
         {
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
-            pos.y = GetGroundHeight(pos);
+            pos.y = GetGroundHeight(pos) - 1.82f;
             npc.transform.position = pos;
         }
 
