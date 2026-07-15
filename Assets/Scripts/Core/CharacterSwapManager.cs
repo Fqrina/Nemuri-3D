@@ -209,7 +209,7 @@ namespace Nemuri.Core
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
             Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
-            if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+            if (Physics.Raycast(ray, out RaycastHit hit, 20f, 1 << 0))
             {
                 pos.y = hit.point.y;
                 npc.transform.position = pos;

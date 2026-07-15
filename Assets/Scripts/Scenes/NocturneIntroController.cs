@@ -131,7 +131,7 @@ namespace Nemuri.Scenes
             new Vector2(-19.94f, 92.69f),
             new Vector2(-26.42f, 89.76f),
             new Vector2(-29.11f, 84.72f),
-            new Vector2(-29.44f, 74.89f)
+            new Vector2(-26.44f, 74.89f)
         };
 
         private List<Vector2> _murialPathToFeanor = new List<Vector2>()
@@ -245,6 +245,8 @@ namespace Nemuri.Scenes
         };
         private bool _hasTriggeredGemPuzzle = false;
         private TextAsset _dialogueJsonSomnia;
+        private bool _startGemPuzzleWalk = false;
+        private bool _dialogueSomniaStarted = false;
 
         private void Start()
         {
@@ -365,7 +367,7 @@ namespace Nemuri.Scenes
                         Vector3 ronaTarget = new Vector3(-20.06f, currentY, 121.5f);
                         
                         Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -439,7 +441,7 @@ namespace Nemuri.Scenes
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -492,7 +494,7 @@ namespace Nemuri.Scenes
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             murialTarget.y = hit.point.y;
                         }
@@ -549,7 +551,7 @@ namespace Nemuri.Scenes
                         Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             keikoTarget.y = hit.point.y;
                         }
@@ -602,7 +604,7 @@ namespace Nemuri.Scenes
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -655,7 +657,7 @@ namespace Nemuri.Scenes
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             murialTarget.y = hit.point.y;
                         }
@@ -712,7 +714,7 @@ namespace Nemuri.Scenes
                         Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             ronaTarget.y = hit.point.y;
                         }
@@ -755,7 +757,7 @@ namespace Nemuri.Scenes
                         Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             murialTarget.y = hit.point.y;
                         }
@@ -798,7 +800,7 @@ namespace Nemuri.Scenes
                         Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             keikoTarget.y = hit.point.y;
                         }
@@ -841,7 +843,7 @@ namespace Nemuri.Scenes
                         Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
 
                         Ray ray = new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        if (Physics.Raycast(ray, out RaycastHit hit, 30f, 1 << 0))
                         {
                             feanorTarget.y = hit.point.y;
                         }
@@ -888,179 +890,195 @@ namespace Nemuri.Scenes
                         _crystalObject = FindCrystalObject();
                     }
 
-                    // 1. Rona NPC path movement to Gem Puzzle
-                    if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count)
+                    // Only move NPCs if the walking sequence has been started by the player's interaction
+                    if (_startGemPuzzleWalk)
                     {
-                        Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
-                        float currentY = _ronaNpc.transform.position.y;
-                        Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        // 1. Rona NPC path movement to Gem Puzzle
+                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count)
                         {
-                            ronaTarget.y = hit.point.y;
-                        }
+                            Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
+                            float currentY = _ronaNpc.transform.position.y;
+                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
 
-                        float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
-                        if (distToTarget > 0.2f)
-                        {
-                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
-                            Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
-                            dir.y = 0f;
-                            dir.Normalize();
-                            if (dir != Vector3.zero)
+                            if (Physics.Raycast(new Ray(new Vector3(ronaTarget.x, currentY + 10f, ronaTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
                             {
-                                _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                ronaTarget.y = hit.point.y;
                             }
-                            SetNpcMoving(_ronaNpc, true);
-                        }
-                        else
-                        {
-                            _ronaPathIndex++;
-                            if (_ronaPathIndex >= _ronaPathToGem.Count)
+
+                            float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                            if (distToTarget > 0.2f)
                             {
-                                SetNpcMoving(_ronaNpc, false);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_ronaNpc, true);
                             }
-                        }
-                    }
-                    else if (_ronaNpc != null)
-                    {
-                        SetNpcMoving(_ronaNpc, false);
-                        if (_crystalObject != null)
-                        {
-                            RotateNpcToFaceTarget(_ronaNpc, _crystalObject);
-                        }
-                    }
-
-                    // 2. Murial NPC path movement to Gem Puzzle
-                    if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count)
-                    {
-                        Vector2 target2D = _murialPathToGem[_murialPathIndex];
-                        float currentY = _murialNpc.transform.position.y;
-                        Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
-                        {
-                            murialTarget.y = hit.point.y;
-                        }
-
-                        float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
-                        if (distToTarget > 0.2f)
-                        {
-                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
-                            Vector3 dir = (murialTarget - _murialNpc.transform.position);
-                            dir.y = 0f;
-                            dir.Normalize();
-                            if (dir != Vector3.zero)
+                            else
                             {
-                                _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                            }
-                            SetNpcMoving(_murialNpc, true);
-                        }
-                        else
-                        {
-                            _murialPathIndex++;
-                            if (_murialPathIndex >= _murialPathToGem.Count)
-                            {
-                                SetNpcMoving(_murialNpc, false);
+                                _ronaPathIndex++;
+                                if (_ronaPathIndex >= _ronaPathToGem.Count)
+                                {
+                                    SetNpcMoving(_ronaNpc, false);
+                                }
                             }
                         }
-                    }
-                    else if (_murialNpc != null)
-                    {
-                        SetNpcMoving(_murialNpc, false);
-                        if (_crystalObject != null)
+                        else if (_ronaNpc != null)
                         {
-                            RotateNpcToFaceTarget(_murialNpc, _crystalObject);
-                        }
-                    }
-
-                    // 3. Keiko NPC path movement to Gem Puzzle
-                    if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count)
-                    {
-                        Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
-                        float currentY = _keikoNpc.transform.position.y;
-                        Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
-                        {
-                            keikoTarget.y = hit.point.y;
-                        }
-
-                        float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
-                        if (distToTarget > 0.2f)
-                        {
-                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
-                            Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
-                            dir.y = 0f;
-                            dir.Normalize();
-                            if (dir != Vector3.zero)
+                            SetNpcMoving(_ronaNpc, false);
+                            if (_crystalObject != null)
                             {
-                                _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                            }
-                            SetNpcMoving(_keikoNpc, true);
-                        }
-                        else
-                        {
-                            _keikoPathIndex++;
-                            if (_keikoPathIndex >= _keikoPathToGem.Count)
-                            {
-                                SetNpcMoving(_keikoNpc, false);
+                                RotateNpcToFaceTarget(_ronaNpc, _crystalObject);
                             }
                         }
-                    }
-                    else if (_keikoNpc != null)
-                    {
-                        SetNpcMoving(_keikoNpc, false);
-                        if (_crystalObject != null)
-                        {
-                            RotateNpcToFaceTarget(_keikoNpc, _crystalObject);
-                        }
-                    }
 
-                    // 4. Feanor NPC path movement to Gem Puzzle
-                    if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count)
-                    {
-                        Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
-                        float currentY = _feanorNpc.transform.position.y;
-                        Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-
-                        Ray ray = new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down);
-                        if (Physics.Raycast(ray, out RaycastHit hit, 30f))
+                        // 2. Murial NPC path movement to Gem Puzzle
+                        if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count)
                         {
-                            feanorTarget.y = hit.point.y;
-                        }
+                            Vector2 target2D = _murialPathToGem[_murialPathIndex];
+                            float currentY = _murialNpc.transform.position.y;
+                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
 
-                        float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
-                        if (distToTarget > 0.2f)
-                        {
-                            _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
-                            Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
-                            dir.y = 0f;
-                            dir.Normalize();
-                            if (dir != Vector3.zero)
+                            if (Physics.Raycast(new Ray(new Vector3(murialTarget.x, currentY + 10f, murialTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
                             {
-                                _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                murialTarget.y = hit.point.y;
                             }
-                            SetNpcMoving(_feanorNpc, true);
-                        }
-                        else
-                        {
-                            _feanorPathIndex++;
-                            if (_feanorPathIndex >= _feanorPathToGem.Count)
+
+                            float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                            if (distToTarget > 0.2f)
                             {
-                                SetNpcMoving(_feanorNpc, false);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_murialNpc, true);
+                            }
+                            else
+                            {
+                                _murialPathIndex++;
+                                if (_murialPathIndex >= _murialPathToGem.Count)
+                                {
+                                    SetNpcMoving(_murialNpc, false);
+                                }
                             }
                         }
-                    }
-                    else if (_feanorNpc != null)
-                    {
-                        SetNpcMoving(_feanorNpc, false);
-                        if (_crystalObject != null)
+                        else if (_murialNpc != null)
                         {
-                            RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
+                            SetNpcMoving(_murialNpc, false);
+                            if (_crystalObject != null)
+                            {
+                                RotateNpcToFaceTarget(_murialNpc, _crystalObject);
+                            }
+                        }
+
+                        // 3. Keiko NPC path movement to Gem Puzzle
+                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count)
+                        {
+                            Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
+                            float currentY = _keikoNpc.transform.position.y;
+                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                            if (Physics.Raycast(new Ray(new Vector3(keikoTarget.x, currentY + 10f, keikoTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
+                            {
+                                keikoTarget.y = hit.point.y;
+                            }
+
+                            float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                            if (distToTarget > 0.2f)
+                            {
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_keikoNpc, true);
+                            }
+                            else
+                            {
+                                _keikoPathIndex++;
+                                if (_keikoPathIndex >= _keikoPathToGem.Count)
+                                {
+                                    SetNpcMoving(_keikoNpc, false);
+                                }
+                            }
+                        }
+                        else if (_keikoNpc != null)
+                        {
+                            SetNpcMoving(_keikoNpc, false);
+                            if (_crystalObject != null)
+                            {
+                                RotateNpcToFaceTarget(_keikoNpc, _crystalObject);
+                            }
+                        }
+
+                        // 4. Feanor NPC path movement to Gem Puzzle
+                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count)
+                        {
+                            Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
+                            float currentY = _feanorNpc.transform.position.y;
+                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+
+                            if (Physics.Raycast(new Ray(new Vector3(feanorTarget.x, currentY + 10f, feanorTarget.z), Vector3.down), out RaycastHit hit, 30f, 1 << 0))
+                            {
+                                feanorTarget.y = hit.point.y;
+                            }
+
+                            float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                            if (distToTarget > 0.2f)
+                            {
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_feanorNpc, true);
+                            }
+                            else
+                            {
+                                _feanorPathIndex++;
+                                if (_feanorPathIndex >= _feanorPathToGem.Count)
+                                {
+                                    SetNpcMoving(_feanorNpc, false);
+                                }
+                            }
+                        }
+                        else if (_feanorNpc != null)
+                        {
+                            SetNpcMoving(_feanorNpc, false);
+                            if (_crystalObject != null)
+                            {
+                                RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
+                            }
+                        }
+
+                        // Start dialogue only after all NPCs have reached their targets!
+                        if (!_dialogueSomniaStarted)
+                        {
+                            bool allArrived = true;
+                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count) allArrived = false;
+                            if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count) allArrived = false;
+                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count) allArrived = false;
+                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count) allArrived = false;
+
+                            if (allArrived)
+                            {
+                                _dialogueSomniaStarted = true;
+                                TriggerGemPuzzleDialogue();
+                            }
                         }
                     }
 
@@ -1073,7 +1091,23 @@ namespace Nemuri.Scenes
                             float distToCrystal = Vector3.Distance(activePlayer.position, _crystalObject.transform.position);
                             if (distToCrystal <= 3.0f)
                             {
-                                TriggerGemPuzzleDialogue();
+                                _hasTriggeredGemPuzzle = true;
+                                SetPlayerMovementEnabled(false);
+                                
+                                // Perform local swap to Kael so Kael appears at the activation spot
+                                if (CharacterSwapManager.Instance != null)
+                                {
+                                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                                }
+
+                                // Reset path indices to 0 to start NPC walk sequence
+                                _ronaPathIndex = 0;
+                                _murialPathIndex = 0;
+                                _keikoPathIndex = 0;
+                                _feanorPathIndex = 0;
+
+                                _startGemPuzzleWalk = true;
+                                Debug.Log("[NocturneIntroController] Player approached dobj.001! Commencing NPC walking sequence.");
                             }
                         }
                     }
@@ -1355,17 +1389,17 @@ namespace Nemuri.Scenes
                     SetPlayerMovementEnabled(true);
                     SetCrystalsInteractable(true);
                     
-                    // Reset path indices for all 4 NPCs so they start walking to the Gem Puzzle
-                    _ronaPathIndex = 0;
-                    _murialPathIndex = 0;
-                    _keikoPathIndex = 0;
-                    _feanorPathIndex = 0;
+                    // Set path indices to 99 to prevent walking until player interacts with dobj.001
+                    _ronaPathIndex = 99;
+                    _murialPathIndex = 99;
+                    _keikoPathIndex = 99;
+                    _feanorPathIndex = 99;
 
                     _state = IntroState.Completed;
                     IsIntroCompleted = true; // Unlock character swaps!
                     _crystalObject = FindCrystalObject();
                     
-                    Debug.Log("[NocturneIntroController] Intro flow sequence fully completed! NPCs walking to Gem Puzzle.");
+                    Debug.Log("[NocturneIntroController] Intro flow sequence completed! Waiting for player to interact with dobj.001.");
                     break;
             }
         }
@@ -1528,7 +1562,7 @@ namespace Nemuri.Scenes
             if (npc == null) return;
             Vector3 pos = npc.transform.position;
             Ray ray = new Ray(pos + Vector3.up * 5f, Vector3.down);
-            if (Physics.Raycast(ray, out RaycastHit hit, 20f))
+            if (Physics.Raycast(ray, out RaycastHit hit, 20f, 1 << 0))
             {
                 pos.y = hit.point.y;
                 npc.transform.position = pos;

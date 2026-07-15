@@ -42,31 +42,42 @@ namespace Nemuri.CameraEffects
             FindActivePlayer();
 
             Vector3 cameraPos = transform.position;
+            float distToPlayer = _playerTransform != null ? Vector3.Distance(cameraPos, _playerTransform.position) : 999f;
 
-            // 1. Detect objects clipping or extremely close to the camera
-            Collider[] closeColliders = Physics.OverlapSphere(cameraPos, _cameraSphereRadius, _layerMask);
-            foreach (var col in closeColliders)
+            // Find all potential obstructions in a 15-unit radius around the camera
+            Collider[] colliders = Physics.OverlapSphere(cameraPos, 15f, _layerMask);
+            foreach (var col in colliders)
             {
-                if (col != null)
+                if (col == null) continue;
+
+                Vector3 treePos = col.bounds.center;
+                float distToTree = Vector3.Distance(cameraPos, treePos);
+
+                bool shouldFade = false;
+
+                // 1. Clipping check (inside or extremely close to the camera)
+                if (distToTree < 2.0f)
+                {
+                    shouldFade = true;
+                }
+                // 2. Viewport check (only objects obstructing the center 50% of screen)
+                else if (_playerTransform != null && distToTree < distToPlayer)
+                {
+                    Vector3 viewportPos = Camera.main.WorldToViewportPoint(treePos);
+                    if (viewportPos.z > 0f)
+                    {
+                        // Check if projected point is within the center 50% of the screen
+                        if (viewportPos.x >= 0.25f && viewportPos.x <= 0.75f &&
+                            viewportPos.y >= 0.20f && viewportPos.y <= 0.80f)
+                        {
+                            shouldFade = true;
+                        }
+                    }
+                }
+
+                if (shouldFade)
                 {
                     RegisterObstruction(col.gameObject);
-                }
-            }
-
-            // 2. Detect objects blocking the line of sight between camera and active player
-            if (_playerTransform != null)
-            {
-                Vector3 playerPos = _playerTransform.position + Vector3.up * 1f; // target chest/head level
-                float distance = Vector3.Distance(cameraPos, playerPos);
-                Vector3 direction = (playerPos - cameraPos).normalized;
-
-                RaycastHit[] hits = Physics.RaycastAll(cameraPos, direction, distance, _layerMask);
-                foreach (var hit in hits)
-                {
-                    if (hit.collider != null)
-                    {
-                        RegisterObstruction(hit.collider.gameObject);
-                    }
                 }
             }
 
