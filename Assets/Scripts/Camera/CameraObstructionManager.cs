@@ -6,16 +6,25 @@ namespace Nemuri.CameraEffects
 {
     public class CameraObstructionManager : MonoBehaviour
     {
+        private class ObstructedObject
+        {
+            public GameObject gameObject;
+            public Renderer[] renderers;
+            public Material[][] originalMaterials;
+            public float cooldownTimer;
+        }
+
         [Header("Settings")]
         [SerializeField] private float _cameraSphereRadius = 1.8f;
         [SerializeField] private string _disappearLayerName = "CameraDisappear";
+        [SerializeField] private float _fadeCooldown = 0.35f; // Prevents stuttering/flickering
+        [SerializeField] private float _targetAlpha = 0.25f;  // Makes trees transparent instead of fully disappearing
 
         private Transform _playerTransform;
         private int _disappearLayer;
         private int _layerMask;
 
-        private HashSet<Renderer> _currentlyHiddenRenderers = new HashSet<Renderer>();
-        private HashSet<Renderer> _newlyHiddenRenderers = new HashSet<Renderer>();
+        private Dictionary<GameObject, ObstructedObject> _obstructedObjects = new Dictionary<GameObject, ObstructedObject>();
 
         private void Start()
         {
@@ -32,21 +41,19 @@ namespace Nemuri.CameraEffects
         {
             FindActivePlayer();
 
-            _newlyHiddenRenderers.Clear();
-
             Vector3 cameraPos = transform.position;
 
-            // 1. Hide objects that are overlapping or extremely close to the camera
+            // 1. Detect objects clipping or extremely close to the camera
             Collider[] closeColliders = Physics.OverlapSphere(cameraPos, _cameraSphereRadius, _layerMask);
             foreach (var col in closeColliders)
             {
                 if (col != null)
                 {
-                    HideObjectRenderers(col.gameObject);
+                    RegisterObstruction(col.gameObject);
                 }
             }
 
-            // 2. Hide objects blocking the line of sight between camera and active player
+            // 2. Detect objects blocking the line of sight between camera and active player
             if (_playerTransform != null)
             {
                 Vector3 playerPos = _playerTransform.position + Vector3.up * 1f; // target chest/head level
@@ -58,62 +65,131 @@ namespace Nemuri.CameraEffects
                 {
                     if (hit.collider != null)
                     {
-                        HideObjectRenderers(hit.collider.gameObject);
+                        RegisterObstruction(hit.collider.gameObject);
                     }
                 }
             }
 
-            // 3. Restore renderers that are no longer obstructing
-            List<Renderer> toRestore = new List<Renderer>();
-            foreach (var renderer in _currentlyHiddenRenderers)
+            // 3. Update cooldowns and restore objects that are no longer obstructing
+            List<GameObject> toRestore = new List<GameObject>();
+            List<GameObject> activeKeys = new List<GameObject>(_obstructedObjects.Keys);
+
+            foreach (var key in activeKeys)
             {
-                if (!_newlyHiddenRenderers.Contains(renderer))
+                var obs = _obstructedObjects[key];
+                obs.cooldownTimer -= Time.deltaTime;
+                if (obs.cooldownTimer <= 0f)
                 {
-                    toRestore.Add(renderer);
+                    toRestore.Add(key);
                 }
             }
 
-            foreach (var renderer in toRestore)
+            foreach (var key in toRestore)
             {
-                if (renderer != null)
-                {
-                    renderer.enabled = true;
-                }
-                _currentlyHiddenRenderers.Remove(renderer);
-            }
-
-            // 4. Update the currently hidden set with the newly hidden ones
-            foreach (var renderer in _newlyHiddenRenderers)
-            {
-                _currentlyHiddenRenderers.Add(renderer);
+                RestoreObstruction(key);
             }
         }
 
-        private void HideObjectRenderers(GameObject obj)
+        private void RegisterObstruction(GameObject obj)
         {
-            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>(true);
-            foreach (var renderer in renderers)
+            // Find root-most parent of the obstruction that is still on the CameraDisappear layer
+            GameObject rootObj = obj;
+            Transform parent = obj.transform.parent;
+            while (parent != null && parent.gameObject.layer == _disappearLayer)
             {
-                if (renderer != null && renderer.enabled)
-                {
-                    renderer.enabled = false;
-                    _newlyHiddenRenderers.Add(renderer);
-                }
+                rootObj = parent.gameObject;
+                parent = parent.parent;
             }
 
-            Transform current = obj.transform.parent;
-            while (current != null && current.gameObject.layer == _disappearLayer)
+            if (_obstructedObjects.TryGetValue(rootObj, out ObstructedObject existing))
             {
-                Renderer[] parentRenderers = current.GetComponentsInChildren<Renderer>(true);
-                foreach (var r in parentRenderers)
+                existing.cooldownTimer = _fadeCooldown; // Reset cooldown
+                return;
+            }
+
+            // Get all renderers in this object tree
+            Renderer[] renderers = rootObj.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return;
+
+            ObstructedObject obs = new ObstructedObject();
+            obs.gameObject = rootObj;
+            obs.renderers = renderers;
+            obs.cooldownTimer = _fadeCooldown;
+            obs.originalMaterials = new Material[renderers.Length][];
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+                obs.originalMaterials[i] = renderer.sharedMaterials;
+
+                // Create instanced transparent materials
+                Material[] instancedMaterials = renderer.materials;
+                foreach (var mat in instancedMaterials)
                 {
-                    if (r != null && r.enabled)
+                    MakeMaterialTransparent(mat);
+                }
+                renderer.materials = instancedMaterials;
+            }
+
+            _obstructedObjects.Add(rootObj, obs);
+        }
+
+        private void RestoreObstruction(GameObject rootObj)
+        {
+            if (_obstructedObjects.TryGetValue(rootObj, out ObstructedObject obs))
+            {
+                for (int i = 0; i < obs.renderers.Length; i++)
+                {
+                    if (obs.renderers[i] != null)
                     {
-                        r.enabled = false;
-                        _newlyHiddenRenderers.Add(r);
+                        // Restore original shared materials
+                        obs.renderers[i].sharedMaterials = obs.originalMaterials[i];
                     }
                 }
-                current = current.parent;
+                _obstructedObjects.Remove(rootObj);
+            }
+        }
+
+        private void MakeMaterialTransparent(Material mat)
+        {
+            if (mat == null) return;
+
+            Color col = Color.white;
+            if (mat.HasProperty("_Color"))
+            {
+                col = mat.GetColor("_Color");
+                mat.SetColor("_Color", new Color(col.r, col.g, col.b, _targetAlpha));
+            }
+            else if (mat.HasProperty("_BaseColor"))
+            {
+                col = mat.GetColor("_BaseColor");
+                mat.SetColor("_BaseColor", new Color(col.r, col.g, col.b, _targetAlpha));
+            }
+
+            string shaderName = mat.shader.name;
+            if (shaderName.Contains("Universal Render Pipeline") || shaderName.Contains("URP"))
+            {
+                mat.SetFloat("_Surface", 1f); // Transparent
+                mat.SetFloat("_Blend", 0f); // Alpha Blend
+                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                mat.SetInt("_ZWrite", 0);
+                mat.DisableKeyword("_ALPHATEST_ON");
+                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                mat.EnableKeyword("_ALPHABLEND_ON");
+                mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
+            else
+            {
+                // Standard Shader fallback
+                mat.SetFloat("_Mode", 3f); // Transparent
+                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                mat.SetInt("_ZWrite", 0);
+                mat.DisableKeyword("_ALPHATEST_ON");
+                mat.DisableKeyword("_ALPHABLEND_ON");
+                mat.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                mat.renderQueue = 3000;
             }
         }
 
@@ -139,14 +215,13 @@ namespace Nemuri.CameraEffects
 
         private void OnDisable()
         {
-            foreach (var renderer in _currentlyHiddenRenderers)
+            // Restore all objects immediately when component is disabled/destroyed
+            List<GameObject> activeKeys = new List<GameObject>(_obstructedObjects.Keys);
+            foreach (var key in activeKeys)
             {
-                if (renderer != null)
-                {
-                    renderer.enabled = true;
-                }
+                RestoreObstruction(key);
             }
-            _currentlyHiddenRenderers.Clear();
+            _obstructedObjects.Clear();
         }
     }
 }
