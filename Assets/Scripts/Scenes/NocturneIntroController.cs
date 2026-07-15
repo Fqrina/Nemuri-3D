@@ -600,13 +600,13 @@ namespace Nemuri.Scenes
 
             _portalObject = FindPortalObject();
 
-            // Speed up all animators in the scene by 1.5x
+            // Speed up all animators in the scene by 3.0x
             Animator[] allAnimators = FindObjectsByType<Animator>(FindObjectsInactive.Include);
             foreach (var anim in allAnimators)
             {
                 if (anim != null)
                 {
-                    anim.speed = 1.5f;
+                    anim.speed = 3.0f;
                 }
             }
 
@@ -683,7 +683,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                             dir.y = 0f;
@@ -752,7 +752,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                             dir.y = 0f;
@@ -800,7 +800,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (murialTarget - _murialNpc.transform.position);
                             dir.y = 0f;
@@ -852,7 +852,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                             dir.y = 0f;
@@ -900,7 +900,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                             dir.y = 0f;
@@ -948,7 +948,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (murialTarget - _murialNpc.transform.position);
                             dir.y = 0f;
@@ -1000,7 +1000,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                            _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                             dir.y = 0f;
@@ -1038,7 +1038,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                            _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (murialTarget - _murialNpc.transform.position);
                             dir.y = 0f;
@@ -1076,7 +1076,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                            _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                             dir.y = 0f;
@@ -1114,7 +1114,7 @@ namespace Nemuri.Scenes
                         float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                         if (distToTarget > 0.2f)
                         {
-                            _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                            _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                             
                             Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                             dir.y = 0f;
@@ -1176,7 +1176,7 @@ namespace Nemuri.Scenes
                             float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (distToTarget > 0.2f)
                             {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1215,7 +1215,7 @@ namespace Nemuri.Scenes
                             float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (distToTarget > 0.2f)
                             {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (murialTarget - _murialNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1254,7 +1254,7 @@ namespace Nemuri.Scenes
                             float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (distToTarget > 0.2f)
                             {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1293,7 +1293,7 @@ namespace Nemuri.Scenes
                             float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (distToTarget > 0.2f)
                             {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1376,7 +1376,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (dist > 0.2f)
                             {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1409,7 +1409,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (dist > 0.2f)
                             {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (murialTarget - _murialNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1442,7 +1442,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (dist > 0.2f)
                             {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1475,7 +1475,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (dist > 0.2f)
                             {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1531,7 +1531,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (dist > 0.2f)
                             {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1564,7 +1564,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (dist > 0.2f)
                             {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (murialTarget - _murialNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1597,7 +1597,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (dist > 0.2f)
                             {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1630,7 +1630,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (dist > 0.2f)
                             {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1696,7 +1696,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (dist > 0.2f)
                             {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1729,7 +1729,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (dist > 0.2f)
                             {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (murialTarget - _murialNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1762,7 +1762,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (dist > 0.2f)
                             {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1795,7 +1795,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (dist > 0.2f)
                             {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1851,7 +1851,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
                             if (dist > 0.2f)
                             {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1884,7 +1884,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
                             if (dist > 0.2f)
                             {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (murialTarget - _murialNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1917,7 +1917,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
                             if (dist > 0.2f)
                             {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -1950,7 +1950,7 @@ namespace Nemuri.Scenes
                             float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
                             if (dist > 0.2f)
                             {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 6f * Time.deltaTime);
                                 Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
                                 dir.y = 0f;
                                 dir.Normalize();
@@ -2307,28 +2307,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.SomniaSeedPart2:
-                    SetPlayerMovementEnabled(true);
-                    HasDialogueSomniaEnded = true;
-
-                    GameObject dobj001 = FindCrystalByName("dobj.001");
-                    if (dobj001 != null)
-                    {
-                        var col = dobj001.GetComponent<Collider>();
-                        if (col != null) col.enabled = true;
-                        
-                        var inter = dobj001.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = true;
-                    }
-
-                    GameObject rock1Obj = GameObject.Find("rockpuzzle1");
-                    if (rock1Obj != null)
-                    {
-                        var inter = rock1Obj.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
-                    }
-
-                    SetPuzzle2InteractionActive(true);
-                    Debug.Log("[NocturneIntroController] Somnia Seed Part 2 ended. Crystal is now collectable.");
                     break;
 
                 case IntroState.CrescentTearPart1:
@@ -2409,7 +2387,9 @@ namespace Nemuri.Scenes
 
                 case IntroState.SomniaSeedCollectedDialogue:
                     SetPlayerMovementEnabled(true);
-                    Debug.Log("[NocturneIntroController] Somnia Seed collected dialogue ended.");
+                    HasDialogueSomniaEnded = true;
+                    SetPuzzle2InteractionActive(true);
+                    Debug.Log("[NocturneIntroController] Somnia Seed collected dialogue ended. Enabled Puzzle2InteractionPoint.");
                     break;
 
                 case IntroState.BridgeIntroDialogue:
@@ -2527,6 +2507,8 @@ namespace Nemuri.Scenes
         private void OnRock1Interacted()
         {
             GameObject rock1 = GameObject.Find("rockpuzzle1");
+            Interactable inter = null;
+            if (rock1 != null) inter = rock1.GetComponent<Interactable>();
 
             if (!HasSomniaSeedPart1Started)
             {
@@ -2546,24 +2528,15 @@ namespace Nemuri.Scenes
                             minigame.StartMinigame();
                         }
                     }
+                    if (inter != null) inter.DismissInteraction();
                 }
                 else
                 {
-                    if (rock1 != null)
+                    if (inter != null)
                     {
-                        var inter = rock1.GetComponent<Interactable>();
-                        if (inter != null)
-                        {
-                            inter.DisplayInteraction("You must use Murial as player to interact", 0f);
-                        }
+                        inter.DisplayInteraction("You must use Murial as player to interact", 0f);
                     }
                     Debug.Log("[NocturneIntroController] Only Murial can remove the stone!");
-                }
-
-                if (rock1 != null)
-                {
-                    var inter = rock1.GetComponent<Interactable>();
-                    if (inter != null) inter.DismissInteraction();
                 }
             }
         }
@@ -2652,40 +2625,56 @@ namespace Nemuri.Scenes
                 rockObj.transform.position = finalPos;
             }
 
-            TriggerSomniaSeedPart2Dialogue();
-        }
-
-        private void TriggerSomniaSeedPart2Dialogue()
-        {
-            if (_dialogueJsonSomnia == null)
+            // Make dobj.001 crystal collectable immediately
+            GameObject dobj001 = FindCrystalByName("dobj.001");
+            if (dobj001 != null)
             {
-                _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
+                var col = dobj001.GetComponent<Collider>();
+                if (col != null) col.enabled = true;
+                
+                var inter = dobj001.GetComponent<Interactable>();
+                if (inter != null) inter.enabled = true;
             }
-            DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(_dialogueJsonSomnia.text);
-            if (seq == null || seq.nodes == null) return;
 
-            // Part 2: nodes 6 to 9 (N11 - T8)
-            List<DialogueNode> part2Nodes = seq.nodes.GetRange(6, seq.nodes.Count - 6);
-
-            _state = IntroState.SomniaSeedPart2;
-            if (DialogueManager.Instance != null)
+            GameObject rock1Obj = GameObject.Find("rockpuzzle1");
+            if (rock1Obj != null)
             {
-                DialogueManager.Instance.StartConversation(part2Nodes);
+                var inter = rock1Obj.GetComponent<Interactable>();
+                if (inter != null)
+                {
+                    inter.enabled = false;
+                    inter.DismissInteraction();
+                }
             }
+
+            SetPlayerMovementEnabled(true);
         }
 
         public void TriggerSomniaSeedCollectedDialogue()
         {
-            List<DialogueNode> nodes = new List<DialogueNode>()
+            List<DialogueNode> nodes = new List<DialogueNode>();
+
+            if (_dialogueJsonSomnia == null)
             {
-                new DialogueNode()
+                _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
+            }
+            if (_dialogueJsonSomnia != null)
+            {
+                DialogueSequence seq = JsonUtility.FromJson<DialogueSequence>(_dialogueJsonSomnia.text);
+                if (seq != null && seq.nodes != null && seq.nodes.Count >= 10)
                 {
-                    speaker = "Kael",
-                    text = "Nice! We got the Somnia Seed. Now, let's look for the next source of resonance... the Crescent Tear.",
-                    portraitName = "Kael",
-                    typingSpeed = 0.05f
+                    // nodes 7 to 9: Kael, Feanor, Objective (which correspond to D57, D58, T8)
+                    nodes.AddRange(seq.nodes.GetRange(7, 3));
                 }
-            };
+            }
+
+            nodes.Add(new DialogueNode()
+            {
+                speaker = "Kael",
+                text = "Nice! We got the Somnia Seed. Now, let's look for the next source of resonance... the Crescent Tear.",
+                portraitName = "Kael",
+                typingSpeed = 0.05f
+            });
             
             _state = IntroState.SomniaSeedCollectedDialogue;
             SetPlayerMovementEnabled(false);
