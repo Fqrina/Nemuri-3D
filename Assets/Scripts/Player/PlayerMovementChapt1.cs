@@ -40,12 +40,6 @@ namespace Nemuri.Player
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             Instance = this;
 
             _rb = GetComponent<Rigidbody>();
@@ -64,6 +58,7 @@ namespace Nemuri.Player
 
         private void OnEnable()
         {
+            Instance = this;
             if (_playerInput == null)
             {
                 return;

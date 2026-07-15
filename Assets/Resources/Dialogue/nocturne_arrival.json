@@ -1,0 +1,22 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Arriving in the Pineal Gland, the back of your corpus callosum regulates the sleep and wake cycles.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Where am I? What is this place?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Roam around the world, get to know Nocturne, and follow the strange feeling until you stumble into something.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

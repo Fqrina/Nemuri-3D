@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Located behind the corpus callosum, the Pineal Gland regulates the sleep and wake cycles.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Kael opens his eyes and finds himself in an unfamiliar world. You arrive at the Pineal Gland, the realm hidden behind the corpus callosum that governs the cycle of sleep and wakefulness.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Where am I...? What is this place?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Kael? How did you get here?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "Slight tremor.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who are you?! How do you know my name?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "You see a vibrant pink creature standing in a surreal world unlike anything you have ever seen.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "This has to be a dream...",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "I guess, technically, it is...? I'm Rona, an Energeon.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Energeon...? What's that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Ah! You being here must mean something! Stop asking questions and come with me!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Follow Rona.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

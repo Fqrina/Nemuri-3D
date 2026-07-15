@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Nemuri.Interactions;
+using Nemuri.Player;
 
 public class Chapt1gatecontroller : MonoBehaviour
 {
@@ -11,21 +12,18 @@ public class Chapt1gatecontroller : MonoBehaviour
     public float activationDistance = 3.0f; 
 
     [Header("Target Character Settings")]
-    [SerializeField] private string[] targetCharacterNames = { "KEIKOCHARA", "Player2" };
+    [SerializeField] private string[] targetCharacterNames = { "MURIALCHARA" };
 
     [Header("Hold Interaction")]
     public float holdDuration = 3f;
-
-    [SerializeField] private string[] allCharacterNames = { "KEIKOCHARA", "Player2" };
 
     private Vector3 startPosition;
     private Vector3 targetPosition;
     public bool isTriggered = false; 
     private Transform activePlayerTransform;
-    private float searchTimer = 0f;
     private float _holdTimer;
     private Interactable _interactable;
-    private bool _hasShownWrongPlayerError;
+    private float _wrongPlayerTimer = 0f;
 
     void Start()
     {
@@ -44,14 +42,22 @@ public class Chapt1gatecontroller : MonoBehaviour
     {
         if (isTriggered) return;
 
-        if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
+        // Wrong player warning feedback timer
+        if (_wrongPlayerTimer > 0f)
         {
-            searchTimer += Time.deltaTime;
-            if (searchTimer >= 0.5f)
+            _wrongPlayerTimer -= Time.deltaTime;
+            if (_wrongPlayerTimer <= 0f)
             {
-                FindActivePlayer();
-                searchTimer = 0f;
+                _interactable?.DismissInteraction();
             }
+            return;
+        }
+
+        // Find the active player every frame to ensure we are always referencing the correct character
+        FindActivePlayer();
+
+        if (activePlayerTransform == null)
+        {
             HideInteraction();
             return; 
         }
@@ -60,8 +66,15 @@ public class Chapt1gatecontroller : MonoBehaviour
         
         if (distance <= activationDistance)
         {
-            bool isAllowed = System.Array.Exists(
-                targetCharacterNames, n => activePlayerTransform.name == n);
+            bool isAllowed = false;
+            foreach (var n in targetCharacterNames)
+            {
+                if (activePlayerTransform.name.Contains(n))
+                {
+                    isAllowed = true;
+                    break;
+                }
+            }
 
             if (isAllowed)
             {
@@ -91,18 +104,13 @@ public class Chapt1gatecontroller : MonoBehaviour
             }
             else
             {
-                if (!_hasShownWrongPlayerError)
-                {
-                    _interactable?.DisplayInteraction("Hold E to open gate", 0f);
+                _interactable?.DisplayInteraction("Hold E to open gate", 0f);
 
-                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                    {
-                        string names = string.Join(" or ", targetCharacterNames);
-                        _interactable?.DisplayInteraction($"You must use {names} as player to interact", 0f);
-                        _hasShownWrongPlayerError = true;
-                        isTriggered = true;
-                        _interactable?.DismissInteraction();
-                    }
+                if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                {
+                    _interactable?.DisplayInteraction("Use Murial", 0f);
+                    _wrongPlayerTimer = 2.0f; // Show error message for 2 seconds
+                    _holdTimer = 0f;
                 }
             }
         }
@@ -120,42 +128,54 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void FindActivePlayer()
     {
-        Transform closest = null;
-        float closestDist = float.MaxValue;
-
-        foreach (string charName in allCharacterNames)
+        GameObject walkingPlayer = GameObject.Find("Walking Player");
+        if (walkingPlayer != null)
         {
-            GameObject obj = GameObject.Find(charName);
-            if (obj != null && obj.activeInHierarchy)
+            for (int i = 0; i < walkingPlayer.transform.childCount; i++)
             {
-                float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < closestDist)
+                Transform child = walkingPlayer.transform.GetChild(i);
+                if (child.gameObject.activeSelf && child.name != "CameraLookAt")
                 {
-                    closestDist = dist;
-                    closest = obj.transform;
-                }
-            }
-        }
-
-        if (closest == null)
-        {
-            foreach (string charName in targetCharacterNames)
-            {
-                GameObject obj = GameObject.Find(charName);
-                if (obj != null && obj.activeInHierarchy)
-                {
-                    activePlayerTransform = obj.transform;
+                    activePlayerTransform = child;
                     return;
                 }
             }
         }
 
-        activePlayerTransform = closest;
+        if (PlayerMovementChapt1.Instance != null && PlayerMovementChapt1.Instance.gameObject.activeInHierarchy)
+        {
+            activePlayerTransform = PlayerMovementChapt1.Instance.transform;
+            return;
+        }
+        if (PlayerMovement.Instance != null && PlayerMovement.Instance.gameObject.activeInHierarchy)
+        {
+            activePlayerTransform = PlayerMovement.Instance.transform;
+            return;
+        }
+
+        GameObject defaultPlayer = GameObject.FindWithTag("Player");
+        if (defaultPlayer != null && defaultPlayer.activeInHierarchy)
+        {
+            activePlayerTransform = defaultPlayer.transform;
+        }
+        else
+        {
+            activePlayerTransform = null;
+        }
     }
 
     void TriggerMovement()
     {
-        isTriggered = true; 
+        HideInteraction();
+        
+        // Disable all Interactable components on this object and its children to clear the E prompt permanently
+        var interactables = GetComponentsInChildren<Interactable>(true);
+        foreach (var inter in interactables)
+        {
+            inter.DismissInteraction();
+            inter.enabled = false;
+        }
+
         StartCoroutine(MoveSmoothly());
     }
 
@@ -171,6 +191,9 @@ public class Chapt1gatecontroller : MonoBehaviour
             yield return null;
         }
         transform.position = targetPosition;
+        
+        // Mark as triggered ONLY after the movement is fully complete!
+        isTriggered = true;
     }
 
     private void OnDrawGizmosSelected()

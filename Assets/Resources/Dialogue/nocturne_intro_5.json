@@ -1,0 +1,88 @@
+{
+  "nodes": [
+    {
+      "speaker": "Kael",
+      "text": "Ferry?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Oh wonderful Kael, you recognize me!",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Ferry?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "That is the Somnolume Shrine that controls Kael’s sleeping cycle. Without its crystals, it is nothing more than an empty shell.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Why is it gone?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Take a look at your eyes dear… you’re not sleeping well, aren’t you?",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "....",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "A violent quake shakes the entire area.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "The cracked crystal shatters even further. Dark fissures spread across the shrine as fragments of the world begin drifting into the void.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "How do we fix it?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Of course by collecting all the crystals that is who knows where…",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I could feel their energy…",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Seems like your friend there has a clue on where the crystals are, good luck finding it, it’s not going to be so easy",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Find the Somnolume Crystals (Somnia Seed > Crescent Tear > Dreampearl).",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

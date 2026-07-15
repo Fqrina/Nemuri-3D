@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Nemuri.Dialogue;
+using Nemuri.Player;
 
 namespace Nemuri.Core
 {
@@ -100,9 +101,10 @@ namespace Nemuri.Core
                     _characters[i].playerObject.SetActive(isActive);
                 }
 
+                // Keep all NPC GameObjects active at all times!
                 if (_characters[i].npcObject != null)
                 {
-                    _characters[i].npcObject.SetActive(!isActive);
+                    _characters[i].npcObject.SetActive(true);
                 }
             }
 
@@ -152,15 +154,7 @@ namespace Nemuri.Core
             currentCharacterObj.SetActive(false);
             targetCharacterObj.SetActive(true);
 
-            if (_characters[_activeCharacterIndex].npcObject != null)
-            {
-                _characters[_activeCharacterIndex].npcObject.SetActive(true);
-            }
-
-            if (_characters[index].npcObject != null)
-            {
-                _characters[index].npcObject.SetActive(false);
-            }
+            // Do NOT deactivate target or previous npcObject when swapping! Keep all NPCs active!
 
             UpdateCameraTargets(targetCharacterObj.transform);
 
@@ -193,31 +187,13 @@ namespace Nemuri.Core
             {
                 SwapToCharacter(0, isInternalSwap: true);
             }
-
-            for (int i = 1; i < _characters.Count; i++)
-            {
-                if (_characters[i].npcObject != null)
-                {
-                    _characters[i].npcObject.SetActive(true);
-                }
-            }
         }
 
         private void HandleConversationEnd()
         {
-            if (_characters[_activeCharacterIndex].npcObject != null)
-            {
-                _characters[_activeCharacterIndex].npcObject.SetActive(true);
-            }
-
-            if (_characterIndexBeforeDialogue != _activeCharacterIndex)
+            if (_activeCharacterIndex != _characterIndexBeforeDialogue)
             {
                 SwapToCharacter(_characterIndexBeforeDialogue, isInternalSwap: true);
-            }
-
-            if (_characters[_activeCharacterIndex].npcObject != null)
-            {
-                _characters[_activeCharacterIndex].npcObject.SetActive(false);
             }
         }
     }
