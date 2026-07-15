@@ -1832,6 +1832,8 @@ namespace Nemuri.Scenes
 
         private void OnRock1Interacted()
         {
+            GameObject rock1 = GameObject.Find("rockpuzzle1");
+
             if (!HasSomniaSeedPart1Started)
             {
                 TriggerSomniaSeedWalkSequence();
@@ -1853,7 +1855,6 @@ namespace Nemuri.Scenes
                 }
                 else
                 {
-                    GameObject rock1 = GameObject.Find("rockpuzzle1");
                     if (rock1 != null)
                     {
                         var inter = rock1.GetComponent<Interactable>();
@@ -1865,7 +1866,6 @@ namespace Nemuri.Scenes
                     Debug.Log("[NocturneIntroController] Only Murial can remove the stone!");
                 }
 
-                GameObject rock1 = GameObject.Find("rockpuzzle1");
                 if (rock1 != null)
                 {
                     var inter = rock1.GetComponent<Interactable>();
