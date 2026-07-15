@@ -102,6 +102,28 @@ namespace Nemuri.Scenes
             new Vector2(-27.94f, 74.39f)
         };
 
+        private List<Vector2> _ronaPathToFeanor = new List<Vector2>()
+        {
+            new Vector2(-16.21f, 104.38f),
+            new Vector2(-13.42f, 100.42f),
+            new Vector2(-13.42f, 96.54f),
+            new Vector2(-19.94f, 92.69f),
+            new Vector2(-26.42f, 89.76f),
+            new Vector2(-29.11f, 84.72f),
+            new Vector2(-29.44f, 74.89f)
+        };
+
+        private List<Vector2> _murialPathToFeanor = new List<Vector2>()
+        {
+            new Vector2(-13.21f, 103.38f),
+            new Vector2(-10.42f, 99.42f),
+            new Vector2(-10.42f, 95.54f),
+            new Vector2(-16.94f, 91.69f),
+            new Vector2(-23.42f, 88.76f),
+            new Vector2(-26.11f, 83.72f),
+            new Vector2(-26.44f, 73.89f)
+        };
+
         // 4. Group Paths to Ferry (8 Waypoints each, sharing the narrow gate at point 6)
         private List<Vector2> _ronaPathToFerry = new List<Vector2>()
         {
