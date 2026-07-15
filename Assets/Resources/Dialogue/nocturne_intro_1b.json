@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "speaker": "SFX",
+      "text": "The ground shakes violently.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Pieces of the environment begin to crumble. At this rate, the world may not last much longer. A pathway ahead is blocked by tangled veins.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Dang it! The tremors must've caused these veins to collapse.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "The bushes rustle violently. Rona flinches in fear, only to find Murial emerging from them.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Argh... This place is really falling apart.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "You scared me!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who is that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Kael?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "That's Murial!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "How did he get here?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Stop with the questions! Can't you see this world is falling apart? Murial, clear those veins, will you?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Use Murial's power to lift and clear the fallen veins.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

@@ -1,0 +1,442 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Located behind the corpus callosum, the Pineal Gland regulates the sleep and wake cycles.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Kael opens his eyes and finds himself in an unfamiliar world. You arrive at the Pineal Gland, the realm hidden behind the corpus callosum that governs the cycle of sleep and wakefulness.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Where am I...? What is this place?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Roam around the world and explore your surroundings. The unfamiliar yet surreal atmosphere leaves you feeling lost, as if wandering through a dream.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Kael? How did you get here?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "Slight tremor.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who are you?! How do you know my name?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "You see a vibrant pink creature standing in a surreal world unlike anything you have ever seen.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "This has to be a dream...",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "I guess, technically, it is...? I'm Rona, an Energeon.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Energeon...? What's that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "The ground shakes violently.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Pieces of the environment begin to crumble. At this rate, the world may not last much longer. Rona seems to have an idea.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Ah! You being here must mean something! Stop asking questions and come with me!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Follow Rona.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "A pathway ahead is blocked by tangled veins.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Dang it! The tremors must've caused these veins to collapse.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "The bushes rustle violently. Rona flinches in fear, only to find Murial emerging from them.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Argh... This place is really falling apart.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "You scared me!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who is that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Kael?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "That's Murial!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "How did he get here?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Stop with the questions! Can't you see this world is falling apart? Murial, clear those veins, will you?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Use Murial's power to lift and clear the fallen veins.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Woah... What exactly are you guys?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Let's just say... our world is very different from yours.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Now, let's go!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Follow Rona.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "You find a purple Energeon kneeling in the middle of the path, clutching her head in pain.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Keiko!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "My head hurts so much... It's ringing...",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "It's getting worse...",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "What is happening...?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Are you okay?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I'm okay now...",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Kael?",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "How does everyone know me?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "I don't know how you got here, but... you're inside your own mind.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "We are your Energeons. We represent your energies, Kael.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "What...?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "It's going to be hard to explain. You probably wouldn't understand it yet. But what you need to know is that this world is falling apart because you haven't been taking care of yourself.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Calm down, Murial...",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "I—",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Guys... I hear it!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Then let's go.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Follow Keiko.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "After walking for a while, the group meets a blue Energeon standing before an ancient shrine.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Feanor?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I think I found the Nocturne Heart.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Yes! The resonance is coming from here!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Before you stand three floating stone altars with empty crystal sockets. A cracked crystal lies on the ground beneath them.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I think this shrine is the key to restoring the Nocturne Heart.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I think I can do something with this!",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Keiko concentrates her power, attempting to restore the shrine.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "???",
+      "text": "It can’t be fixed if the crystals are missing",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Who is that?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "A Rabbit is sitting at a floating table, it feels so familiar…",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Ferry?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Oh wonderful Kael, you recognize me!",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Ferry?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "That is the Somnolume Shrine that controls Kael’s sleeping cycle. Without its crystals, it is nothing more than an empty shell.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Why is it gone?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Take a look at your eyes dear… you’re not sleeping well, aren’t you?",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "....",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "A violent quake shakes the entire area.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "The cracked crystal shatters even further. Dark fissures spread across the shrine as fragments of the world begin drifting into the void.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "How do we fix it?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Of course by collecting all the crystals that is who knows where…",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I could feel their energy…",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Seems like your friend there has a clue on where the crystals are, good luck finding it, it’s not going to be so easy",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Find the Somnolume Crystals (Somnia Seed, Crescent Tear, Dreampearl).",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

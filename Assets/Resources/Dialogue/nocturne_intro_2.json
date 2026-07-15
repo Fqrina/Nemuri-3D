@@ -1,0 +1,28 @@
+{
+  "nodes": [
+    {
+      "speaker": "Kael",
+      "text": "Woah... What exactly are you guys?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Let's just say... our world is very different from yours.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Now, let's go!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Follow Rona.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

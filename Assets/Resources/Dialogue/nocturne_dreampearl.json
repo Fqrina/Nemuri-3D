@@ -1,0 +1,124 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Following the resonance, you arrive at a tranquil lake. At its center rests a giant seashell, tightly closed around a faintly glowing Dreampearl.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "It's there... I can hear it.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "But there's no way to reach it.",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "The lake stretches endlessly before you. Every stepping stone has crumbled into the water, leaving the Dreampearl completely inaccessible.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "The tremors destroyed the path long ago.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Then we'll make our own.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Use Rona's Ambition to forge a path across the lake.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "Rona steps forward and raises her hand. Waves of pink energy ripple across the lake. Wherever her determination reaches, luminous platforms rise from beneath the water, forging a path toward the giant seashell.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "A path isn't something you wait for...",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "It's something you create.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "You carefully cross the newly formed path and arrive before the giant seashell. It remains tightly shut, protecting the Dreampearl inside.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "It's still closed...",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "It seems to be protecting the Dreampearl.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Then let's prove we're worthy of moving forward.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "As the group steps closer, the path forged by Rona begins to glow. The light reaches the seashell, which slowly opens in response, revealing the radiant Dreampearl within.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "SFX",
+      "text": "The seashell slowly opens.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "The resonance...",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Obtain the Dreampearl.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "We're finally done! Let’s go back now!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Go back to the Somnolume shrine.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    }
+  ]
+}

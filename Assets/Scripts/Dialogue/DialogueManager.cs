@@ -49,6 +49,7 @@ namespace Nemuri.Dialogue
         public static System.Action<DialogueNode> OnNodeDisplayed;
 
         public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
+        public bool canProceed = true;
 
         [Header("Prefab UI References")]
         [SerializeField] private GameObject _dialoguePanel;
@@ -276,6 +277,12 @@ namespace Nemuri.Dialogue
 
             _currentNode = _nodes.Dequeue();
             OnNodeDisplayed?.Invoke(_currentNode);
+
+            if (string.Equals(_currentNode.speaker, "SFX", System.StringComparison.OrdinalIgnoreCase))
+            {
+                DisplayNextNode();
+                return;
+            }
 
             bool hideName = string.Equals(_currentNode.speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) ||
@@ -573,6 +580,16 @@ namespace Nemuri.Dialogue
 
         private void ProceedToNextNode()
         {
+            if (!canProceed)
+            {
+                if (_autoCloseCoroutine != null)
+                {
+                    StopCoroutine(_autoCloseCoroutine);
+                }
+                _autoCloseCoroutine = StartCoroutine(AutoCloseRoutine(0.5f));
+                return;
+            }
+
             if (_autoCloseCoroutine != null)
             {
                 StopCoroutine(_autoCloseCoroutine);
@@ -619,6 +636,7 @@ namespace Nemuri.Dialogue
         {
             StopDialogueAudio();
             SetSkipPromptVisible(false);
+            SetDialoguePanelActive(false);
 
             SetPlayerMovementEnabled(true);
 
@@ -626,6 +644,8 @@ namespace Nemuri.Dialogue
             {
                 WalkingSceneObjectiveManager.Instance.SetActiveObjective(objectiveText);
             }
+
+            OnConversationEnd?.Invoke();
         }
 
         public void ResumeConversation()
@@ -659,13 +679,16 @@ namespace Nemuri.Dialogue
 
         private void SetPlayerMovementEnabled(bool enabled)
         {
-            if (PlayerMovement.Instance != null)
+            var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
+            foreach (var m in move1)
             {
-                PlayerMovement.Instance.SetCanMove(enabled);
+                m.SetCanMove(enabled);
             }
-            if (PlayerMovementChapt1.Instance != null)
+
+            var move2 = FindObjectsByType<PlayerMovementChapt1>(FindObjectsInactive.Include);
+            foreach (var m in move2)
             {
-                PlayerMovementChapt1.Instance.SetCanMove(enabled);
+                m.SetCanMove(enabled);
             }
         }
 
