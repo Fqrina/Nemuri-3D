@@ -77,16 +77,19 @@ namespace Nemuri.Core
 
         private void Update()
         {
-            bool isDialogueActive = DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive;
-            bool isCutsceneActive = false;
-
+            // Determine if character swapping is currently allowed/unlocked
+            bool canSwap = false;
             if (Nemuri.Scenes.NocturneIntroController.Instance != null)
             {
-                isCutsceneActive = !Nemuri.Scenes.NocturneIntroController.Instance.IsPlayerMovementActive;
+                canSwap = Nemuri.Scenes.NocturneIntroController.CanSwapTo(0);
+            }
+            else
+            {
+                canSwap = true; // Fallback default
             }
 
-            // Play Mode (Free Roaming): Hide all NPCs
-            if (!isDialogueActive && !isCutsceneActive)
+            // Hide NPCs when character swapping is unlocked (free roaming/play mode)
+            if (canSwap)
             {
                 for (int i = 0; i < _characters.Count; i++)
                 {
@@ -108,7 +111,7 @@ namespace Nemuri.Core
             }
             else
             {
-                // Cutscene / Dialogue Mode: Enable cutscene NPCs (except the active player's NPC representation)
+                // Show NPCs (except the active player's own NPC representation) when swapping is locked (cutscenes/dialogue/story walks)
                 for (int i = 0; i < _characters.Count; i++)
                 {
                     if (_characters[i].npcObject == null)
