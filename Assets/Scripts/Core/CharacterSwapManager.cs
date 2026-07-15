@@ -425,13 +425,13 @@ namespace Nemuri.Core
                 return target1;
             }
 
-            GameObject target2 = FindCrystalByName("dobj.002");
+            GameObject target2 = FindCrystalByName("dobj");
             if (target2 != null && target2.activeSelf)
             {
                 return target2;
             }
 
-            GameObject target3 = FindCrystalByName("dobj.003");
+            GameObject target3 = FindCrystalByName("dobj.002");
             if (target3 != null && target3.activeSelf)
             {
                 return target3;

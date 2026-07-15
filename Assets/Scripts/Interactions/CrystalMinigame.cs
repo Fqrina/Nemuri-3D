@@ -80,8 +80,19 @@ namespace Nemuri.Interactions
                     }
                     return;
                 }
+
+                // Restrict Puzzle 1 minigame play to Murial only
+                if (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex != 2)
+                {
+                    Debug.Log("[CrystalMinigame] Only Murial can interact with the Somnia Seed minigame!");
+                    if (_interactable != null)
+                    {
+                        _interactable.DismissInteraction();
+                    }
+                    return;
+                }
             }
-            else if (gameObject.name == "dobj.002")
+            else if (gameObject.name == "dobj")
             {
                 if (Nemuri.Scenes.NocturneIntroController.Instance != null)
                 {

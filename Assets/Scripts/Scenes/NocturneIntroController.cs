@@ -43,6 +43,11 @@ namespace Nemuri.Scenes
                     return false;
                 }
 
+                if (Instance._startCrescentWalk && !Instance.HasCrescentTearPart2Ended)
+                {
+                    return false;
+                }
+
                 if (Instance._state == IntroState.WaitingForGate)
                 {
                     // Allow Kael (0), Rona (1), and Murial (2) when waiting to lower the gate
@@ -259,6 +264,42 @@ namespace Nemuri.Scenes
         public bool HasDialogueSomniaEnded { get; private set; } = false;
         public bool HasCrescentTearPart1Started { get; private set; } = false;
         public bool HasFeanorInteractedPuzzle2 { get; private set; } = false;
+        public bool HasCrescentTearPart2Ended { get; private set; } = false;
+
+        private bool _startCrescentWalk = false;
+        private bool _crescentDialogueStarted = false;
+
+        private List<Vector2> _ronaPathToCrescent = new List<Vector2>()
+        {
+            new Vector2(-12.085f, 111.217f),
+            new Vector2(-11.86f, 109.19f),
+            new Vector2(-11.86f, 105.35f),
+            new Vector2(-8.12f, 105.99f)
+        };
+
+        private List<Vector2> _murialPathToCrescent = new List<Vector2>()
+        {
+            new Vector2(-14.361f, 112.13f),
+            new Vector2(-12.085f, 111.217f),
+            new Vector2(-11.86f, 109.19f),
+            new Vector2(-11.56f, 105.05f),
+            new Vector2(-8.73f, 104.27f)
+        };
+
+        private List<Vector2> _keikoPathToCrescent = new List<Vector2>()
+        {
+            new Vector2(-15.43f, 107.92f),
+            new Vector2(-12.16f, 105.65f),
+            new Vector2(-10.13f, 101.96f)
+        };
+
+        private List<Vector2> _feanorPathToCrescent = new List<Vector2>()
+        {
+            new Vector2(-14.984f, 111.964f),
+            new Vector2(-15.43f, 107.92f),
+            new Vector2(-11.86f, 105.35f),
+            new Vector2(-9.17f, 105.59f)
+        };
 
         private void Start()
         {
@@ -332,6 +373,20 @@ namespace Nemuri.Scenes
             }
 
             SetCrystalsInteractable(false);
+
+            // Dynamically configure Puzzle2InteractionPoint
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            if (p2Ip != null)
+            {
+                var interactable = p2Ip.GetComponent<Interactable>();
+                if (interactable == null) interactable = p2Ip.AddComponent<Interactable>();
+                interactable.InteractionPrompt = "Investigate Resonance (E)";
+                interactable.InteractionRange = 4.0f;
+                interactable.HoldSeconds = 0f;
+                interactable.OnInteract.RemoveAllListeners();
+                interactable.OnInteract.AddListener(OnPuzzle2Interacted);
+                interactable.enabled = false; // Initially inactive until Somnia Seed dialogue ends
+            }
 
             if (CharacterSwapManager.Instance != null)
             {
@@ -1040,6 +1095,161 @@ namespace Nemuri.Scenes
 
                     // Proximity trigger removed: walk sequence is now triggered explicitly via interaction
                     break;
+
+                case IntroState.WaitingForCrescentDialogue:
+                    if (_startCrescentWalk)
+                    {
+                        GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+
+                        // 1. Rona
+                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count)
+                        {
+                            Vector2 target2D = _ronaPathToCrescent[_ronaPathIndex];
+                            float currentY = _ronaNpc.transform.position.y;
+                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            ronaTarget.y = GetGroundHeight(ronaTarget);
+
+                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
+                            if (dist > 0.2f)
+                            {
+                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_ronaNpc, true);
+                            }
+                            else
+                            {
+                                _ronaPathIndex++;
+                                if (_ronaPathIndex >= _ronaPathToCrescent.Count) SetNpcMoving(_ronaNpc, false);
+                            }
+                        }
+                        else if (_ronaNpc != null)
+                        {
+                            SetNpcMoving(_ronaNpc, false);
+                            if (p2Ip != null) RotateNpcToFaceTarget(_ronaNpc, p2Ip);
+                        }
+
+                        // 2. Murial
+                        if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count)
+                        {
+                            Vector2 target2D = _murialPathToCrescent[_murialPathIndex];
+                            float currentY = _murialNpc.transform.position.y;
+                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            murialTarget.y = GetGroundHeight(murialTarget);
+
+                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
+                            if (dist > 0.2f)
+                            {
+                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_murialNpc, true);
+                            }
+                            else
+                            {
+                                _murialPathIndex++;
+                                if (_murialPathIndex >= _murialPathToCrescent.Count) SetNpcMoving(_murialNpc, false);
+                            }
+                        }
+                        else if (_murialNpc != null)
+                        {
+                            SetNpcMoving(_murialNpc, false);
+                            if (p2Ip != null) RotateNpcToFaceTarget(_murialNpc, p2Ip);
+                        }
+
+                        // 3. Keiko
+                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count)
+                        {
+                            Vector2 target2D = _keikoPathToCrescent[_keikoPathIndex];
+                            float currentY = _keikoNpc.transform.position.y;
+                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            keikoTarget.y = GetGroundHeight(keikoTarget);
+
+                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
+                            if (dist > 0.2f)
+                            {
+                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_keikoNpc, true);
+                            }
+                            else
+                            {
+                                _keikoPathIndex++;
+                                if (_keikoPathIndex >= _keikoPathToCrescent.Count) SetNpcMoving(_keikoNpc, false);
+                            }
+                        }
+                        else if (_keikoNpc != null)
+                        {
+                            SetNpcMoving(_keikoNpc, false);
+                            if (p2Ip != null) RotateNpcToFaceTarget(_keikoNpc, p2Ip);
+                        }
+
+                        // 4. Feanor
+                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count)
+                        {
+                            Vector2 target2D = _feanorPathToCrescent[_feanorPathIndex];
+                            float currentY = _feanorNpc.transform.position.y;
+                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
+                            feanorTarget.y = GetGroundHeight(feanorTarget);
+
+                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
+                            if (dist > 0.2f)
+                            {
+                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
+                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
+                                dir.y = 0f;
+                                dir.Normalize();
+                                if (dir != Vector3.zero)
+                                {
+                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                                }
+                                SetNpcMoving(_feanorNpc, true);
+                            }
+                            else
+                            {
+                                _feanorPathIndex++;
+                                if (_feanorPathIndex >= _feanorPathToCrescent.Count) SetNpcMoving(_feanorNpc, false);
+                            }
+                        }
+                        else if (_feanorNpc != null)
+                        {
+                            SetNpcMoving(_feanorNpc, false);
+                            if (p2Ip != null) RotateNpcToFaceTarget(_feanorNpc, p2Ip);
+                        }
+
+                        // Check if all arrived to trigger Dialogue Part 1
+                        if (!_crescentDialogueStarted)
+                        {
+                            bool allArrived = true;
+                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count) allArrived = false;
+                            if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count) allArrived = false;
+                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count) allArrived = false;
+                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count) allArrived = false;
+
+                            if (allArrived)
+                            {
+                                _crescentDialogueStarted = true;
+                                TriggerCrescentTearPart1Dialogue();
+                            }
+                        }
+                    }
+                    break;
             }
         }
 
@@ -1337,6 +1547,7 @@ namespace Nemuri.Scenes
                 case IntroState.Completed:
                     SetPlayerMovementEnabled(true);
                     HasDialogueSomniaEnded = true;
+                    SetPuzzle2InteractionActive(true); // Activate Crescent Tear interaction point
                     Debug.Log("[NocturneIntroController] Somnia Seed dialogue ended.");
                     break;
 
@@ -1353,8 +1564,29 @@ namespace Nemuri.Scenes
 
                 case IntroState.CrescentTearPart2:
                     SetPlayerMovementEnabled(true);
+                    HasCrescentTearPart2Ended = true;
+                    SetPuzzle2InteractionActive(false); // Deactivate Crescent Tear interaction point
+                    
+                    // Set Crescent Tear (dobj) crystal pickup interactable enabled so it can be collected
+                    GameObject dobjObj = GameObject.Find("dobj");
+                    if (dobjObj != null)
+                    {
+                        var inter = dobjObj.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = true;
+                    }
+
                     Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended.");
                     break;
+            }
+        }
+
+        private void SetPuzzle2InteractionActive(bool active)
+        {
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            if (p2Ip != null)
+            {
+                var inter = p2Ip.GetComponent<Interactable>();
+                if (inter != null) inter.enabled = active;
             }
         }
 
@@ -1411,6 +1643,62 @@ namespace Nemuri.Scenes
                 _dialogueJsonSomnia = Resources.Load<TextAsset>("Dialogue/nocturne_somnia_seed");
             }
             PlayDialogue(_dialogueJsonSomnia);
+        }
+
+        private void OnPuzzle2Interacted()
+        {
+            if (!HasCrescentTearPart1Started)
+            {
+                TriggerCrescentTearWalkSequence();
+            }
+            else if (!HasFeanorInteractedPuzzle2)
+            {
+                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
+                {
+                    TriggerFeanorPuzzle2Interaction();
+                }
+                else
+                {
+                    Debug.Log("[NocturneIntroController] Must use Feanor to interact with Crescent Tear vines!");
+                }
+                GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+                if (p2Ip != null)
+                {
+                    var inter = p2Ip.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+            }
+        }
+
+        private void TriggerCrescentTearWalkSequence()
+        {
+            if (_startCrescentWalk) return;
+            _startCrescentWalk = true;
+
+            SetPlayerMovementEnabled(false);
+
+            // Swap player to Kael (index 0) in-place during sequence
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+            }
+
+            // Reset path indices to 0 for the crescent path walk
+            _ronaPathIndex = 0;
+            _murialPathIndex = 0;
+            _keikoPathIndex = 0;
+            _feanorPathIndex = 0;
+
+            _state = IntroState.WaitingForCrescentDialogue;
+
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            if (p2Ip != null)
+            {
+                var inter = p2Ip.GetComponent<Interactable>();
+                if (inter != null) inter.DismissInteraction();
+            }
+
+            Debug.Log("[NocturneIntroController] Player interacted with Puzzle2InteractionPoint! Commencing NPC crescent walk sequence.");
         }
 
         public void TriggerCrescentTearPart1Dialogue()
@@ -1557,9 +1845,10 @@ namespace Nemuri.Scenes
 
         private void SetCrystalsInteractable(bool active)
         {
-            if (_crystals == null) return;
-            foreach (var crystal in _crystals)
+            string[] names = { "dobj.001", "dobj", "dobj.002" };
+            foreach (var name in names)
             {
+                GameObject crystal = FindCrystalByName(name);
                 if (crystal != null)
                 {
                     var colliders = crystal.GetComponentsInChildren<Collider>(true);
@@ -1571,10 +1860,29 @@ namespace Nemuri.Scenes
                     var interactable = crystal.GetComponent<Interactable>();
                     if (interactable != null)
                     {
-                        interactable.enabled = active;
+                        // For Crescent Tear (dobj), it should only be enabled AFTER Feanor untangles the vines!
+                        if (name == "dobj")
+                        {
+                            interactable.enabled = active && HasCrescentTearPart2Ended;
+                        }
+                        else
+                        {
+                            interactable.enabled = active;
+                        }
                     }
                 }
             }
+        }
+
+        private GameObject FindCrystalByName(string name)
+        {
+            GameObject pg = GameObject.Find("PINEALGRAND");
+            if (pg != null)
+            {
+                Transform found = FindChildRecursive(pg.transform, name);
+                if (found != null) return found.gameObject;
+            }
+            return GameObject.Find(name);
         }
 
         private Transform FindActivePlayerTransform()
