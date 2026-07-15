@@ -167,6 +167,14 @@ namespace Nemuri.Interactions
             }
         }
 
+        public static void ForceHidePrompt()
+        {
+            if (_prompt != null)
+            {
+                _prompt.ForceHide();
+            }
+        }
+
         public bool IsPlayerInRange()
         {
             if (_player == null) return false;
@@ -387,6 +395,13 @@ namespace Nemuri.Interactions
                     return;
                 }
 
+                Owner = null;
+                _progressFillRect.anchorMax = new Vector2(0f, 1f);
+                _root.SetActive(false);
+            }
+
+            public void ForceHide()
+            {
                 Owner = null;
                 _progressFillRect.anchorMax = new Vector2(0f, 1f);
                 _root.SetActive(false);

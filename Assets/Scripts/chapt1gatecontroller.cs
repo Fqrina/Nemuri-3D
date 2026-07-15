@@ -123,6 +123,7 @@ public class Chapt1gatecontroller : MonoBehaviour
     private void HideInteraction()
     {
         _interactable?.DismissInteraction();
+        Interactable.ForceHidePrompt();
         _holdTimer = 0f;
     }
 
@@ -167,12 +168,14 @@ public class Chapt1gatecontroller : MonoBehaviour
     void TriggerMovement()
     {
         HideInteraction();
+        Interactable.ForceHidePrompt();
         
         // Disable all Interactable components on this object and its children to clear the E prompt permanently
         var interactables = GetComponentsInChildren<Interactable>(true);
         foreach (var inter in interactables)
         {
             inter.DismissInteraction();
+            Interactable.ForceHidePrompt();
             inter.enabled = false;
         }
 

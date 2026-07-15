@@ -116,21 +116,16 @@ namespace Nemuri.Core
 
         private void HandleInput()
         {
-            if (!Nemuri.Scenes.NocturneIntroController.IsIntroCompleted)
-            {
-                return;
-            }
-
             if (Keyboard.current == null)
             {
                 return;
             }
 
-            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0)) SwapToCharacter(0);
-            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1)) SwapToCharacter(1);
-            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2)) SwapToCharacter(2);
-            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3)) SwapToCharacter(3);
-            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4)) SwapToCharacter(4);
+            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(0)) SwapToCharacter(0);
+            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(1)) SwapToCharacter(1);
+            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(2)) SwapToCharacter(2);
+            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(3)) SwapToCharacter(3);
+            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(4)) SwapToCharacter(4);
         }
 
         public void SwapToCharacter(int index, bool isInternalSwap = false)

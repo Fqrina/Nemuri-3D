@@ -27,7 +27,28 @@ namespace Nemuri.Scenes
             Completed
         }
 
+        public static NocturneIntroController Instance { get; private set; }
         public static bool IsIntroCompleted { get; private set; } = false;
+
+        public static bool CanSwapTo(int characterIndex)
+        {
+            if (IsIntroCompleted)
+            {
+                return true;
+            }
+
+            if (Instance != null)
+            {
+                if (Instance._state == IntroState.WaitingForGate)
+                {
+                    // Allow Kael (0), Rona (1), and Murial (2) when waiting to lower the gate
+                    return characterIndex == 0 || characterIndex == 1 || characterIndex == 2;
+                }
+            }
+
+            // Otherwise, stay locked to Kael (0)
+            return characterIndex == 0;
+        }
 
         [Header("NPC GameObjects")]
         [SerializeField] private GameObject _ronaNpc;
@@ -175,6 +196,7 @@ namespace Nemuri.Scenes
 
         private void Start()
         {
+            Instance = this;
             IsIntroCompleted = false; // Reset lock on start
 
             Debug.Log($"[NocturneIntroController] Start initialized. Rona NPC: {_ronaNpc != null}, Murial NPC: {_murialNpc != null}, Gate: {_gateController != null}");
@@ -269,6 +291,14 @@ namespace Nemuri.Scenes
         {
             DialogueManager.OnNodeDisplayed -= HandleNodeDisplayed;
             DialogueManager.OnConversationEnd -= HandleConversationEnd;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
         private void Update()
