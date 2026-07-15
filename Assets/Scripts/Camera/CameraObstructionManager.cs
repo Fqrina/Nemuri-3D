@@ -42,74 +42,67 @@ namespace Nemuri.CameraEffects
         {
             FindActivePlayer();
 
-            Vector3 cameraPos = transform.position;
-            float distToPlayer = _playerTransform != null ? Vector3.Distance(cameraPos, _playerTransform.position) : 999f;
+            if (_playerTransform == null) return;
 
+            Vector3 cameraPos = transform.position;
+            Vector3 playerPos = _playerTransform.position;
+
+            // Define the 2D vertices on the XZ plane
+            Vector2 cameraXZ = new Vector2(cameraPos.x, cameraPos.z);
+            Vector2 playerXZ = new Vector2(playerPos.x, playerPos.z);
+
+            // Vector from camera to player on XZ plane
+            Vector2 toPlayer = playerXZ - cameraXZ;
+            Vector2 dir = toPlayer.normalized;
+            Vector2 perpendicular = new Vector2(-dir.y, dir.x);
+
+            // Extend the triangle base line 1.5 units behind the player for safety
+            Vector2 baseCenter = playerXZ + dir * 1.5f;
+
+            // Triangle Vertices: A is Camera, B and C form the base at the player (width +- 2.2f)
+            Vector2 vertexA = cameraXZ;
+            Vector2 vertexB = baseCenter - perpendicular * 2.2f;
+            Vector2 vertexC = baseCenter + perpendicular * 2.2f;
+
+            // Find all potential colliders in a 30-unit radius around the camera
+            Collider[] colliders = Physics.OverlapSphere(cameraPos, 30f, _layerMask);
             HashSet<GameObject> uniqueRoots = new HashSet<GameObject>();
 
-            // 1. OverlapSphere to capture close clipping objects around camera
-            Collider[] closeColliders = Physics.OverlapSphere(cameraPos, 3.0f, _layerMask);
-            foreach (var col in closeColliders)
+            foreach (var col in colliders)
             {
-                if (col != null) uniqueRoots.Add(GetRootObstruction(col.gameObject));
-            }
+                if (col == null) continue;
 
-            // 2. SphereCast along the view line from camera to player to find direct blockers
-            if (_playerTransform != null)
-            {
-                Vector3 targetPoint = _playerTransform.position + Vector3.up * 1.0f; // Target player torso
-                Vector3 toPlayer = targetPoint - cameraPos;
-                float castDist = toPlayer.magnitude;
-                if (castDist > 0.1f)
-                {
-                    RaycastHit[] hits = Physics.SphereCastAll(cameraPos, 1.2f, toPlayer.normalized, castDist, _layerMask);
-                    foreach (var hit in hits)
-                    {
-                        if (hit.collider != null) uniqueRoots.Add(GetRootObstruction(hit.collider.gameObject));
-                    }
-                }
-            }
+                GameObject rootObj = GetRootObstruction(col.gameObject);
+                
+                // Get positions on XZ plane for test
+                Vector3 rootWorldPos = rootObj.transform.position;
+                Vector2 rootXZ = new Vector2(rootWorldPos.x, rootWorldPos.z);
 
-            // Process each unique root object
-            foreach (var rootObj in uniqueRoots)
-            {
-                Vector3 rootPos = rootObj.transform.position;
+                Vector3 colCenterWorld = col.bounds.center;
+                Vector2 colCenterXZ = new Vector2(colCenterWorld.x, colCenterWorld.z);
 
-                // Hardcode Y-level check: skip if below player plane
-                if (_playerTransform != null && rootPos.y < _playerTransform.position.y - 0.5f)
+                // Hardcode Y floor: if the entire object's root position Y is below the player plane - 0.5f,
+                // it is ground/floor/low level object, don't disappear it
+                if (rootWorldPos.y < playerPos.y - 0.5f)
                 {
                     continue;
                 }
 
-                float distToRoot = Vector3.Distance(cameraPos, rootPos);
-                bool shouldFade = false;
-
-                // Clipping check
-                if (distToRoot < 3.0f)
+                // Check if either root position XZ or collider center XZ is inside the triangle
+                if (IsPointInTriangle(rootXZ, vertexA, vertexB, vertexC) ||
+                    IsPointInTriangle(colCenterXZ, vertexA, vertexB, vertexC))
                 {
-                    shouldFade = true;
-                }
-                // Center 50% screen check
-                else if (_playerTransform != null && distToRoot < distToPlayer)
-                {
-                    Vector3 viewportPos = Camera.main.WorldToViewportPoint(rootPos);
-                    if (viewportPos.z > 0f)
-                    {
-                        if (viewportPos.x >= 0.25f && viewportPos.x <= 0.75f &&
-                            viewportPos.y >= 0.20f && viewportPos.y <= 0.80f)
-                        {
-                            shouldFade = true;
-                        }
-                    }
-                }
-
-                if (shouldFade)
-                {
-                    RegisterObstruction(rootObj);
+                    uniqueRoots.Add(rootObj);
                 }
             }
 
-            // 3. Update cooldowns and restore
+            // Register all detected obstructions
+            foreach (var rootObj in uniqueRoots)
+            {
+                RegisterObstruction(rootObj);
+            }
+
+            // Update cooldowns and restore objects
             List<GameObject> toRestore = new List<GameObject>();
             List<GameObject> activeKeys = new List<GameObject>(_obstructedObjects.Keys);
 
@@ -117,7 +110,9 @@ namespace Nemuri.CameraEffects
             {
                 var obs = _obstructedObjects[key];
                 obs.cooldownTimer -= Time.deltaTime;
-                if (obs.cooldownTimer <= 0f)
+                
+                // If it wasn't registered in the uniqueRoots this frame, its cooldown counts down
+                if (!uniqueRoots.Contains(key) && obs.cooldownTimer <= 0f)
                 {
                     toRestore.Add(key);
                 }
@@ -127,6 +122,23 @@ namespace Nemuri.CameraEffects
             {
                 RestoreObstruction(key);
             }
+        }
+
+        private bool IsPointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+        {
+            float d1 = Sign(p, a, b);
+            float d2 = Sign(p, b, c);
+            float d3 = Sign(p, c, a);
+
+            bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            return !(has_neg && has_pos);
+        }
+
+        private float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
         }
 
         private GameObject GetRootObstruction(GameObject obj)
