@@ -50,7 +50,7 @@ This document maps each puzzle's visual context and interactive logic in Chapter
 
 ## 🧩 Puzzle 3: Dreampearl Jembatan (Bridge 1 & 2)
 
-* **Target Object**: `dobj.002` (Dreampearl) / `PINEALGRAND` / `Puzzle3InteractionPoint`
+* **Target Object**: `dobj.002` (Dreampearl) / `PINEALGLAND` / `Puzzle3InteractionPoint`
 * **Active Character Required**: **Rona** (Index 1) to build both bridges.
 
 ### Code Mappings:

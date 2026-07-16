@@ -48,7 +48,7 @@ namespace Nemuri.Dialogue
         public static System.Action OnConversationEnd;
         public static System.Action<DialogueNode> OnNodeDisplayed;
 
-        public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf;
+        public bool IsConversationActive => _dialoguePanel != null && _dialoguePanel.activeSelf && (_activeSpeaker != "Objective" || _isTyping || _waitingForInput);
         public bool canProceed = true;
 
         [Header("Prefab UI References")]
@@ -135,8 +135,6 @@ namespace Nemuri.Dialogue
         protected Font _uiFont;
         protected string _activeSpeaker = "";
         protected Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
-        private GameObject _objectiveOverlayObj;
-        private Text _objectiveOverlayText;
 
         protected virtual void Awake()
         {
@@ -614,16 +612,9 @@ namespace Nemuri.Dialogue
             
             _waitingForInput = false;
 
-            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
-                WalkingSceneObjectiveManager.Instance != null)
+            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase))
             {
                 PauseConversationForObjective(_currentNode.text);
-            }
-            else if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
-                     WalkingSceneObjectiveManager.Instance == null && _nodes.Count == 0)
-            {
-                ShowObjectiveOverlay(_currentNode.text);
-                DisplayNextNode(); // queue empty -> EndConversation, panel closes normally
             }
             else
             {
@@ -654,11 +645,10 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void PauseConversationForObjective(string objectiveText)
+        protected virtual void PauseConversationForObjective(string objectiveText)
         {
             StopDialogueAudio();
             SetSkipPromptVisible(false);
-            SetDialoguePanelActive(false);
 
             SetPlayerMovementEnabled(true);
 
@@ -670,51 +660,8 @@ namespace Nemuri.Dialogue
             OnConversationEnd?.Invoke();
         }
 
-        private void ShowObjectiveOverlay(string text)
-        {
-            if (_objectiveOverlayObj == null)
-            {
-                Canvas canvas = _dialoguePanel != null
-                    ? _dialoguePanel.GetComponentInParent<Canvas>()
-                    : FindAnyObjectByType<Canvas>();
-
-                if (canvas != null)
-                {
-                    _objectiveOverlayObj = new GameObject("ObjectiveHUDOverlay");
-                    _objectiveOverlayObj.transform.SetParent(canvas.transform, false);
-
-                    RectTransform rect = _objectiveOverlayObj.AddComponent<RectTransform>();
-                    rect.anchorMin = new Vector2(0f, 1f);
-                    rect.anchorMax = new Vector2(1f, 1f);
-                    rect.pivot = new Vector2(0.5f, 1f);
-                    rect.anchoredPosition = new Vector2(0f, -60f);
-                    rect.sizeDelta = new Vector2(-80f, 120f);
-
-                    _objectiveOverlayText = _objectiveOverlayObj.AddComponent<Text>();
-                    _objectiveOverlayText.fontSize = 52;
-                    _objectiveOverlayText.fontStyle = FontStyle.Italic;
-                    _objectiveOverlayText.alignment = TextAnchor.UpperLeft;
-                    _objectiveOverlayText.color = Color.white;
-                    _objectiveOverlayText.horizontalOverflow = HorizontalWrapMode.Wrap;
-                    _objectiveOverlayText.verticalOverflow = VerticalWrapMode.Truncate;
-                    Font fontToUse = ResolveUiFont();
-                    if (fontToUse != null) _objectiveOverlayText.font = fontToUse;
-                }
-            }
-
-            if (_objectiveOverlayText != null)
-            {
-                _objectiveOverlayText.text = text;
-                _objectiveOverlayObj.SetActive(true);
-            }
-        }
-
         public void DismissHeldObjective()
         {
-            if (_objectiveOverlayObj != null && _objectiveOverlayObj.activeSelf)
-            {
-                _objectiveOverlayObj.SetActive(false);
-            }
         }
 
         public void ResumeConversation()

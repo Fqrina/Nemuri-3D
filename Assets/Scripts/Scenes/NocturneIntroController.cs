@@ -103,6 +103,13 @@ namespace Nemuri.Scenes
         [SerializeField] private Transform _murialSpawnPoint;
         [SerializeField] private Transform _murialLandingPoint;
         [SerializeField, Min(0.1f)] private float _fallDuration = 0.8f;
+        [SerializeField] private Transform _murialTreeStartPoint;
+
+        [Header("Murial Walk & Fall Audio")]
+        [SerializeField] private AudioClip _bushRustleClip;
+        [SerializeField] private AudioClip _fallClip;
+
+        private AudioSource _audioSource;
 
         [Header("Trigger Settings")]
         [SerializeField, Min(0.1f)] private float _dialogueTriggerDistance = 3.5f;
@@ -352,6 +359,7 @@ namespace Nemuri.Scenes
         public bool HasBunnyDialogueEnded { get; private set; } = false;
         public bool HasPortalFixed { get; private set; } = false;
         public bool HasMurialFallen { get; private set; } = false;
+        public bool IsMurialFalling => _isMurialFalling;
 
         private bool _startBunnyWalkPostDreampearl = false;
         private bool _bunnyDialoguePostDreampearlStarted = false;
@@ -532,12 +540,54 @@ namespace Nemuri.Scenes
             SnapToGround(_feanorNpc);
             SnapToGround(_ferryNpc);
 
+            // Setup AudioSource
+            _audioSource = GetComponent<AudioSource>();
+            if (_audioSource == null)
+            {
+                _audioSource = gameObject.AddComponent<AudioSource>();
+            }
+            _audioSource.playOnAwake = false;
+
+            // Find missing references automatically at runtime
+            if (_murialSpawnPoint == null)
+            {
+                GameObject spawnGo = GameObject.Find("murialspawn");
+                if (spawnGo == null) spawnGo = GameObject.Find("MurialSpawn");
+                if (spawnGo != null) _murialSpawnPoint = spawnGo.transform;
+            }
+
+            if (_murialLandingPoint == null)
+            {
+                GameObject landGo = GameObject.Find("murialland");
+                if (landGo == null) landGo = GameObject.Find("MurialLand");
+                if (landGo != null) _murialLandingPoint = landGo.transform;
+            }
+
+            if (_murialTreeStartPoint == null)
+            {
+                GameObject treeStartGo = GameObject.Find("murialtreestart");
+                if (treeStartGo == null) treeStartGo = GameObject.Find("MurialTreeStart");
+                if (treeStartGo != null) _murialTreeStartPoint = treeStartGo.transform;
+            }
+
+#if UNITY_EDITOR
+            if (_bushRustleClip == null)
+            {
+                _bushRustleClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/BushRustle.wav");
+            }
+            if (_fallClip == null)
+            {
+                _fallClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/Fall.wav");
+            }
+#endif
+
             if (_murialNpc != null)
             {
                 Quaternion originalRot = _murialNpc.transform.rotation;
-                if (_murialSpawnPoint != null)
+                Transform targetStart = _murialTreeStartPoint != null ? _murialTreeStartPoint : _murialSpawnPoint;
+                if (targetStart != null)
                 {
-                    _murialNpc.transform.position = _murialSpawnPoint.position;
+                    _murialNpc.transform.position = targetStart.position;
                     _murialNpc.transform.rotation = originalRot;
                 }
                 _murialNpc.SetActive(false);
@@ -690,7 +740,7 @@ namespace Nemuri.Scenes
             }
             else
             {
-                Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found on start - check object name under PINEALGRAND.");
+                Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found on start - check object name under PINEALGLAND.");
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -1215,7 +1265,7 @@ namespace Nemuri.Scenes
                     if (HasPuzzle3Collected && !_startBunnyWalkPostDreampearl)
                     {
                         GameObject bunnyObj = null;
-                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        GameObject pg = GameObject.Find("PINEALGLAND");
                         if (pg != null)
                         {
                             Transform go1 = pg.transform.Find("GameObject (1)");
@@ -1396,7 +1446,7 @@ namespace Nemuri.Scenes
                     if (_startBunnyWalkPostDreampearl)
                     {
                         GameObject bunnyObj = null;
-                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        GameObject pg = GameObject.Find("PINEALGLAND");
                         if (pg != null)
                         {
                             Transform go1 = pg.transform.Find("GameObject (1)");
@@ -1752,17 +1802,44 @@ namespace Nemuri.Scenes
         {
             if (node.speaker == "SFX")
             {
-                if (node.text.Contains("Slight tremor"))
+                string text = node.text;
+                bool isShake = text.Contains("tremor") ||
+                               text.Contains("shak") ||
+                               text.Contains("quake") ||
+                               text.Contains("rumble") ||
+                               (text.Contains("crash") && text.Contains("ground"));
+
+                if (isShake)
                 {
-                    Debug.Log("[NocturneIntroController] Triggering slight tremor shake.");
-                    TriggerShake(1.5f, 0.5f);
+                    AudioClip clip = Resources.Load<AudioClip>("WorldFallApart");
+                    if (clip != null && _audioSource != null)
+                    {
+                        _audioSource.PlayOneShot(clip, 1f);
+                    }
+
+                    float duration = 2.0f;
+                    float magnitude = 1.0f;
+
+                    if (text.Contains("Slight tremor"))
+                    {
+                        duration = 1.5f;
+                        magnitude = 0.5f;
+                    }
+                    else if (text.Contains("shakes violently") || text.Contains("violent quake") || text.Contains("shakes hard") || text.Contains("violent shake"))
+                    {
+                        duration = 3.0f;
+                        magnitude = 1.6f;
+                    }
+                    else if (text.Contains("shakes") || text.Contains("shaking"))
+                    {
+                        duration = 2.0f;
+                        magnitude = 1.0f;
+                    }
+
+                    TriggerShake(duration, magnitude);
                 }
-                else if (node.text.Contains("shakes violently") || node.text.Contains("violent quake"))
-                {
-                    Debug.Log("[NocturneIntroController] Triggering violent quake shake.");
-                    TriggerShake(3.0f, 1.6f);
-                }
-                else if (node.text.Contains("bushes rustle"))
+
+                if (node.text.Contains("bushes rustle"))
                 {
                     if (_state == IntroState.SecondIntroDialogue && !_isMurialFalling)
                     {
@@ -1807,21 +1884,80 @@ namespace Nemuri.Scenes
             {
                 _murialNpc.SetActive(true);
 
-                Vector3 startPos = _murialSpawnPoint != null ? _murialSpawnPoint.position : _murialNpc.transform.position;
-                Vector3 endPos = _murialLandingPoint != null ? _murialLandingPoint.position : startPos + Vector3.down * 8f;
+                // Set animator speed to 1.0f for the walk and fall to prevent it from playing at 3.0x speed
+                Animator anim = _murialNpc.GetComponent<Animator>();
+                if (anim == null) anim = _murialNpc.GetComponentInChildren<Animator>();
+                if (anim != null)
+                {
+                    anim.speed = 1.0f;
+                }
 
+                // Determine walk start, spawn (fall start), and landing (end) points
+                Vector3 walkStartPos = _murialTreeStartPoint != null ? _murialTreeStartPoint.position : (_murialSpawnPoint != null ? _murialSpawnPoint.position - new Vector3(3f, 0f, 0f) : _murialNpc.transform.position);
+                Vector3 spawnPos = _murialSpawnPoint != null ? _murialSpawnPoint.position : walkStartPos;
+                Vector3 endPos = _murialLandingPoint != null ? _murialLandingPoint.position : spawnPos + Vector3.down * 8f;
+
+                // Ensure starting position is set
+                _murialNpc.transform.position = walkStartPos;
+
+                // 1. Walk from start point to spawn point on the tree
+                SetNpcMoving(_murialNpc, true);
+
+                // Play BushRustle sound (looping)
+                if (_audioSource != null && _bushRustleClip != null)
+                {
+                    _audioSource.clip = _bushRustleClip;
+                    _audioSource.loop = true;
+                    _audioSource.volume = 1f;
+                    _audioSource.Play();
+                }
+
+                // Move from walkStartPos to spawnPos
+                float walkSpeed = 2f; // walk speed on the tree branch
+                while (Vector3.Distance(_murialNpc.transform.position, spawnPos) > 0.1f)
+                {
+                    _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, spawnPos, walkSpeed * Time.deltaTime);
+
+                    Vector3 dir = (spawnPos - _murialNpc.transform.position);
+                    dir.y = 0f;
+                    if (dir.sqrMagnitude > 0.001f)
+                    {
+                        _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
+                    }
+
+                    yield return null;
+                }
+                _murialNpc.transform.position = spawnPos;
+
+                // Stop walk animation
+                SetNpcMoving(_murialNpc, false);
+
+                // 2. Fall from spawnPos to endPos
                 float elapsed = 0f;
                 while (elapsed < _fallDuration)
                 {
                     elapsed += Time.deltaTime;
                     float t = elapsed / _fallDuration;
-                    float tAccel = t * t;
+                    float tAccel = t * t; // Acceleration downwards
 
-                    _murialNpc.transform.position = Vector3.Lerp(startPos, endPos, tAccel);
+                    _murialNpc.transform.position = Vector3.Lerp(spawnPos, endPos, tAccel);
                     yield return null;
                 }
                 _murialNpc.transform.position = endPos;
+
+                // 3. Stop BushRustle sound and start Fall sound on touch ground
+                if (_audioSource != null)
+                {
+                    _audioSource.Stop();
+                    _audioSource.loop = false;
+                    if (_fallClip != null)
+                    {
+                        _audioSource.PlayOneShot(_fallClip, 1f);
+                    }
+                }
+
                 HasMurialFallen = true;
+                _isMurialFalling = false;
                 Debug.Log("[NocturneIntroController] Murial NPC fell from tree and landed on terrain!");
                 RotateNpcToFacePlayer(_murialNpc);
             }
@@ -2306,7 +2442,7 @@ namespace Nemuri.Scenes
 
                 case IntroState.PortalSolveCrystalDialogue:
                     // Hide the metarig bunny NPC (Ferry disappears!)
-                    GameObject pgObj = GameObject.Find("PINEALGRAND");
+                    GameObject pgObj = GameObject.Find("PINEALGLAND");
                     if (pgObj != null)
                     {
                         Transform go1 = pgObj.transform.Find("GameObject (1)");
@@ -2501,6 +2637,12 @@ namespace Nemuri.Scenes
 
         private IEnumerator SmoothMoveRock1Routine(GameObject rockObj)
         {
+            AudioClip crackClip = Resources.Load<AudioClip>("CrystalCrack");
+            if (crackClip != null && rockObj != null)
+            {
+                AudioSource.PlayClipAtPoint(crackClip, rockObj.transform.position);
+            }
+
             float duration = 2.0f; // Smoothly lower over 2 seconds
             float elapsed = 0f;
 
@@ -3443,7 +3585,7 @@ namespace Nemuri.Scenes
 
         private GameObject FindCrystalObject()
         {
-            GameObject pg = GameObject.Find("PINEALGRAND");
+            GameObject pg = GameObject.Find("PINEALGLAND");
             if (pg != null)
             {
                 return FindChildRecursive(pg.transform, "dobj.001");
@@ -3497,7 +3639,7 @@ namespace Nemuri.Scenes
 
         private GameObject FindCrystalByName(string name)
         {
-            GameObject pg = GameObject.Find("PINEALGRAND");
+            GameObject pg = GameObject.Find("PINEALGLAND");
             if (pg != null)
             {
                 GameObject found = FindChildRecursive(pg.transform, name);
@@ -3706,7 +3848,7 @@ namespace Nemuri.Scenes
 
         private GameObject FindPortalObject()
         {
-            GameObject pg = GameObject.Find("PINEALGRAND");
+            GameObject pg = GameObject.Find("PINEALGLAND");
             if (pg != null)
             {
                 return FindChildRecursive(pg.transform, "cube.015");
