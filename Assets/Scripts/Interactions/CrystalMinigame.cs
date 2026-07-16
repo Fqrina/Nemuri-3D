@@ -136,9 +136,9 @@ namespace Nemuri.Interactions
                 _interactable.enabled = false;
             }
             Interactable.ForceHidePrompt();
-            if (DialogueManager.Instance != null)
+            if (Nemuri.Dialogue.DialogueManager.Instance != null)
             {
-                DialogueManager.Instance.DismissHeldObjective();
+                Nemuri.Dialogue.DialogueManager.Instance.DismissHeldObjective();
             }
 
             CreateUI();
