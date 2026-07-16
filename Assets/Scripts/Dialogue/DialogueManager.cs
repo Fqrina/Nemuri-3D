@@ -26,14 +26,14 @@ namespace Nemuri.Dialogue
     public class DialogueManager : MonoBehaviour
     {
         [System.Serializable]
-        private class PanelLayoutSettings
+        protected class PanelLayoutSettings
         {
             public Vector2 AnchoredPosition = new Vector2(0f, 60f);
             public Vector2 SizeDelta = new Vector2(1100f, 220f);
         }
 
         [System.Serializable]
-        private class NameTextLayoutSettings
+        protected class NameTextLayoutSettings
         {
             public Vector2 AnchoredPosition = new Vector2(90f, -22f);
             public Vector2 SizeDelta = new Vector2(250f, 50f);
@@ -59,67 +59,67 @@ namespace Nemuri.Dialogue
         [SerializeField] private Text _skipPromptText;
 
         [Header("Settings")]
-        [SerializeField, Min(0f)] private float _defaultTypingSpeed = 0.01f;
+        [SerializeField, Min(0f)] protected float _defaultTypingSpeed = 0.01f;
 
         [Header("Background Sprites")]
-        [SerializeField] private Sprite _dialogueSprite;
-        [SerializeField] private Sprite _narrationSprite;
-        [SerializeField] private Sprite _objectiveSprite;
-        [SerializeField] private Image _panelBackgroundImage;
+        [SerializeField] protected Sprite _dialogueSprite;
+        [SerializeField] protected Sprite _narrationSprite;
+        [SerializeField] protected Sprite _objectiveSprite;
+        [SerializeField] protected Image _panelBackgroundImage;
 
         [Header("Panel Size & Position")]
-        [SerializeField] private PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField] private PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField] private PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
 
         [Header("Dialogue Audio")]
-        [SerializeField] private AudioClip _playerDialogueClip;
-        [SerializeField] private AudioClip _animalDialogueClip;
-        [SerializeField] private AudioClip _thirdDialogueClip;
-        [SerializeField, Min(0f)] private float _audioVolume = 1f;
+        [SerializeField] protected AudioClip _playerDialogueClip;
+        [SerializeField] protected AudioClip _animalDialogueClip;
+        [SerializeField] protected AudioClip _thirdDialogueClip;
+        [SerializeField, Min(0f)] protected float _audioVolume = 1f;
 
         [Header("Text Layout Settings")]
-        [SerializeField] private Vector2 _dialogueTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
-        [SerializeField] private Vector2 _narrationTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _narrationTextPosition = new Vector2(0f, -15f);
-        [SerializeField] private Vector2 _objectiveTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _dialogueTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _narrationTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _narrationTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _objectiveTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
 
         [Header("Name Text Layout")]
-        [SerializeField] private NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField] private NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField] private NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
 
         [Header("Skip Prompt")]
-        [SerializeField] private string _skipPromptLabel = "Hold E to skip";
-        [SerializeField] private Vector2 _skipPromptAnchoredPosition = new Vector2(-140f, 25f);
-        [SerializeField] private Vector2 _skipPromptSizeDelta = new Vector2(220f, 40f);
-        [SerializeField, Min(8)] private int _skipPromptFontSize = 18;
+        [SerializeField] protected string _skipPromptLabel = "Hold E to skip";
+        [SerializeField] protected Vector2 _skipPromptAnchoredPosition = new Vector2(-140f, 25f);
+        [SerializeField] protected Vector2 _skipPromptSizeDelta = new Vector2(220f, 40f);
+        [SerializeField, Min(8)] protected int _skipPromptFontSize = 18;
 
         private PlayerInput _playerInput;
         private InputAction _interactAction;
@@ -131,17 +131,24 @@ namespace Nemuri.Dialogue
         private Coroutine _autoCloseCoroutine;
         private AudioSource _audioSource;
         [Header("Font Setting")]
-        [SerializeField] private Font _customFont;
-        private Font _uiFont;
-        private string _activeSpeaker = "";
-        private Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
+        [SerializeField] protected Font _customFont;
+        protected Font _uiFont;
+        protected string _activeSpeaker = "";
+        protected Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
 
-        private void Awake()
+        protected virtual void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Destroy(gameObject);
-                return;
+                if (Instance.GetType() != this.GetType())
+                {
+                    Destroy(Instance.gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                    return;
+                }
             }
 
             Instance = this;
@@ -159,7 +166,7 @@ namespace Nemuri.Dialogue
             _audioSource.loop = false;
         }
 
-        private void Start()
+        protected virtual void Start()
         {
             BindPlayerInput();
             SetupInput();
@@ -205,7 +212,7 @@ namespace Nemuri.Dialogue
             Debug.LogWarning("[DialogueManager] Interact action was not found in the PlayerInput actions.", this);
         }
 
-        private void OnDestroy()
+        protected virtual void OnDestroy()
         {
             if (_interactAction != null)
             {
