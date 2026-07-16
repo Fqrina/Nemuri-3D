@@ -2150,13 +2150,18 @@ namespace Nemuri.Scenes
                 case IntroState.BridgeSuccessDialogue:
                     SetPlayerMovementEnabled(true);
                     SetBridgeInteractionActive(false, "", 0f);
-                    GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
-                    if (p3Ip != null)
+                    GameObject p3p2IpBridge = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpBridge != null)
                     {
-                        var inter = p3Ip.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = true;
+                        var inter = p3p2IpBridge.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Press E to raise bridge";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
                     }
-                    Debug.Log("[NocturneIntroController] Bridge success dialogue ended. Activated Puzzle3InteractionPoint.");
+                    Debug.Log("[NocturneIntroController] Bridge success dialogue ended. Enabled Puzzle3Part2InteractionPoint raise bridge.");
                     break;
 
                 case IntroState.Puzzle3IntroDialogue:
@@ -2277,8 +2282,6 @@ namespace Nemuri.Scenes
                         var inter = p3p2IpDisable.GetComponent<Interactable>();
                         if (inter != null) inter.enabled = false;
                     }
-
-                    // Dreampearl is now reachable
                     GameObject dobj002 = FindCrystalByName("dobj.002");
                     if (dobj002 != null)
                     {
@@ -2924,17 +2927,7 @@ namespace Nemuri.Scenes
             if (!_startBridge1Walk)
             {
                 _startBridge1Walk = true;
-                
-                // Set movement disabled to lock Kael in place
-                SetPlayerMovementEnabled(false);
-
-                // Reset indices for the bridge path walk
-                _ronaPathIndex = 0;
-                _murialPathIndex = 0;
-                _keikoPathIndex = 0;
-                _feanorPathIndex = 0;
-
-                _state = IntroState.WaitingForBridge1Dialogue;
+                TriggerBridge1Dialogue();
             }
         }
 
@@ -2954,19 +2947,18 @@ namespace Nemuri.Scenes
                     RotatePlayerToFaceTarget(dreampearl);
                 }
                 
-                // Show bridge intro dialogue
                 List<DialogueNode> nodes = new List<DialogueNode>()
                 {
-                    new DialogueNode() { speaker = "Narrator", text = "Following the resonance, you arrive at a tranquil lake. At its center rests a giant seashell, tightly closed around a faintly glowing Dreampearl.", portraitName = "", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Keiko", text = "It's there... I can hear it.", portraitName = "Keiko", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Kael", text = "But there's no way to reach it.", portraitName = "Kael", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Narrator", text = "The lake stretches endlessly before you. Every stepping stone has crumbled into the water, leaving the Dreampearl completely inaccessible.", portraitName = "", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Feanor", text = "The tremors destroyed the path long ago.", portraitName = "Feanor", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Rona", text = "Then we'll make our own.", portraitName = "Rona", typingSpeed = 0.05f }
+                    new DialogueNode() { speaker = "Narrator",  text = "Following the resonance, you arrive at a tranquil lake. At its center rests a faintly glowing Dreampearl.",               portraitName = "",      typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Keiko",     text = "It's there... I can hear it.",                                                                                             portraitName = "Keiko", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Kael",      text = "But there's no way to reach it.",                                                                                          portraitName = "Kael",  typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Narrator",  text = "The lake stretches endlessly before you, leaving you far away from the pearl.",                                             portraitName = "",      typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Feanor",    text = "The tremors destroyed the bridge path long ago.",                                                                           portraitName = "Feanor",typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona",      text = "Don't worry, let's fix the bridge.",                                                                                       portraitName = "Rona",  typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Objective", text = "Use Rona's power to rebuild the bridge.",                                                                                   portraitName = "",      typingSpeed = 0.05f }
                 };
 
                 _state = IntroState.BridgeIntroDialogue;
-                SetPlayerMovementEnabled(false);
                 if (DialogueManager.Instance != null)
                 {
                     DialogueManager.Instance.StartConversation(nodes);
@@ -2996,11 +2988,17 @@ namespace Nemuri.Scenes
             // Delay 6 seconds for bridge animation
             yield return new WaitForSeconds(6.0f);
 
-            // Trigger Rona dialogue
             List<DialogueNode> nodes = new List<DialogueNode>()
             {
-                new DialogueNode() { speaker = "Rona", text = "A path isn't something you wait for...", portraitName = "Rona", typingSpeed = 0.05f },
-                new DialogueNode() { speaker = "Rona", text = "It's something you create.", portraitName = "Rona", typingSpeed = 0.05f }
+                new DialogueNode() { speaker = "Kael",      text = "It's still too far away.",                                                              portraitName = "Kael",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial",    text = "What if we swim our way there?",                                                         portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Feanor",    text = "Totally not possible, the water current is strong.",                                     portraitName = "Feanor", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko",     text = "Rona! You can build a path right?",                                                      portraitName = "Keiko",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "I'm not too sure\u2026 It's not entirely stable.",                                      portraitName = "Rona",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial",    text = "Well it's better than nothing.",                                                         portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael",      text = "Rona, we're going to figure it out, but we need your powers.",                          portraitName = "Kael",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "I will try\u2026",                                                                      portraitName = "Rona",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Use Rona's Ambition to forge a path across the lake.",                                  portraitName = "",       typingSpeed = 0.05f }
             };
 
             _state = IntroState.BridgeSuccessDialogue;
@@ -3220,8 +3218,12 @@ namespace Nemuri.Scenes
 
             List<DialogueNode> nodes = new List<DialogueNode>()
             {
-                new DialogueNode() { speaker = "Rona", text = "The path is open.", portraitName = "Rona", typingSpeed = 0.05f },
-                new DialogueNode() { speaker = "Keiko", text = "The pearl is within reach now. Let's go!", portraitName = "Keiko", typingSpeed = 0.05f }
+                new DialogueNode() { speaker = "Narrator",  text = "Rona steps forward and raises her hand. Waves of pink energy ripple across the lake. Wherever her determination reaches, luminous platforms rise from beneath the water, forging a path toward the giant seashell.", portraitName = "",      typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael",      text = "A path isn't something you wait for...",                                                                                                                                                                        portraitName = "Kael",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "It's something you create.",                                                                                                                                                                                    portraitName = "Rona",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Narrator",  text = "You carefully cross the newly formed path and arrive to the dreampearl, the last crystal to complete the shrine.",                                                                                              portraitName = "",      typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko",     text = "The resonance...",                                                                                                                                                                                             portraitName = "Keiko", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Obtain the Dreampearl.",                                                                                                                                                                                        portraitName = "",      typingSpeed = 0.05f }
             };
 
             _state = IntroState.Puzzle3Part2SuccessDialogue;
@@ -3397,7 +3399,6 @@ namespace Nemuri.Scenes
             };
             
             _state = IntroState.Puzzle3CollectedDialogue;
-            SetPlayerMovementEnabled(false);
 
             if (DialogueManager.Instance != null)
             {
@@ -3704,16 +3705,18 @@ namespace Nemuri.Scenes
             if (_startBunnyWalkPostDreampearl) return;
             _startBunnyWalkPostDreampearl = true;
 
-            SetPlayerMovementEnabled(false);
+            // Teleport companion NPCs to the position where they first met Feanor
+            Vector3 ronaPos = new Vector3(-26.44f, 0f, 74.89f); ronaPos.y = GetGroundHeight(ronaPos);
+            Vector3 keikoPos = new Vector3(-27.94f, 0f, 74.39f); keikoPos.y = GetGroundHeight(keikoPos);
+            Vector3 murialPos = new Vector3(-28.61f, 0f, 77.21f); murialPos.y = GetGroundHeight(murialPos);
+            Vector3 feanorPos = new Vector3(-28.94f, 0f, 72.0f); feanorPos.y = GetGroundHeight(feanorPos);
 
-            // Reset path indices to 0 for the bunny walk
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+            if (_ronaNpc != null) { _ronaNpc.transform.position = ronaPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_ronaNpc, _ferryNpc); }
+            if (_keikoNpc != null) { _keikoNpc.transform.position = keikoPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_keikoNpc, _ferryNpc); }
+            if (_murialNpc != null) { _murialNpc.transform.position = murialPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_murialNpc, _ferryNpc); }
+            if (_feanorNpc != null) { _feanorNpc.transform.position = feanorPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_feanorNpc, _ferryNpc); }
 
-            _state = IntroState.WaitingForBunnyDialoguePostDreampearl;
-            Debug.Log("[NocturneIntroController] Player approached bunny post-Dreampearl! NPCs commencing walk sequence.");
+            TriggerBunnyDialoguePostDreampearl();
         }
 
         public void TriggerBunnyDialoguePostDreampearl()
@@ -3727,7 +3730,8 @@ namespace Nemuri.Scenes
                 new DialogueNode() { speaker = "Rona", text = "Will this fix the Nocturne heart?", portraitName = "Rona", typingSpeed = 0.05f },
                 new DialogueNode() { speaker = "Ferry", text = "It’s not that simple dear…", portraitName = "", typingSpeed = 0.05f },
                 new DialogueNode() { speaker = "Murial", text = "What do you mean?", portraitName = "Murial", typingSpeed = 0.05f },
-                new DialogueNode() { speaker = "Ferry", text = "Just go ahead and put the crystals and you’ll find out by yourself", portraitName = "", typingSpeed = 0.05f }
+                new DialogueNode() { speaker = "Ferry", text = "Just go ahead and put the crystals and you’ll find out by yourself", portraitName = "", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Put crystals in the portal", portraitName = "", typingSpeed = 0.05f }
             };
 
             _state = IntroState.BunnyDialoguePostDreampearl;
@@ -3755,7 +3759,7 @@ namespace Nemuri.Scenes
                 if (inter == null) inter = cube015.AddComponent<Interactable>();
                 inter.PromptText = "Fix Portal (E)";
                 inter.InteractionRange = 4.0f;
-                inter.HoldSeconds = 0f;
+                inter.HoldSeconds = 3.0f;
                 if (inter.OnInteract == null) inter.OnInteract = new UnityEngine.Events.UnityEvent();
                 inter.OnInteract.RemoveAllListeners();
                 inter.OnInteract.AddListener(OnPortalInteracted);
@@ -3806,7 +3810,7 @@ namespace Nemuri.Scenes
                     var inter = cube015.GetComponent<Interactable>();
                     if (inter != null)
                     {
-                        inter.DisplayInteraction("You must use Kael as player to interact", 0f);
+                        inter.SetOverridePromptText("You must use Kael as player to interact", 3f);
                     }
                 }
             }
