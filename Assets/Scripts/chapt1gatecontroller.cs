@@ -24,6 +24,7 @@ public class Chapt1gatecontroller : MonoBehaviour
     private float _holdTimer;
     private Interactable _interactable;
     private float _wrongPlayerTimer = 0f;
+    private bool _movementStarted = false;
 
     void Start()
     {
@@ -40,7 +41,7 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void Update()
     {
-        if (isTriggered) return;
+        if (isTriggered || _movementStarted) return;
 
         // Wrong player warning feedback timer
         if (_wrongPlayerTimer > 0f)
@@ -123,6 +124,7 @@ public class Chapt1gatecontroller : MonoBehaviour
     private void HideInteraction()
     {
         _interactable?.DismissInteraction();
+        Interactable.ForceHidePrompt();
         _holdTimer = 0f;
     }
 
@@ -166,13 +168,16 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     void TriggerMovement()
     {
+        _movementStarted = true;
         HideInteraction();
+        Interactable.ForceHidePrompt();
         
         // Disable all Interactable components on this object and its children to clear the E prompt permanently
         var interactables = GetComponentsInChildren<Interactable>(true);
         foreach (var inter in interactables)
         {
             inter.DismissInteraction();
+            Interactable.ForceHidePrompt();
             inter.enabled = false;
         }
 

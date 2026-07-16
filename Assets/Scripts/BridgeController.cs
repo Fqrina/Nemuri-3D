@@ -61,63 +61,74 @@ public class BridgeController : MonoBehaviour
     {
         if (isTriggered) return;
 
-        if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
+        // Check if Crescent Tear is collected
+        if (Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasCrescentTearCollected)
         {
-            searchTimer += Time.deltaTime;
-            if (searchTimer >= 0.5f)
-            {
-                FindActivePlayer();
-                searchTimer = 0f;
-            }
+            if (_interactable != null) _interactable.enabled = false;
             HideInteraction();
             return;
         }
 
-        float distance = Vector3.Distance(transform.position, activePlayerTransform.position);
+        FindActivePlayer();
+
+        if (activePlayerTransform == null || !activePlayerTransform.gameObject.activeInHierarchy)
+        {
+            HideInteraction();
+            return;
+        }
+
+        float distance = Vector3.Distance(GetBridgeDetectionCenter().position, activePlayerTransform.position);
 
         if (distance <= activationDistance)
         {
-            bool isAllowed = System.Array.Exists(
-                targetCharacterNames, n => activePlayerTransform.name == n);
-
-            if (isAllowed)
+            var intro = Nemuri.Scenes.NocturneIntroController.Instance;
+            if (intro != null)
             {
-                if (Keyboard.current != null && Keyboard.current.eKey.isPressed)
-                {
-                    _holdTimer += Time.deltaTime;
-                    _interactable?.DisplayInteraction("Hold E to lower bridge", _holdTimer / holdDuration);
+                if (_interactable != null) _interactable.enabled = true;
 
-                    if (_holdTimer >= holdDuration)
-                    {
-                        _holdTimer = 0f;
-                        _interactable?.DismissInteraction();
-                        TriggerBridge();
-                    }
-                }
-                else
+                if (!intro.HasBridgeIntroStarted)
                 {
-                    if (_holdTimer > 0f)
+                    intro.OnBridgeInteracted();
+                    _interactable?.DismissInteraction();
+                }
+                else if (intro.HasBridgeIntroEnded && !intro.HasBridgeFixed)
+                {
+                    bool isRona = (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1);
+
+                    if (isRona)
                     {
-                        HideInteraction();
+                        if (Keyboard.current != null && Keyboard.current.eKey.isPressed)
+                        {
+                            _holdTimer += Time.deltaTime;
+                            _interactable?.DisplayInteraction("Press E to fix bridge", _holdTimer / holdDuration);
+
+                            if (_holdTimer >= holdDuration)
+                            {
+                                _holdTimer = 0f;
+                                _interactable?.DismissInteraction();
+                                isTriggered = true;
+                                intro.OnBridgeFixedByRona(this);
+                            }
+                        }
+                        else
+                        {
+                            if (_holdTimer > 0f)
+                            {
+                                HideInteraction();
+                            }
+                            else
+                            {
+                                _interactable?.DisplayInteraction("Press E to fix bridge", 0f);
+                            }
+                        }
                     }
                     else
                     {
-                        _interactable?.DisplayInteraction("Hold E to lower bridge", 0f);
-                    }
-                }
-            }
-            else
-            {
-                if (!_hasShownWrongPlayerError)
-                {
-                    _interactable?.DisplayInteraction("Hold E to lower bridge", 0f);
-
-                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                    {
-                        _interactable?.DisplayInteraction("You must use KEIKOCHARA as player to interact", 0f);
-                        _hasShownWrongPlayerError = true;
-                        isTriggered = true;
-                        _interactable?.DismissInteraction();
+                        _interactable?.DisplayInteraction("Press E to fix bridge", 0f);
+                        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                        {
+                            _interactable?.SetOverridePromptText("You must use Rona as player to interact", 3f);
+                        }
                     }
                 }
             }
@@ -134,12 +145,48 @@ public class BridgeController : MonoBehaviour
         _holdTimer = 0f;
     }
 
+    private Transform GetBridgeDetectionCenter()
+    {
+        GameObject pg = GameObject.Find("PINEALGRAND");
+        if (pg != null)
+        {
+            Transform pivotBridge = pg.transform.Find("pivot bridge");
+            if (pivotBridge == null) pivotBridge = pg.transform.Find("pivot_bridge");
+            if (pivotBridge == null) pivotBridge = FindChildRecursiveTransform(pg.transform, "pivot bridge");
+            if (pivotBridge == null) pivotBridge = FindChildRecursiveTransform(pg.transform, "pivot_bridge");
+            if (pivotBridge != null) return pivotBridge;
+        }
+        return transform;
+    }
+
+    private Transform FindChildRecursiveTransform(Transform parent, string name)
+    {
+        if (parent.name.Equals(name, System.StringComparison.OrdinalIgnoreCase)) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform result = FindChildRecursiveTransform(parent.GetChild(i), name);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
     void FindActivePlayer()
     {
+        if (Nemuri.Core.CharacterSwapManager.Instance != null)
+        {
+            GameObject activeObj = Nemuri.Core.CharacterSwapManager.Instance.GetActivePlayerObject();
+            if (activeObj != null && activeObj.activeInHierarchy)
+            {
+                activePlayerTransform = activeObj.transform;
+                return;
+            }
+        }
+
         Transform closest = null;
         float closestDist = float.MaxValue;
 
-        foreach (string charName in allCharacterNames)
+        string[] fallbacks = { "KAELCHARA", "RONACHARA", "MURIALCHARA", "KEIKOCHARA", "FEANORCHARA", "KAEL", "RONA", "MURIAL", "KEIKO", "FEANOR" };
+        foreach (string charName in fallbacks)
         {
             GameObject obj = GameObject.Find(charName);
             if (obj != null && obj.activeInHierarchy)
@@ -153,20 +200,12 @@ public class BridgeController : MonoBehaviour
             }
         }
 
-        if (closest == null)
-        {
-            foreach (string charName in targetCharacterNames)
-            {
-                GameObject obj = GameObject.Find(charName);
-                if (obj != null && obj.activeInHierarchy)
-                {
-                    activePlayerTransform = obj.transform;
-                    return;
-                }
-            }
-        }
-
         activePlayerTransform = closest;
+    }
+
+    public void TriggerBridgePublic()
+    {
+        TriggerBridge();
     }
 
     void TriggerBridge()
@@ -197,6 +236,6 @@ public class BridgeController : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, activationDistance);
+        Gizmos.DrawWireSphere(GetBridgeDetectionCenter().position, activationDistance);
     }
 }

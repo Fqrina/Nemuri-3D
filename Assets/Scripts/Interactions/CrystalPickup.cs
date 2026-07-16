@@ -33,6 +33,28 @@ namespace Nemuri.Interactions
             _collected = true;
             PuzzleManager.Instance.CollectCrystal(_crystalIndex);
             gameObject.SetActive(false);
+
+            if (gameObject.name == "dobj.001")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerSomniaSeedCollectedDialogue();
+                }
+            }
+            else if (gameObject.name == "dobj")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerCrescentTearCollectedDialogue();
+                }
+            }
+            else if (gameObject.name == "dobj.002")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    Nemuri.Scenes.NocturneIntroController.Instance.TriggerPuzzle3CollectedDialogue();
+                }
+            }
         }
 
         private static void EnsurePuzzleManager()

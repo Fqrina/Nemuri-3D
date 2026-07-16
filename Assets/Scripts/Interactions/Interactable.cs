@@ -19,7 +19,7 @@ namespace Nemuri.Interactions
         [SerializeField] private Transform _interactionPoint;
         [SerializeField] private string _promptText = "Hold E to interact";
 
-        public UnityEvent OnInteract;
+        public UnityEvent OnInteract = new UnityEvent();
 
         private Transform _player;
         private PlayerInput _playerInput;
@@ -30,13 +30,26 @@ namespace Nemuri.Interactions
         private Bounds _interactionBounds;
         private bool _hasInteractionBounds;
 
+        private string _overrideText = null;
+        private float _overrideTimer = 0f;
+
+        public void SetOverridePromptText(string text, float duration)
+        {
+            _overrideText = text;
+            _overrideTimer = duration;
+        }
+
         public string PromptText
         {
             get => _promptText;
             set => _promptText = value;
         }
 
-        public float InteractionRange => _interactionRange;
+        public float InteractionRange
+        {
+            get => _interactionRange;
+            set => _interactionRange = Mathf.Max(0.1f, value);
+        }
         public float HoldSeconds
         {
             get => _holdSeconds;
@@ -130,7 +143,16 @@ namespace Nemuri.Interactions
         private void ShowPrompt()
         {
             float progress = _holdSeconds > 0f ? Mathf.Clamp01(_holdTimer / _holdSeconds) : 0f;
-            _prompt.Show(this, _promptText, progress);
+            if (_overrideTimer > 0f && !string.IsNullOrEmpty(_overrideText))
+            {
+                _overrideTimer -= Time.deltaTime;
+                _prompt.Show(this, _overrideText, 0f);
+            }
+            else
+            {
+                _overrideText = null;
+                _prompt.Show(this, _promptText, progress);
+            }
         }
 
         private void HidePromptAndReset()
@@ -164,6 +186,14 @@ namespace Nemuri.Interactions
             if (_prompt != null && _prompt.Owner == this)
             {
                 _prompt.Hide(this);
+            }
+        }
+
+        public static void ForceHidePrompt()
+        {
+            if (_prompt != null)
+            {
+                _prompt.ForceHide();
             }
         }
 
@@ -387,6 +417,13 @@ namespace Nemuri.Interactions
                     return;
                 }
 
+                Owner = null;
+                _progressFillRect.anchorMax = new Vector2(0f, 1f);
+                _root.SetActive(false);
+            }
+
+            public void ForceHide()
+            {
                 Owner = null;
                 _progressFillRect.anchorMax = new Vector2(0f, 1f);
                 _root.SetActive(false);

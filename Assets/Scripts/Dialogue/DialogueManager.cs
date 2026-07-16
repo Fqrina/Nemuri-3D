@@ -26,14 +26,14 @@ namespace Nemuri.Dialogue
     public class DialogueManager : MonoBehaviour
     {
         [System.Serializable]
-        private class PanelLayoutSettings
+        protected class PanelLayoutSettings
         {
             public Vector2 AnchoredPosition = new Vector2(0f, 60f);
             public Vector2 SizeDelta = new Vector2(1100f, 220f);
         }
 
         [System.Serializable]
-        private class NameTextLayoutSettings
+        protected class NameTextLayoutSettings
         {
             public Vector2 AnchoredPosition = new Vector2(90f, -22f);
             public Vector2 SizeDelta = new Vector2(250f, 50f);
@@ -42,7 +42,7 @@ namespace Nemuri.Dialogue
         private const string PlayerTag = "Player";
         private const string DialogueCanvasName = "Dialogue Canvas";
 
-        public static DialogueManager Instance { get; protected set; }
+        public static DialogueManager Instance { get; private set; }
 
         public static System.Action OnConversationStart;
         public static System.Action OnConversationEnd;
@@ -52,102 +52,103 @@ namespace Nemuri.Dialogue
         public bool canProceed = true;
 
         [Header("Prefab UI References")]
-        [SerializeField] protected GameObject _dialoguePanel;
+        [SerializeField] private GameObject _dialoguePanel;
         [SerializeField] private Text _nameText;
         [SerializeField] private Text _dialogueText;
         [SerializeField] private Image _portraitImage;
         [SerializeField] private Text _skipPromptText;
 
         [Header("Settings")]
-        [SerializeField, Min(0f)] private float _defaultTypingSpeed = 0.01f;
+        [SerializeField, Min(0f)] protected float _defaultTypingSpeed = 0.01f;
 
         [Header("Background Sprites")]
-        [SerializeField] private Sprite _dialogueSprite;
-        [SerializeField] private Sprite _narrationSprite;
-        [SerializeField] private Sprite _objectiveSprite;
-        [SerializeField] private Image _panelBackgroundImage;
+        [SerializeField] protected Sprite _dialogueSprite;
+        [SerializeField] protected Sprite _narrationSprite;
+        [SerializeField] protected Sprite _objectiveSprite;
+        [SerializeField] protected Image _panelBackgroundImage;
 
         [Header("Panel Size & Position")]
-        [SerializeField]
-        private PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField]
-        private PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
-        [SerializeField]
-        private PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
+        [SerializeField] protected PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
             SizeDelta = new Vector2(1100f, 220f)
         };
 
         [Header("Dialogue Audio")]
-        [SerializeField] private AudioClip _playerDialogueClip;
-        [SerializeField] private AudioClip _animalDialogueClip;
-        [SerializeField] private AudioClip _thirdDialogueClip;
-        [SerializeField, Min(0f)] private float _audioVolume = 1f;
+        [SerializeField] protected AudioClip _playerDialogueClip;
+        [SerializeField] protected AudioClip _animalDialogueClip;
+        [SerializeField] protected AudioClip _thirdDialogueClip;
+        [SerializeField, Min(0f)] protected float _audioVolume = 1f;
 
         [Header("Text Layout Settings")]
-        [SerializeField] private Vector2 _dialogueTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
-        [SerializeField] private Vector2 _narrationTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _narrationTextPosition = new Vector2(0f, -15f);
-        [SerializeField] private Vector2 _objectiveTextSize = new Vector2(900f, 120f);
-        [SerializeField] private Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _dialogueTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _narrationTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _narrationTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _objectiveTextSize = new Vector2(900f, 120f);
+        [SerializeField] protected Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
 
         [Header("Name Text Layout")]
-        [SerializeField]
-        private NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField]
-        private NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
-        [SerializeField]
-        private NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
+        [SerializeField] protected NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
             SizeDelta = new Vector2(250f, 50f)
         };
 
         [Header("Skip Prompt")]
-        [SerializeField] private string _skipPromptLabel = "Hold E to skip";
-        [SerializeField] private Vector2 _skipPromptAnchoredPosition = new Vector2(-140f, 25f);
-        [SerializeField] private Vector2 _skipPromptSizeDelta = new Vector2(220f, 40f);
-        [SerializeField, Min(8)] private int _skipPromptFontSize = 18;
+        [SerializeField] protected string _skipPromptLabel = "Hold E to skip";
+        [SerializeField] protected Vector2 _skipPromptAnchoredPosition = new Vector2(-140f, 25f);
+        [SerializeField] protected Vector2 _skipPromptSizeDelta = new Vector2(220f, 40f);
+        [SerializeField, Min(8)] protected int _skipPromptFontSize = 18;
 
         private PlayerInput _playerInput;
         private InputAction _interactAction;
         private readonly Queue<DialogueNode> _nodes = new Queue<DialogueNode>();
         private bool _isTyping;
-        protected bool _waitingForInput;
-        protected DialogueNode _currentNode;
+        private bool _waitingForInput;
+        private DialogueNode _currentNode;
         private Coroutine _typingCoroutine;
-        protected Coroutine _autoCloseCoroutine;
+        private Coroutine _autoCloseCoroutine;
         private AudioSource _audioSource;
         [Header("Font Setting")]
-        [SerializeField] private Font _customFont;
-        private Font _uiFont;
-        private string _activeSpeaker = "";
-        private Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
+        [SerializeField] protected Font _customFont;
+        protected Font _uiFont;
+        protected string _activeSpeaker = "";
+        protected Queue<DialogueNode> _savedNodes = new Queue<DialogueNode>();
 
         protected virtual void Awake()
         {
             if (Instance != null && Instance != this)
             {
-                Debug.Log($"[DialogueManager] Destroying older/duplicate instance of type {Instance.GetType().Name} to replace with new instance of type {this.GetType().Name}.");
-                Destroy(Instance.gameObject);
+                if (Instance.GetType() != this.GetType())
+                {
+                    Destroy(Instance.gameObject);
+                }
+                else
+                {
+                    Destroy(gameObject);
+                    return;
+                }
             }
 
             Instance = this;
@@ -216,10 +217,6 @@ namespace Nemuri.Dialogue
             if (_interactAction != null)
             {
                 _interactAction.performed -= OnInteractAction;
-            }
-            if (Instance == this)
-            {
-                Instance = null;
             }
         }
 
@@ -465,24 +462,28 @@ namespace Nemuri.Dialogue
 
         private AudioClip ResolveClipForSpeaker(string speaker)
         {
-            if (string.Equals(speaker, "Kael", System.StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(speaker))
+            {
+                return _thirdDialogueClip;
+            }
+
+            if (string.Equals(speaker, "Kael", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Rona", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Murial", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Keiko", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Feanor", System.StringComparison.OrdinalIgnoreCase))
             {
                 return _playerDialogueClip;
             }
 
-            if (string.Equals(speaker, "Ignore Animal", System.StringComparison.OrdinalIgnoreCase) ||
+            if (string.Equals(speaker, "Ferry", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(speaker, "Animal", System.StringComparison.OrdinalIgnoreCase) ||
                 speaker.IndexOf("Animal", System.StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 return _animalDialogueClip;
             }
 
-            if (string.Equals(speaker, "Narrator", System.StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(speaker, "Objective", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return _thirdDialogueClip;
-            }
-
-            return null;
+            return _thirdDialogueClip;
         }
 
         private void PlayDialogueAudio(string speaker)
@@ -504,7 +505,7 @@ namespace Nemuri.Dialogue
             _audioSource.Play();
         }
 
-        protected void StopDialogueAudio()
+        private void StopDialogueAudio()
         {
             if (_audioSource == null)
             {
@@ -518,7 +519,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        protected void SetSkipPromptVisible(bool visible)
+        private void SetSkipPromptVisible(bool visible)
         {
             if (_skipPromptText != null)
             {
@@ -579,7 +580,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        protected IEnumerator AutoCloseRoutine(float delay)
+        private IEnumerator AutoCloseRoutine(float delay)
         {
             yield return new WaitForSeconds(delay);
             if (_waitingForInput)
@@ -588,7 +589,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        protected virtual void ProceedToNextNode()
+        private void ProceedToNextNode()
         {
             if (!canProceed)
             {
@@ -605,9 +606,18 @@ namespace Nemuri.Dialogue
                 StopCoroutine(_autoCloseCoroutine);
                 _autoCloseCoroutine = null;
             }
-
+            
             _waitingForInput = false;
-            DisplayNextNode();
+
+            if (_currentNode != null && string.Equals(_currentNode.speaker, "Objective", System.StringComparison.OrdinalIgnoreCase) &&
+                WalkingSceneObjectiveManager.Instance != null)
+            {
+                PauseConversationForObjective(_currentNode.text);
+            }
+            else
+            {
+                DisplayNextNode();
+            }
         }
 
         public void OnInteractAction(InputAction.CallbackContext context)
@@ -633,6 +643,22 @@ namespace Nemuri.Dialogue
             }
         }
 
+        private void PauseConversationForObjective(string objectiveText)
+        {
+            StopDialogueAudio();
+            SetSkipPromptVisible(false);
+            SetDialoguePanelActive(false);
+
+            SetPlayerMovementEnabled(true);
+
+            if (WalkingSceneObjectiveManager.Instance != null)
+            {
+                WalkingSceneObjectiveManager.Instance.SetActiveObjective(objectiveText);
+            }
+
+            OnConversationEnd?.Invoke();
+        }
+
         public void ResumeConversation()
         {
             SetPlayerMovementEnabled(false);
@@ -641,7 +667,7 @@ namespace Nemuri.Dialogue
             DisplayNextNode();
         }
 
-        protected virtual void EndConversation()
+        private void EndConversation()
         {
             SetDialoguePanelActive(false);
             StopDialogueAudio();
@@ -662,13 +688,19 @@ namespace Nemuri.Dialogue
             OnConversationEnd?.Invoke();
         }
 
-        public void ForceEndConversation()
+        private void SetPlayerMovementEnabled(bool enabled)
         {
-            EndConversation();
-        }
+            var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
+            foreach (var m in move1)
+            {
+                m.SetCanMove(enabled);
+            }
 
-        protected virtual void SetPlayerMovementEnabled(bool enabled)
-        {
+            var move2 = FindObjectsByType<PlayerMovementChapt1>(FindObjectsInactive.Include);
+            foreach (var m in move2)
+            {
+                m.SetCanMove(enabled);
+            }
         }
 
         private void BindPlayerInput()
@@ -701,7 +733,7 @@ namespace Nemuri.Dialogue
                 && _skipPromptText != null;
         }
 
-        protected void SetDialoguePanelActive(bool active)
+        private void SetDialoguePanelActive(bool active)
         {
             if (_dialoguePanel != null)
             {

@@ -27,6 +27,13 @@ namespace Nemuri.Interactions
         private float _widthModifier;
         private float _widthModifierTarget;
         private float _progress;
+        private float _sourceT;
+        private float _destinationT;
+        private bool _isWaiting;
+        private float _waitTime;
+        private float _movementTimer;
+        private float _moveProgress;
+        private float _moveSpeed;
 
         private GameObject _uiCanvasRoot;
         private Image _targetZoneImage;
@@ -60,8 +67,46 @@ namespace Nemuri.Interactions
             }
         }
 
-        private void StartMinigame()
+        public void StartMinigame()
         {
+            if (gameObject.name == "dobj.001")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && Nemuri.Scenes.NocturneIntroController.Instance.HasSomniaSeedPuzzleCompleted)
+                {
+                    if (_crystalPickup != null) _crystalPickup.Collect();
+                    if (_interactable != null) _interactable.DismissInteraction();
+                    return;
+                }
+
+                // Restrict Puzzle 1 minigame play to Murial only
+                if (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex != 2)
+                {
+                    Debug.Log("[CrystalMinigame] Only Murial can interact with the Somnia Seed minigame!");
+                    if (_interactable != null)
+                    {
+                        _interactable.DismissInteraction();
+                    }
+                    return;
+                }
+            }
+            else if (gameObject.name == "dobj")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && Nemuri.Scenes.NocturneIntroController.Instance.HasCrescentTearPart3Ended)
+                {
+                    if (_crystalPickup != null) _crystalPickup.Collect();
+                    if (_interactable != null) _interactable.DismissInteraction();
+                    return;
+                }
+            }
+            else if (gameObject.name == "dobj.002")
+            {
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null && Nemuri.Scenes.NocturneIntroController.Instance.HasPuzzle3BridgeCreated)
+                {
+                    if (_crystalPickup != null) _crystalPickup.Collect();
+                    if (_interactable != null) _interactable.DismissInteraction();
+                    return;
+                }
+            }
             if (_isPlaying) return;
 
             _isPlaying = true;
@@ -72,6 +117,13 @@ namespace Nemuri.Interactions
             _widthModifier = 0f;
             _widthModifierTarget = 0f;
             _progress = 0f;
+            _sourceT = Random.Range(0f, 1f);
+            _destinationT = Random.Range(0f, 1f);
+            _isWaiting = false;
+            _waitTime = 0f;
+            _movementTimer = 0f;
+            _moveProgress = 0f;
+            _moveSpeed = Random.Range(1.5f, 2.5f);
 
             if (PlayerMovement.Instance != null)
             {
@@ -121,18 +173,43 @@ namespace Nemuri.Interactions
             _widthModifier = Mathf.MoveTowards(_widthModifier, _widthModifierTarget, Time.deltaTime * 0.8f);
             float activeWidth = _targetWidth * (1f + _widthModifier);
 
-            // pseudo-random smooth movement using layered perlin noise
+            // discrete smooth movement with 0.3-0.8 seconds pause at destination
             _lastTargetPos = _targetPos;
             float maxTargetPos = 1f - activeWidth;
-            float n1 = Mathf.PerlinNoise(Time.time * _targetSpeed, 0f);
-            float n2 = Mathf.PerlinNoise(Time.time * (_targetSpeed * 2.2f), 100f);
-            float combinedNoise = (n1 * 0.7f) + (n2 * 0.3f);
-            
-            // stretch the noise away from the center (0.5) to hit the edges more
-            float targetT = Mathf.Clamp01((combinedNoise - 0.2f) / 0.6f);
-            targetT = (targetT - 0.5f) * 1.5f + 0.5f;
-            targetT = Mathf.Clamp01(targetT);
-            _targetPos = targetT * maxTargetPos;
+
+            if (_isWaiting)
+            {
+                _movementTimer += Time.deltaTime;
+                if (_movementTimer >= _waitTime)
+                {
+                    _isWaiting = false;
+                    _sourceT = _targetPos / maxTargetPos;
+                    
+                    float newDest = Random.Range(0f, 1f);
+                    while (Mathf.Abs(newDest - _sourceT) < 0.25f)
+                    {
+                        newDest = Random.Range(0f, 1f);
+                    }
+                    _destinationT = newDest;
+                    _moveProgress = 0f;
+                    _moveSpeed = Random.Range(1.5f, 2.5f);
+                }
+            }
+            else
+            {
+                _moveProgress += Time.deltaTime * _moveSpeed;
+                if (_moveProgress >= 1f)
+                {
+                    _moveProgress = 1f;
+                    _isWaiting = true;
+                    _movementTimer = 0f;
+                    _waitTime = Random.Range(0.3f, 0.8f); // Wait 0.3 to 0.8 seconds at destination
+                }
+
+                float smoothT = Mathf.SmoothStep(0f, 1f, _moveProgress);
+                float currentT = Mathf.Lerp(_sourceT, _destinationT, smoothT);
+                _targetPos = currentT * maxTargetPos;
+            }
 
             bool isInZone = _playerPos >= _targetPos && _playerPos <= _targetPos + activeWidth;
             if (isInZone)
@@ -192,7 +269,14 @@ namespace Nemuri.Interactions
 
             if (completed)
             {
-                if (_crystalPickup != null)
+                if (gameObject.name == "dobj.001")
+                {
+                    if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                    {
+                        Nemuri.Scenes.NocturneIntroController.Instance.OnSomniaSeedPuzzleSuccess();
+                    }
+                }
+                else if (_crystalPickup != null)
                 {
                     _crystalPickup.Collect();
                 }
@@ -246,7 +330,7 @@ namespace Nemuri.Interactions
             GameObject titleGo = new GameObject("Title Text");
             titleGo.transform.SetParent(panel.transform, false);
             Text titleText = titleGo.AddComponent<Text>();
-            titleText.text = "STABILIZING CRYSTAL";
+            titleText.text = gameObject.name == "dobj.001" ? "SHATTERING ROCK" : "STABILIZING CRYSTAL";
             titleText.fontSize = 24;
             titleText.fontStyle = FontStyle.Bold;
             titleText.color = new Color(0.92f, 0.84f, 0.38f, 1f);
