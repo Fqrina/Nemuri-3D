@@ -37,6 +37,8 @@ namespace Nemuri.Scenes
             BridgeSuccessDialogue,
             Puzzle3IntroDialogue,
             Puzzle3SuccessDialogue,
+            Puzzle3Part2IntroDialogue,
+            Puzzle3Part2SuccessDialogue,
             Puzzle3CollectedDialogue,
             WaitingForBridge1Dialogue,
             WaitingForBunnyDialoguePostDreampearl,
@@ -302,6 +304,9 @@ namespace Nemuri.Scenes
         public bool HasPuzzle3IntroStarted { get; private set; } = false;
         public bool HasPuzzle3IntroEnded { get; private set; } = false;
         public bool HasPuzzle3BridgeCreated { get; private set; } = false;
+        public bool HasPuzzle3Part2IntroStarted { get; private set; } = false;
+        public bool HasPuzzle3Part2IntroEnded { get; private set; } = false;
+        public bool HasPuzzle3Part2BridgeCreated { get; private set; } = false;
         public bool HasPuzzle3Collected { get; private set; } = false;
 
         private bool _startCrescentWalk = false;
@@ -595,6 +600,21 @@ namespace Nemuri.Scenes
                 interactable.enabled = false; // Initially inactive until Crescent Tear is collected
             }
 
+            // Dynamically configure Puzzle3Part2InteractionPoint
+            GameObject p3p2Ip = GameObject.Find("Puzzle3Part2InteractionPoint");
+            if (p3p2Ip != null)
+            {
+                var interactable = p3p2Ip.GetComponent<Interactable>();
+                if (interactable == null) interactable = p3p2Ip.AddComponent<Interactable>();
+                interactable.PromptText = "Investigate Structure (E)";
+                interactable.InteractionRange = 4.0f;
+                interactable.HoldSeconds = 0f;
+                if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
+                interactable.OnInteract.RemoveAllListeners();
+                interactable.OnInteract.AddListener(OnPuzzle3Part2Interacted);
+                interactable.enabled = false; // Activated after Puzzle 3 Part 1 bridge success
+            }
+
             if (CharacterSwapManager.Instance != null)
             {
                 CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);  // Kiel (Unlocked)
@@ -657,6 +677,13 @@ namespace Nemuri.Scenes
                         mat.color = c;
                     }
                 }
+            }
+
+            // Ensure PuzzleBridge2 starts inactive
+            GameObject startP3Bridge2 = FindPuzzleBridge2();
+            if (startP3Bridge2 != null)
+            {
+                startP3Bridge2.SetActive(false);
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -2136,6 +2163,51 @@ namespace Nemuri.Scenes
                         if (inter != null) inter.enabled = false;
                     }
 
+                    // Activate PuzzleBridge2 in scene and enable its interaction point
+                    GameObject pb2ToActivate = FindPuzzleBridge2();
+                    if (pb2ToActivate != null) pb2ToActivate.SetActive(true);
+
+                    GameObject p3p2IpObj = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpObj != null)
+                    {
+                        var inter = p3p2IpObj.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Investigate Structure (E)";
+                            inter.HoldSeconds = 0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 1 success dialogue ended. Activated Part 2 bridge interaction.");
+                    break;
+
+                case IntroState.Puzzle3Part2IntroDialogue:
+                    HasPuzzle3Part2IntroEnded = true;
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3p2IpAfterIntro = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpAfterIntro != null)
+                    {
+                        var inter = p3p2IpAfterIntro.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Press E to raise bridge";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 intro dialogue ended. Prompt changed to raise bridge.");
+                    break;
+
+                case IntroState.Puzzle3Part2SuccessDialogue:
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3p2IpDisable = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpDisable != null)
+                    {
+                        var inter = p3p2IpDisable.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    // Dreampearl is now reachable
                     GameObject dobj002 = FindCrystalByName("dobj.002");
                     if (dobj002 != null)
                     {
@@ -2144,7 +2216,7 @@ namespace Nemuri.Scenes
                         var inter = dobj002.GetComponent<Interactable>();
                         if (inter != null) inter.enabled = true;
                     }
-                    Debug.Log("[NocturneIntroController] Puzzle 3 success dialogue ended. Dreampearl is now collectable.");
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 success dialogue ended. Dreampearl is now collectable.");
                     break;
 
                 case IntroState.Puzzle3CollectedDialogue:
@@ -2945,6 +3017,189 @@ namespace Nemuri.Scenes
             }
         }
 
+        private void OnPuzzle3Part2Interacted()
+        {
+            GameObject p3p2Ip = GameObject.Find("Puzzle3Part2InteractionPoint");
+            Interactable inter = null;
+            if (p3p2Ip != null) inter = p3p2Ip.GetComponent<Interactable>();
+
+            if (!HasPuzzle3Part2IntroStarted)
+            {
+                HasPuzzle3Part2IntroStarted = true;
+
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Kael", text = "There is something else here... It looks like it can be raised.", portraitName = "Kael", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona", text = "Leave it to me.", portraitName = "Rona", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.Puzzle3Part2IntroDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
+
+                if (inter != null) inter.DismissInteraction();
+            }
+            else if (HasPuzzle3Part2IntroEnded && !HasPuzzle3Part2BridgeCreated)
+            {
+                bool isRona = CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 1;
+
+                if (isRona)
+                {
+                    HasPuzzle3Part2BridgeCreated = true;
+
+                    if (inter != null) inter.enabled = false;
+
+                    TriggerPuzzle3Bridge2Success();
+                    if (inter != null) inter.DismissInteraction();
+                }
+                else
+                {
+                    if (inter != null)
+                    {
+                        inter.SetOverridePromptText("You must use Rona as player to interact", 3f);
+                    }
+                    Debug.Log("[NocturneIntroController] Only Rona can raise the second bridge!");
+                }
+            }
+        }
+
+        private void TriggerPuzzle3Bridge2Success()
+        {
+            SetPlayerMovementEnabled(false);
+
+            GameObject p3Bridge2 = FindPuzzleBridge2();
+            if (p3Bridge2 != null) p3Bridge2.SetActive(true);
+            StartCoroutine(SmoothMovePuzzleBridge2Routine(p3Bridge2));
+        }
+
+        private IEnumerator SmoothMovePuzzleBridge2Routine(GameObject p3Bridge2)
+        {
+            float duration = 3.0f;
+            float elapsed = 0f;
+
+            if (p3Bridge2 != null)
+            {
+                Rigidbody[] rbs = p3Bridge2.GetComponentsInChildren<Rigidbody>(true);
+                foreach (var rb in rbs)
+                {
+                    if (rb != null)
+                    {
+                        rb.isKinematic = true;
+                        rb.useGravity = false;
+                    }
+                }
+            }
+
+            float startY = p3Bridge2 != null ? p3Bridge2.transform.position.y : 0.92f;
+            float endY = 2.985f;
+
+            Renderer[] renderers = p3Bridge2 != null ? p3Bridge2.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
+
+            List<RendererMatInfo> matInfos = new List<RendererMatInfo>();
+            foreach (var r in renderers)
+            {
+                if (r != null && r.material != null)
+                {
+                    Material mat = r.material;
+                    mat.SetFloat("_Surface", 1f);
+                    mat.SetFloat("_Blend", 0f);
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHATEST_ON");
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                    Color c = mat.color;
+                    c.a = 0f;
+                    mat.color = c;
+
+                    matInfos.Add(new RendererMatInfo { r = r, m = mat, origColor = mat.color });
+                }
+            }
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float tSmooth = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+                if (p3Bridge2 != null)
+                {
+                    Vector3 pos = p3Bridge2.transform.position;
+                    pos.y = Mathf.Lerp(startY, endY, tSmooth);
+                    p3Bridge2.transform.position = pos;
+                }
+
+                foreach (var info in matInfos)
+                {
+                    if (info.m != null)
+                    {
+                        Color c = info.origColor;
+                        c.a = Mathf.Lerp(0f, 1f, tSmooth);
+                        info.m.color = c;
+                    }
+                }
+
+                yield return null;
+            }
+
+            if (p3Bridge2 != null)
+            {
+                Vector3 finalPos = p3Bridge2.transform.position;
+                finalPos.y = endY;
+                p3Bridge2.transform.position = finalPos;
+            }
+
+            foreach (var info in matInfos)
+            {
+                if (info.m != null)
+                {
+                    Color c = info.origColor;
+                    c.a = 1f;
+                    info.m.color = c;
+
+                    info.m.SetFloat("_Surface", 0f);
+                    info.m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    info.m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    info.m.SetInt("_ZWrite", 1);
+                    info.m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    info.m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
+                }
+            }
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Rona", text = "The path is open.", portraitName = "Rona", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko", text = "The pearl is within reach now. Let's go!", portraitName = "Keiko", typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.Puzzle3Part2SuccessDialogue;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        private GameObject FindPuzzleBridge2()
+        {
+            GameObject pg = GameObject.Find("PINEALGRAND");
+            if (pg != null)
+            {
+                GameObject found = FindChildRecursive(pg.transform, "PuzzleBridge2");
+                if (found != null) return found;
+                found = FindChildRecursive(pg.transform, "puzzle bridge 2");
+                if (found != null) return found;
+                found = FindChildRecursive(pg.transform, "PuzzleBridge 2");
+                if (found != null) return found;
+            }
+            GameObject global = GameObject.Find("PuzzleBridge2");
+            if (global == null) global = GameObject.Find("puzzle bridge 2");
+            return global;
+        }
+
         private GameObject FindPuzzle3Bridge()
         {
             GameObject bridge = GameObject.Find("PuzzleBridge");
@@ -3265,8 +3520,8 @@ namespace Nemuri.Scenes
 
         public static float GetGroundHeight(Vector3 position)
         {
-            Ray ray = new Ray(new Vector3(position.x, position.y + 50.0f, position.z), Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 100f, ~0);
+            Ray ray = new Ray(new Vector3(position.x, 300.0f, position.z), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 600f, ~0);
             
             float bestY = position.y;
             float highestGroundY = -999f;
