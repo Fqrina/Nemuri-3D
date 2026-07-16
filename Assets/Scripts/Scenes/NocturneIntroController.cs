@@ -2234,48 +2234,66 @@ namespace Nemuri.Scenes
             }
         }
 
+        private IEnumerator TeleportWithFadeRoutine(System.Action teleportAction)
+        {
+            if (Nemuri.UI.ScreenFader.Instance != null)
+            {
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToBlack(0.25f);
+            }
+
+            teleportAction?.Invoke();
+
+            if (Nemuri.UI.ScreenFader.Instance != null)
+            {
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToClear(0.25f);
+            }
+        }
+
         public void TriggerSomniaSeedWalkSequence()
         {
             if (HasSomniaSeedPart1Started) return;
             HasSomniaSeedPart1Started = true;
             SetPlayerMovementEnabled(false);
             
-            // Perform local swap to Kael so Kael appears at the activation spot
-            if (CharacterSwapManager.Instance != null)
+            StartCoroutine(TeleportWithFadeRoutine(() =>
             {
-                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
-            }
+                // Perform local swap to Kael so Kael appears at the activation spot
+                if (CharacterSwapManager.Instance != null)
+                {
+                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                }
 
-            // Immediately teleport Kael and companion NPCs to Gems 1 dialogue positions
-            Vector3 ronaPos = new Vector3(-15.011f, 0f, 111.458f); ronaPos.y = GetGroundHeight(ronaPos);
-            Vector3 murialPos = new Vector3(-16.14f, 0f, 112.703f); murialPos.y = GetGroundHeight(murialPos);
-            Vector3 keikoPos = new Vector3(-13.787f, 0f, 113.613f); keikoPos.y = GetGroundHeight(keikoPos);
-            Vector3 feanorPos = new Vector3(-14.361f, 0f, 112.13f); feanorPos.y = GetGroundHeight(feanorPos);
-            Vector3 kaelPos = new Vector3(-13.5f, 0f, 110f); kaelPos.y = GetGroundHeight(kaelPos);
+                // Immediately teleport Kael and companion NPCs to Gems 1 dialogue positions
+                Vector3 ronaPos = new Vector3(-15.011f, 0f, 111.458f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-16.14f, 0f, 112.703f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-13.787f, 0f, 113.613f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-14.361f, 0f, 112.13f); feanorPos.y = GetGroundHeight(feanorPos);
+                Vector3 kaelPos = new Vector3(-13.5f, 0f, 110f); kaelPos.y = GetGroundHeight(kaelPos);
 
-            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
-            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
-            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
-            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
 
-            Transform activePlayer = FindActivePlayerTransform();
-            if (activePlayer != null)
-            {
-                var cc = activePlayer.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-                activePlayer.position = kaelPos;
-                if (cc != null) cc.enabled = true;
-            }
+                Transform activePlayer = FindActivePlayerTransform();
+                if (activePlayer != null)
+                {
+                    var cc = activePlayer.GetComponent<CharacterController>();
+                    if (cc != null) cc.enabled = false;
+                    activePlayer.position = kaelPos;
+                    if (cc != null) cc.enabled = true;
+                }
 
-            _ronaPathIndex = _ronaPathToGem.Count;
-            _murialPathIndex = _murialPathToGem.Count;
-            _keikoPathIndex = _keikoPathToGem.Count;
-            _feanorPathIndex = _feanorPathToGem.Count;
+                _ronaPathIndex = _ronaPathToGem.Count;
+                _murialPathIndex = _murialPathToGem.Count;
+                _keikoPathIndex = _keikoPathToGem.Count;
+                _feanorPathIndex = _feanorPathToGem.Count;
 
-            _startGemPuzzleWalk = true;
-            _dialogueSomniaStarted = true;
+                _startGemPuzzleWalk = true;
+                _dialogueSomniaStarted = true;
 
-            TriggerSomniaSeedPart1Dialogue();
+                TriggerSomniaSeedPart1Dialogue();
+            }));
         }
 
         private void TriggerSomniaSeedPart1Dialogue()
@@ -2486,49 +2504,71 @@ namespace Nemuri.Scenes
 
             SetPlayerMovementEnabled(false);
 
-            // Swap player to Kael (index 0) in-place during sequence
-            if (CharacterSwapManager.Instance != null)
+            StartCoroutine(TeleportWithFadeRoutine(() =>
             {
-                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                // Swap player to Kael (index 0) in-place during sequence
+                if (CharacterSwapManager.Instance != null)
+                {
+                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                }
+
+                // Immediately teleport Kael and companion NPCs to Crescent dialogue positions
+                Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
+                Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
+
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+                Transform activePlayer = FindActivePlayerTransform();
+                if (activePlayer != null)
+                {
+                    var cc = activePlayer.GetComponent<CharacterController>();
+                    if (cc != null) cc.enabled = false;
+                    activePlayer.position = kaelPos;
+                    if (cc != null) cc.enabled = true;
+                }
+
+                _ronaPathIndex = _ronaPathToCrescent.Count;
+                _murialPathIndex = _murialPathToCrescent.Count;
+                _keikoPathIndex = _keikoPathToCrescent.Count;
+                _feanorPathIndex = _feanorPathToCrescent.Count;
+
+                _state = IntroState.WaitingForCrescentDialogue;
+                _crescentDialogueStarted = true;
+
+                GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+                if (p2Ip != null)
+                {
+                    var inter = p2Ip.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+
+                TriggerCrescentTearPart1Dialogue();
+            }));
+        }
+
+        private IEnumerator TeleportWithFadeRoutine(System.Action teleportAction)
+        {
+            if (Nemuri.UI.ScreenFader.Instance != null)
+            {
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToBlack(0.25f);
+            }
+            else
+            {
+                yield return new WaitForSeconds(0.25f);
             }
 
-            // Immediately teleport Kael and companion NPCs to Crescent dialogue positions
-            Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
-            Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
-            Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
-            Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
-            Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
+            teleportAction?.Invoke();
 
-            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
-            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
-            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
-            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
-
-            Transform activePlayer = FindActivePlayerTransform();
-            if (activePlayer != null)
+            if (Nemuri.UI.ScreenFader.Instance != null)
             {
-                var cc = activePlayer.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-                activePlayer.position = kaelPos;
-                if (cc != null) cc.enabled = true;
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToClear(0.25f);
             }
-
-            _ronaPathIndex = _ronaPathToCrescent.Count;
-            _murialPathIndex = _murialPathToCrescent.Count;
-            _keikoPathIndex = _keikoPathToCrescent.Count;
-            _feanorPathIndex = _feanorPathToCrescent.Count;
-
-            _state = IntroState.WaitingForCrescentDialogue;
-            _crescentDialogueStarted = true;
-
-            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-            if (p2Ip != null)
-            {
-                var inter = p2Ip.GetComponent<Interactable>();
-                if (inter != null) inter.DismissInteraction();
-            }
-
-            TriggerCrescentTearPart1Dialogue();
         }
 
         private void AlignCharactersAtCrescentTearDialoguePositions()
