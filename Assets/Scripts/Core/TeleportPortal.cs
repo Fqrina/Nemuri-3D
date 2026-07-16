@@ -1,6 +1,9 @@
+using System.Collections;
 using UnityEngine;
 using Nemuri.Dialogue;
 using Nemuri.Interactions;
+using Nemuri.Player;
+using Nemuri.UI;
 
 namespace Nemuri.Core
 {
@@ -17,7 +20,9 @@ namespace Nemuri.Core
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.CompareTag(PlayerTag) && !other.TryGetComponent(out Nemuri.Player.PlayerMovement _))
+            if (!other.CompareTag(PlayerTag) && 
+                !other.TryGetComponent(out PlayerMovement _) && 
+                !other.TryGetComponent(out PlayerMovementChapt1 _))
                 return;
 
             if (PuzzleManager.Instance == null || !PuzzleManager.Instance.AreAllCrystalsCollected())
@@ -37,8 +42,7 @@ namespace Nemuri.Core
         {
             if (_teleportMode == TeleportMode.DifferentScene)
             {
-                // todo: uncomment this when the target scene is ready
-                // UnityEngine.SceneManagement.SceneManager.LoadScene(_targetSceneName);
+                StartCoroutine(TransitionSceneRoutine());
                 return;
             }
 
@@ -49,6 +53,28 @@ namespace Nemuri.Core
                 rb.position = _targetPosition;
                 rb.linearVelocity = Vector3.zero;
             }
+        }
+
+        private IEnumerator TransitionSceneRoutine()
+        {
+            if (PlayerMovement.Instance != null) PlayerMovement.Instance.SetCanMove(false);
+            if (PlayerMovementChapt1.Instance != null) PlayerMovementChapt1.Instance.SetCanMove(false);
+
+            SceneTransitionState.FadeInOnLoad = true;
+            SceneTransitionState.FadeInDuration = 2f;
+
+            if (ScreenFader.Instance != null)
+            {
+                yield return ScreenFader.Instance.FadeToBlack(2f);
+            }
+
+            if (string.IsNullOrWhiteSpace(_targetSceneName))
+            {
+                Debug.LogError("[TeleportPortal] Target scene name is not assigned.", this);
+                yield break;
+            }
+
+            UnityEngine.SceneManagement.SceneManager.LoadScene(_targetSceneName);
         }
 
         private void EnsureDialogueManager()
