@@ -2367,7 +2367,7 @@ namespace Nemuri.Scenes
                         if (inter != null)
                         {
                             inter.PromptText = "Untangle Vines (E)";
-                            inter.HoldSeconds = 3.0f;
+                            inter.HoldSeconds = 0.0f;
                             inter.enabled = true;
                         }
                     }
@@ -2757,8 +2757,6 @@ namespace Nemuri.Scenes
                 // Must be Feanor to untangle the vines
                 if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
                 {
-                    HasFeanorInteracted = true;
-
                     // Disable interactable temporarily
                     if (inter != null)
                     {
@@ -2766,7 +2764,13 @@ namespace Nemuri.Scenes
                         inter.DismissInteraction();
                     }
 
-                    TriggerFeanorPuzzle2Interaction();
+                    // Start the Vines rhythm minigame
+                    var minigame = p2Ip.GetComponent<Nemuri.Interactions.VinesMinigame>();
+                    if (minigame == null)
+                    {
+                        minigame = p2Ip.AddComponent<Nemuri.Interactions.VinesMinigame>();
+                    }
+                    minigame.StartMinigame();
                 }
                 else
                 {
@@ -2881,6 +2885,14 @@ namespace Nemuri.Scenes
             {
                 DialogueManager.Instance.StartConversation(part1Nodes);
             }
+        }
+
+        public void OnPuzzle2VinesSuccess()
+        {
+            if (HasFeanorInteracted) return;
+            HasFeanorInteracted = true;
+
+            TriggerFeanorPuzzle2Interaction();
         }
 
         public void TriggerFeanorPuzzle2Interaction()
