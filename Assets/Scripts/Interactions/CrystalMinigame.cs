@@ -135,6 +135,7 @@ namespace Nemuri.Interactions
                 _interactable.DismissInteraction();
                 _interactable.enabled = false;
             }
+            Interactable.ForceHidePrompt();
 
             CreateUI();
         }

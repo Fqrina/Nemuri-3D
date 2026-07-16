@@ -128,10 +128,7 @@ namespace Nemuri.Core
                 {
                     if (_characters[i].npcObject == null)
                     {
-                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                        GameObject found = GameObject.Find(searchName);
-                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                        if (found != null) _characters[i].npcObject = found;
+                        _characters[i].npcObject = GetNpcObject(i);
                     }
 
                     if (_characters[i].npcObject != null && _characters[i].npcObject.activeSelf)
@@ -149,10 +146,7 @@ namespace Nemuri.Core
                 {
                     if (_characters[i].npcObject == null)
                     {
-                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                        GameObject found = GameObject.Find(searchName);
-                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                        if (found != null) _characters[i].npcObject = found;
+                        _characters[i].npcObject = GetNpcObject(i);
                     }
 
                     if (_characters[i].npcObject != null)
@@ -172,6 +166,21 @@ namespace Nemuri.Core
             }
         }
 
+        private GameObject GetNpcObject(int i)
+        {
+            if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+            {
+                if (i == 1) return Nemuri.Scenes.NocturneIntroController.Instance.RonaNpc;
+                if (i == 2) return Nemuri.Scenes.NocturneIntroController.Instance.MurialNpc;
+                if (i == 3) return Nemuri.Scenes.NocturneIntroController.Instance.KeikoNpc;
+                if (i == 4) return Nemuri.Scenes.NocturneIntroController.Instance.FeanorNpc;
+            }
+            string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
+            GameObject found = GameObject.Find(searchName);
+            if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
+            return found;
+        }
+
         private void InitializeCharacters()
         {
             if (_characters == null || _characters.Count == 0)
@@ -186,10 +195,7 @@ namespace Nemuri.Core
                 // Automatically find npcObject if null in Inspector
                 if (_characters[i].npcObject == null)
                 {
-                    string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                    GameObject found = GameObject.Find(searchName);
-                    if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                    if (found != null) _characters[i].npcObject = found;
+                    _characters[i].npcObject = GetNpcObject(i);
                 }
 
                 if (_characters[i].playerObject != null)

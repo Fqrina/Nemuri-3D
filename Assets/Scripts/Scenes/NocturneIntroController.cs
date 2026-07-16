@@ -89,6 +89,12 @@ namespace Nemuri.Scenes
         [SerializeField] private GameObject _feanorNpc;
         [SerializeField] private GameObject _ferryNpc;
 
+        public GameObject RonaNpc => _ronaNpc;
+        public GameObject MurialNpc => _murialNpc;
+        public GameObject KeikoNpc => _keikoNpc;
+        public GameObject FeanorNpc => _feanorNpc;
+        public GameObject FerryNpc => _ferryNpc;
+
         [Header("Murial Fall Coordinates")]
         [SerializeField] private Transform _murialSpawnPoint;
         [SerializeField] private Transform _murialLandingPoint;
@@ -3259,8 +3265,8 @@ namespace Nemuri.Scenes
 
         public static float GetGroundHeight(Vector3 position)
         {
-            Ray ray = new Ray(new Vector3(position.x, position.y + 2.0f, position.z), Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 10f, 1 << 0);
+            Ray ray = new Ray(new Vector3(position.x, position.y + 50.0f, position.z), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 100f, ~0);
             
             float bestY = position.y;
             float highestGroundY = -999f;

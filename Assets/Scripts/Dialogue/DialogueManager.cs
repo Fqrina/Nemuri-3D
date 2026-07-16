@@ -222,6 +222,7 @@ namespace Nemuri.Dialogue
 
         public void StartConversation(List<DialogueNode> sequence)
         {
+            Interactable.ForceHidePrompt();
             EnsureDialogueUi();
 
             if (_playerInput == null)
