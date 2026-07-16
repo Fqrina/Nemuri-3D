@@ -589,7 +589,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void ProceedToNextNode()
+        protected virtual void ProceedToNextNode()
         {
             if (!canProceed)
             {
@@ -688,7 +688,7 @@ namespace Nemuri.Dialogue
             OnConversationEnd?.Invoke();
         }
 
-        private void SetPlayerMovementEnabled(bool enabled)
+        protected virtual void SetPlayerMovementEnabled(bool enabled)
         {
             var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
             foreach (var m in move1)
