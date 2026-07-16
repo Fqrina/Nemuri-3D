@@ -2552,25 +2552,6 @@ namespace Nemuri.Scenes
             }));
         }
 
-        private IEnumerator TeleportWithFadeRoutine(System.Action teleportAction)
-        {
-            if (Nemuri.UI.ScreenFader.Instance != null)
-            {
-                yield return Nemuri.UI.ScreenFader.Instance.FadeToBlack(0.25f);
-            }
-            else
-            {
-                yield return new WaitForSeconds(0.25f);
-            }
-
-            teleportAction?.Invoke();
-
-            if (Nemuri.UI.ScreenFader.Instance != null)
-            {
-                yield return Nemuri.UI.ScreenFader.Instance.FadeToClear(0.25f);
-            }
-        }
-
         private void AlignCharactersAtCrescentTearDialoguePositions()
         {
             if (CharacterSwapManager.Instance != null)
