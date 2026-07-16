@@ -125,10 +125,10 @@ namespace Nemuri.Dialogue
         private InputAction _interactAction;
         private readonly Queue<DialogueNode> _nodes = new Queue<DialogueNode>();
         private bool _isTyping;
-        private bool _waitingForInput;
-        private DialogueNode _currentNode;
+        protected bool _waitingForInput;
+        protected DialogueNode _currentNode;
         private Coroutine _typingCoroutine;
-        private Coroutine _autoCloseCoroutine;
+        protected Coroutine _autoCloseCoroutine;
         private AudioSource _audioSource;
         [Header("Font Setting")]
         [SerializeField] protected Font _customFont;
@@ -505,7 +505,7 @@ namespace Nemuri.Dialogue
             _audioSource.Play();
         }
 
-        private void StopDialogueAudio()
+        protected void StopDialogueAudio()
         {
             if (_audioSource == null)
             {
@@ -519,7 +519,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void SetSkipPromptVisible(bool visible)
+        protected void SetSkipPromptVisible(bool visible)
         {
             if (_skipPromptText != null)
             {
@@ -580,7 +580,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private IEnumerator AutoCloseRoutine(float delay)
+        protected IEnumerator AutoCloseRoutine(float delay)
         {
             yield return new WaitForSeconds(delay);
             if (_waitingForInput)
@@ -589,7 +589,7 @@ namespace Nemuri.Dialogue
             }
         }
 
-        private void ProceedToNextNode()
+        protected virtual void ProceedToNextNode()
         {
             if (!canProceed)
             {
@@ -667,6 +667,11 @@ namespace Nemuri.Dialogue
             DisplayNextNode();
         }
 
+        public void ForceEndConversation()
+        {
+            EndConversation();
+        }
+
         private void EndConversation()
         {
             SetDialoguePanelActive(false);
@@ -688,7 +693,7 @@ namespace Nemuri.Dialogue
             OnConversationEnd?.Invoke();
         }
 
-        private void SetPlayerMovementEnabled(bool enabled)
+        protected virtual void SetPlayerMovementEnabled(bool enabled)
         {
             var move1 = FindObjectsByType<PlayerMovement>(FindObjectsInactive.Include);
             foreach (var m in move1)
@@ -733,7 +738,7 @@ namespace Nemuri.Dialogue
                 && _skipPromptText != null;
         }
 
-        private void SetDialoguePanelActive(bool active)
+        protected void SetDialoguePanelActive(bool active)
         {
             if (_dialoguePanel != null)
             {
