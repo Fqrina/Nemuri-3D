@@ -43,3 +43,21 @@ Masalah ini dipecahkan dengan memaksa penutupan (*force hide*) prompt interaksi 
 2. **Sentralisasi pada Minigame**:
    * Menambahkan **`Interactable.ForceHidePrompt()`** di awal fungsi `StartMinigame()` pada berkas minigame **[CrystalMinigame.cs](file:///c:/Users/2020d/UnityProject/Nemuri%203D/Assets/Scripts/Interactions/CrystalMinigame.cs)** dan **[VinesMinigame.cs](file:///c:/Users/2020d/UnityProject/Nemuri%203D/Assets/Scripts/Interactions/VinesMinigame.cs)**.
    * Ini memastikan semua prompt dibersihkan saat minigame sedang berjalan di layar.
+
+---
+
+## 3. Bug: NPC & Player Berteleportasi ke Y = 0 dan Jatuh / Melayang Saat Berpindah Mode
+
+### Masalah:
+Saat melakukan *switch* dari *playmode* ke *dialogue mode* (atau saat NPC berteleportasi ke lokasi puzzle), NPC lain seolah tidak muncul (atau melayang di Y = 0) dan player mengalami animasi jatuh terlebih dahulu sebelum mendarat di map. Ini terjadi karena posisi Y mereka secara instan tersetting ke `0`, sementara ketinggian permukaan tanah (*ground height*) sebenarnya di map berada di sekitar `-106 Y`.
+
+### Solusi:
+Analisis menunjukkan bug terjadi pada fungsi penentuan tinggi tanah **`GetGroundHeight(Vector3 position)`** di **[NocturneIntroController.cs](file:///c:/Users/2020d/UnityProject/Nemuri%203D/Assets/Scripts/Scenes/NocturneIntroController.cs)**:
+* Sebelumnya, raycast didesain menembak dari `position.y + 50.0f` ke arah bawah dengan jarak jangkauan hanya `100f` unit (menjangkau rentang `[50, -50]` Y).
+* Apabila input posisi awal memiliki nilai Y `0` (sebagai default teleportasi inisial sebelum *snap*), raycast ini hanya akan mencari ground hingga batas Y `-50`. Karena tanah aslinya berada di sekitar `-106 Y`, raycast gagal mengenai apa pun dan mengembalikan nilai default input (`0`).
+* **Perbaikan**: Kami memodifikasi Raycast agar menembak secara absolut dari langit map (`Y = 300f`) ke bawah dengan jarak jangkauan `600f` unit (mencakup rentang `[300, -300]` Y):
+  ```csharp
+  Ray ray = new Ray(new Vector3(position.x, 300.0f, position.z), Vector3.down);
+  RaycastHit[] hits = Physics.RaycastAll(ray, 600f, ~0);
+  ```
+* Melalui perbaikan ini, `GetGroundHeight` sekarang sepenuhnya responsif terhadap ketinggian tanah sejati map yang berada di kedalaman `-100 Y` ke bawah. Baik player maupun NPC akan langsung berpindah tempat tepat di atas permukaan tanah tanpa melayang atau jatuh dari atas udara.
