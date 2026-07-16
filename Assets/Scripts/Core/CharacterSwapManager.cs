@@ -257,6 +257,21 @@ namespace Nemuri.Core
             currentCharacterObj.SetActive(false);
             targetCharacterObj.SetActive(true);
 
+            // Toggle companion NPC active states
+            if (_characters[_activeCharacterIndex].npcObject != null)
+            {
+                _characters[_activeCharacterIndex].npcObject.SetActive(true);
+                if (!isDialogueSwap)
+                {
+                    _characters[_activeCharacterIndex].npcObject.transform.position = currentCharacterObj.transform.position;
+                    SnapToGround(_characters[_activeCharacterIndex].npcObject);
+                }
+            }
+            if (_characters[index].npcObject != null)
+            {
+                _characters[index].npcObject.SetActive(false);
+            }
+
             UpdateCameraTargets(targetCharacterObj.transform);
 
             _activeCharacterIndex = index;

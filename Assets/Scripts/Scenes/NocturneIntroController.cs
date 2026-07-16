@@ -2810,10 +2810,50 @@ namespace Nemuri.Scenes
             Debug.Log("[NocturneIntroController] Player interacted with Puzzle2InteractionPoint! Commencing NPC crescent walk sequence.");
         }
 
+        private void AlignCharactersAtCrescentTearDialoguePositions()
+        {
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.ResetSwapStateToKael();
+            }
+
+            Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
+            Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
+            Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
+            Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
+            Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
+
+            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer != null)
+            {
+                var cc = activePlayer.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                activePlayer.position = kaelPos;
+                if (cc != null) cc.enabled = true;
+            }
+
+            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+            if (p2Ip != null)
+            {
+                RotateNpcToFaceTarget(_ronaNpc, p2Ip);
+                RotateNpcToFaceTarget(_murialNpc, p2Ip);
+                RotateNpcToFaceTarget(_keikoNpc, p2Ip);
+                RotateNpcToFaceTarget(_feanorNpc, p2Ip);
+                RotatePlayerToFaceTarget(p2Ip);
+            }
+        }
+
         public void TriggerCrescentTearPart1Dialogue()
         {
             if (HasCrescentTearPart1Started) return;
             HasCrescentTearPart1Started = true;
+
+            AlignCharactersAtCrescentTearDialoguePositions();
 
             TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
             if (dialogueJson == null) return;
@@ -2865,6 +2905,8 @@ namespace Nemuri.Scenes
 
         private void TriggerCrescentTearPart2Dialogue()
         {
+            AlignCharactersAtCrescentTearDialoguePositions();
+
             TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
             if (dialogueJson == null) return;
 
@@ -2937,6 +2979,8 @@ namespace Nemuri.Scenes
 
         private void TriggerCrescentTearPart3Dialogue()
         {
+            AlignCharactersAtCrescentTearDialoguePositions();
+
             TextAsset dialogueJson = Resources.Load<TextAsset>("Dialogue/nocturne_crescent_tear");
             if (dialogueJson == null) return;
 
