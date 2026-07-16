@@ -321,7 +321,9 @@ namespace Nemuri.Core
                 return;
             }
 
-            // In-place mesh swap: no teleportation of player and no NPC positioning!
+            // In-place mesh swap: target character takes current character's position and rotation
+            targetCharacterObj.transform.position = currentCharacterObj.transform.position;
+            targetCharacterObj.transform.rotation = currentCharacterObj.transform.rotation;
             currentCharacterObj.SetActive(false);
             targetCharacterObj.SetActive(true);
 

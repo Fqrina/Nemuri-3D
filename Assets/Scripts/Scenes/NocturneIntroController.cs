@@ -47,6 +47,7 @@ namespace Nemuri.Scenes
             PortalDialoguePartA,
             PortalDialoguePartB,
             PortalDialoguePartC,
+            PortalSolveCrystalDialogue,
             VinesMinigameBriefing
         }
 
@@ -2295,11 +2296,28 @@ namespace Nemuri.Scenes
 
                 case IntroState.Puzzle3CollectedDialogue:
                     SetPlayerMovementEnabled(true);
+                    _state = IntroState.Completed;
                     Debug.Log("[NocturneIntroController] Puzzle 3 collected dialogue ended.");
                     break;
 
                 case IntroState.BunnyDialoguePostDreampearl:
                     OnBunnyDialoguePostDreampearlEnded();
+                    break;
+
+                case IntroState.PortalSolveCrystalDialogue:
+                    // Hide the metarig bunny NPC (Ferry disappears!)
+                    GameObject pgObj = GameObject.Find("PINEALGRAND");
+                    if (pgObj != null)
+                    {
+                        Transform go1 = pgObj.transform.Find("GameObject (1)");
+                        if (go1 != null)
+                        {
+                            Transform metarig = go1.Find("metarig");
+                            if (metarig != null) metarig.gameObject.SetActive(false);
+                        }
+                    }
+                    // Start portal walk sequence!
+                    TriggerPortalWalkSequence();
                     break;
 
                 case IntroState.PortalDialoguePartA:
@@ -2927,6 +2945,23 @@ namespace Nemuri.Scenes
             if (!_startBridge1Walk)
             {
                 _startBridge1Walk = true;
+
+                // Immediately teleport companion NPCs to Bridge 1 coordinates
+                Vector3 ronaPos = new Vector3(-16.73f, 0f, 102.8f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-16.77f, 0f, 101.65f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-16.88f, 0f, 100.33f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-17.0f, 0f, 98.61f); feanorPos.y = GetGroundHeight(feanorPos);
+
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+                _ronaPathIndex = _ronaPathToBridge1.Count;
+                _murialPathIndex = _murialPathToBridge1.Count;
+                _keikoPathIndex = _keikoPathToBridge1.Count;
+                _feanorPathIndex = _feanorPathToBridge1.Count;
+
                 TriggerBridge1Dialogue();
             }
         }
@@ -3784,20 +3819,34 @@ namespace Nemuri.Scenes
                     if (inter != null) inter.enabled = false;
                 }
 
-                // Hide the metarig bunny NPC (Ferry disappears!)
-                GameObject pg = GameObject.Find("PINEALGRAND");
-                if (pg != null)
+                // Teleport Kael (middle) in front of the portal
+                Transform activePlayer = FindActivePlayerTransform();
+                if (activePlayer != null)
                 {
-                    Transform go1 = pg.transform.Find("GameObject (1)");
-                    if (go1 != null)
-                    {
-                        Transform metarig = go1.Find("metarig");
-                        if (metarig != null) metarig.gameObject.SetActive(false);
-                    }
+                    Vector3 portalCenter = cube015 != null ? cube015.transform.position : Vector3.zero;
+                    Vector3 targetKaelPos = portalCenter + new Vector3(0f, 0f, -3f); // 3 units back in Z
+                    targetKaelPos.y = GetGroundHeight(targetKaelPos);
+                    
+                    var cc = activePlayer.GetComponent<CharacterController>();
+                    if (cc != null) cc.enabled = false;
+                    activePlayer.position = targetKaelPos;
+                    if (cc != null) cc.enabled = true;
+                    
+                    if (cube015 != null) RotatePlayerToFaceTarget(cube015);
                 }
 
-                // Start portal walk sequence!
-                TriggerPortalWalkSequence();
+                // Trigger: D Put the crystals into the shrine
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Kael", text = "Put the crystals into the shrine", portraitName = "Kael", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.PortalSolveCrystalDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
             }
             else
             {
