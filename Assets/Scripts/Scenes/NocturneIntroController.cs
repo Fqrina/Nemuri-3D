@@ -1170,181 +1170,7 @@ namespace Nemuri.Scenes
                         _crystalObject = FindCrystalObject();
                     }
 
-                    // Only move NPCs if the walking sequence has been started by the player's interaction
-                    if (_startGemPuzzleWalk)
-                    {
-                        // 1. Rona NPC path movement to Gem Puzzle
-                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count)
-                        {
-                            Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
-                            float currentY = _ronaNpc.transform.position.y;
-                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            ronaTarget.y = GetGroundHeight(ronaTarget);
 
-                            float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_ronaNpc, true);
-                            }
-                            else
-                            {
-                                _ronaPathIndex++;
-                                if (_ronaPathIndex >= _ronaPathToGem.Count)
-                                {
-                                    SetNpcMoving(_ronaNpc, false);
-                                }
-                            }
-                        }
-                        else if (_ronaNpc != null)
-                        {
-                            SetNpcMoving(_ronaNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_ronaNpc, _crystalObject);
-                            }
-                        }
-
-                        // 2. Murial NPC path movement to Gem Puzzle
-                        if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count)
-                        {
-                            Vector2 target2D = _murialPathToGem[_murialPathIndex];
-                            float currentY = _murialNpc.transform.position.y;
-                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            murialTarget.y = GetGroundHeight(murialTarget);
-
-                            float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_murialNpc, true);
-                            }
-                            else
-                            {
-                                _murialPathIndex++;
-                                if (_murialPathIndex >= _murialPathToGem.Count)
-                                {
-                                    SetNpcMoving(_murialNpc, false);
-                                }
-                            }
-                        }
-                        else if (_murialNpc != null)
-                        {
-                            SetNpcMoving(_murialNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_murialNpc, _crystalObject);
-                            }
-                        }
-
-                        // 3. Keiko NPC path movement to Gem Puzzle
-                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count)
-                        {
-                            Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
-                            float currentY = _keikoNpc.transform.position.y;
-                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            keikoTarget.y = GetGroundHeight(keikoTarget);
-
-                            float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_keikoNpc, true);
-                            }
-                            else
-                            {
-                                _keikoPathIndex++;
-                                if (_keikoPathIndex >= _keikoPathToGem.Count)
-                                {
-                                    SetNpcMoving(_keikoNpc, false);
-                                }
-                            }
-                        }
-                        else if (_keikoNpc != null)
-                        {
-                            SetNpcMoving(_keikoNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_keikoNpc, _crystalObject);
-                            }
-                        }
-
-                        // 4. Feanor NPC path movement to Gem Puzzle
-                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count)
-                        {
-                            Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
-                            float currentY = _feanorNpc.transform.position.y;
-                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            feanorTarget.y = GetGroundHeight(feanorTarget);
-
-                            float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_feanorNpc, true);
-                            }
-                            else
-                            {
-                                _feanorPathIndex++;
-                                if (_feanorPathIndex >= _feanorPathToGem.Count)
-                                {
-                                    SetNpcMoving(_feanorNpc, false);
-                                }
-                            }
-                        }
-                        else if (_feanorNpc != null)
-                        {
-                            SetNpcMoving(_feanorNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
-                            }
-                        }
-
-                        // Start dialogue only after all NPCs have reached their targets!
-                        if (!_dialogueSomniaStarted)
-                        {
-                            bool allArrived = true;
-                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count) allArrived = false;
-                            if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count) allArrived = false;
-                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count) allArrived = false;
-                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count) allArrived = false;
-
-                            if (allArrived)
-                            {
-                                _dialogueSomniaStarted = true;
-                                TriggerSomniaSeedPart1Dialogue();
-                            }
-                        }
-                    }
 
                     if (HasPuzzle3Collected && !_startBunnyWalkPostDreampearl)
                     {
@@ -1369,158 +1195,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForCrescentDialogue:
-                    if (_startCrescentWalk)
-                    {
-                        GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-
-                        // 1. Rona
-                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _ronaPathToCrescent[_ronaPathIndex];
-                            float currentY = _ronaNpc.transform.position.y;
-                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            ronaTarget.y = GetGroundHeight(ronaTarget);
-
-                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
-                            if (dist > 0.2f)
-                            {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_ronaNpc, true);
-                            }
-                            else
-                            {
-                                _ronaPathIndex++;
-                                if (_ronaPathIndex >= _ronaPathToCrescent.Count) SetNpcMoving(_ronaNpc, false);
-                            }
-                        }
-                        else if (_ronaNpc != null)
-                        {
-                            SetNpcMoving(_ronaNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_ronaNpc, p2Ip);
-                        }
-
-                        // 2. Murial
-                        if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _murialPathToCrescent[_murialPathIndex];
-                            float currentY = _murialNpc.transform.position.y;
-                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            murialTarget.y = GetGroundHeight(murialTarget);
-
-                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
-                            if (dist > 0.2f)
-                            {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_murialNpc, true);
-                            }
-                            else
-                            {
-                                _murialPathIndex++;
-                                if (_murialPathIndex >= _murialPathToCrescent.Count) SetNpcMoving(_murialNpc, false);
-                            }
-                        }
-                        else if (_murialNpc != null)
-                        {
-                            SetNpcMoving(_murialNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_murialNpc, p2Ip);
-                        }
-
-                        // 3. Keiko
-                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _keikoPathToCrescent[_keikoPathIndex];
-                            float currentY = _keikoNpc.transform.position.y;
-                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            keikoTarget.y = GetGroundHeight(keikoTarget);
-
-                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
-                            if (dist > 0.2f)
-                            {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_keikoNpc, true);
-                            }
-                            else
-                            {
-                                _keikoPathIndex++;
-                                if (_keikoPathIndex >= _keikoPathToCrescent.Count) SetNpcMoving(_keikoNpc, false);
-                            }
-                        }
-                        else if (_keikoNpc != null)
-                        {
-                            SetNpcMoving(_keikoNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_keikoNpc, p2Ip);
-                        }
-
-                        // 4. Feanor
-                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _feanorPathToCrescent[_feanorPathIndex];
-                            float currentY = _feanorNpc.transform.position.y;
-                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            feanorTarget.y = GetGroundHeight(feanorTarget);
-
-                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
-                            if (dist > 0.2f)
-                            {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_feanorNpc, true);
-                            }
-                            else
-                            {
-                                _feanorPathIndex++;
-                                if (_feanorPathIndex >= _feanorPathToCrescent.Count) SetNpcMoving(_feanorNpc, false);
-                            }
-                        }
-                        else if (_feanorNpc != null)
-                        {
-                            SetNpcMoving(_feanorNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_feanorNpc, p2Ip);
-                        }
-
-                        // Check if all arrived to trigger Dialogue Part 1
-                        if (!_crescentDialogueStarted)
-                        {
-                            bool allArrived = true;
-                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count) allArrived = false;
-                            if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count) allArrived = false;
-                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count) allArrived = false;
-                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count) allArrived = false;
-
-                            if (allArrived)
-                            {
-                                _crescentDialogueStarted = true;
-                                TriggerCrescentTearPart1Dialogue();
-                            }
-                        }
-                    }
                     break;
 
                 case IntroState.WaitingForBridge1Dialogue:
@@ -2572,14 +2246,36 @@ namespace Nemuri.Scenes
                 CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
             }
 
-            // Reset path indices to 0 to start NPC walk sequence
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+            // Immediately teleport Kael and companion NPCs to Gems 1 dialogue positions
+            Vector3 ronaPos = new Vector3(-15.011f, 0f, 111.458f); ronaPos.y = GetGroundHeight(ronaPos);
+            Vector3 murialPos = new Vector3(-16.14f, 0f, 112.703f); murialPos.y = GetGroundHeight(murialPos);
+            Vector3 keikoPos = new Vector3(-13.787f, 0f, 113.613f); keikoPos.y = GetGroundHeight(keikoPos);
+            Vector3 feanorPos = new Vector3(-14.361f, 0f, 112.13f); feanorPos.y = GetGroundHeight(feanorPos);
+            Vector3 kaelPos = new Vector3(-13.5f, 0f, 110f); kaelPos.y = GetGroundHeight(kaelPos);
+
+            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer != null)
+            {
+                var cc = activePlayer.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                activePlayer.position = kaelPos;
+                if (cc != null) cc.enabled = true;
+            }
+
+            _ronaPathIndex = _ronaPathToGem.Count;
+            _murialPathIndex = _murialPathToGem.Count;
+            _keikoPathIndex = _keikoPathToGem.Count;
+            _feanorPathIndex = _feanorPathToGem.Count;
 
             _startGemPuzzleWalk = true;
-            Debug.Log("[NocturneIntroController] Player interacted with rockpuzzle1! Commencing NPC walking sequence.");
+            _dialogueSomniaStarted = true;
+
+            TriggerSomniaSeedPart1Dialogue();
         }
 
         private void TriggerSomniaSeedPart1Dialogue()
@@ -2796,13 +2492,34 @@ namespace Nemuri.Scenes
                 CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
             }
 
-            // Reset path indices to 0 for the crescent path walk
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+            // Immediately teleport Kael and companion NPCs to Crescent dialogue positions
+            Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
+            Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
+            Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
+            Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
+            Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
+
+            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer != null)
+            {
+                var cc = activePlayer.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+                activePlayer.position = kaelPos;
+                if (cc != null) cc.enabled = true;
+            }
+
+            _ronaPathIndex = _ronaPathToCrescent.Count;
+            _murialPathIndex = _murialPathToCrescent.Count;
+            _keikoPathIndex = _keikoPathToCrescent.Count;
+            _feanorPathIndex = _feanorPathToCrescent.Count;
 
             _state = IntroState.WaitingForCrescentDialogue;
+            _crescentDialogueStarted = true;
 
             GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
             if (p2Ip != null)
@@ -2811,7 +2528,7 @@ namespace Nemuri.Scenes
                 if (inter != null) inter.DismissInteraction();
             }
 
-            Debug.Log("[NocturneIntroController] Player interacted with Puzzle2InteractionPoint! Commencing NPC crescent walk sequence.");
+            TriggerCrescentTearPart1Dialogue();
         }
 
         private void AlignCharactersAtCrescentTearDialoguePositions()
