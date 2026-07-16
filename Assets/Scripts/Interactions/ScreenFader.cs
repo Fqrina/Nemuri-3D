@@ -37,6 +37,30 @@ namespace Nemuri.UI
             SetupUi();
         }
 
+        private void OnEnable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        private void OnDisable()
+        {
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            if (SceneTransitionState.FadeInOnLoad)
+            {
+                FadeToClear(SceneTransitionState.FadeInDuration);
+                SceneTransitionState.FadeInOnLoad = false;
+            }
+            else if (SceneTransitionState.FadeOutInstantlyOnLoad)
+            {
+                SetAlphaImmediate(0f);
+                SceneTransitionState.FadeOutInstantlyOnLoad = false;
+            }
+        }
+
         private void SetupUi()
         {
             _canvas = gameObject.AddComponent<Canvas>();

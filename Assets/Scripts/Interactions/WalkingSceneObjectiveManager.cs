@@ -34,6 +34,10 @@ namespace Nemuri.Interactions
         [SerializeField] private GameObject _bedObject;
         [SerializeField] private float _animationWaitTime = 3f;
 
+        [Header("Post-Animation Tweaks")]
+        [SerializeField] private float _postAnimationRotationY = 90f;
+        [SerializeField] private float _postAnimationOffsetZ = 1f;
+
         public WalkingObjective CurrentObjective => _currentObjective;
 
         private void Awake()
@@ -108,10 +112,20 @@ namespace Nemuri.Interactions
             // 3. Wait for animation
             yield return new WaitForSeconds(_animationWaitTime);
 
-            // 4. Reset Animator state (but don't force original transform position/rotation as per user request)
+            // 4. Reset Animator state and apply final rotation/offset as requested
             if (_kaelcharaAnimator != null)
             {
                 _kaelcharaAnimator.Play("Idle"); // Reset state to fix walking animation
+            }
+
+            Transform playerTransform = Nemuri.Player.PlayerMovement.Instance != null ? 
+                Nemuri.Player.PlayerMovement.Instance.transform : 
+                (_kaelcharaAnimator != null ? _kaelcharaAnimator.transform : null);
+
+            if (playerTransform != null)
+            {
+                playerTransform.rotation = Quaternion.Euler(0f, _postAnimationRotationY, 0f);
+                playerTransform.position += new Vector3(0f, 0f, _postAnimationOffsetZ);
             }
 
             // 5. Restore camera & re-enable collisions & gravity
@@ -198,7 +212,7 @@ namespace Nemuri.Interactions
                 if (existingManager == null)
                 {
                     GameObject dmGo = new GameObject("DialogueManager");
-                    dmGo.AddComponent<DialogueManager>();
+                    dmGo.AddComponent<WalkingDialogueManager>();
                 }
             }
 
@@ -280,6 +294,10 @@ namespace Nemuri.Interactions
             if (_currentObjective != WalkingObjective.GoToBed) return;
             _currentObjective = WalkingObjective.None;
             Debug.Log("[WalkingSceneObjectiveManager] All objectives completed!");
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.ForceEndConversation();
+            }
             StartCoroutine(FinishIntroRoutine());
         }
 
@@ -289,6 +307,9 @@ namespace Nemuri.Interactions
             {
                 Nemuri.Player.PlayerMovement.Instance.SetCanMove(false);
             }
+
+            SceneTransitionState.FadeInOnLoad = true;
+            SceneTransitionState.FadeInDuration = 2f;
 
             if (ScreenFader.Instance != null)
             {
