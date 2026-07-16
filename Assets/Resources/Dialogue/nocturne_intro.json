@@ -434,7 +434,13 @@
     },
     {
       "speaker": "Objective",
-      "text": "Find the Somnolume Crystals (Somnia Seed, Crescent Tear, Dreampearl).",
+      "text": "Find the Somnolume Crystals",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Find the Somnia Seed (press T as Keiko for clues)",
       "portraitName": "",
       "typingSpeed": 0.05
     }

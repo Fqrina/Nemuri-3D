@@ -100,6 +100,11 @@ namespace Nemuri.Interactions
                 _interactable.DismissInteraction();
                 _interactable.enabled = false;
             }
+            Interactable.ForceHidePrompt();
+            if (Nemuri.Dialogue.DialogueManager.Instance != null)
+            {
+                Nemuri.Dialogue.DialogueManager.Instance.DismissHeldObjective();
+            }
 
             InitializeSprites();
             CreateUI();

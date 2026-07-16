@@ -195,6 +195,11 @@ namespace Nemuri.Interactions
             {
                 _prompt.ForceHide();
             }
+            GameObject existing = GameObject.Find("Interaction Prompt");
+            if (existing != null)
+            {
+                existing.SetActive(false);
+            }
         }
 
         public bool IsPlayerInRange()
@@ -322,6 +327,12 @@ namespace Nemuri.Interactions
 
             public static InteractionPrompt Create()
             {
+                GameObject existing = GameObject.Find("Interaction Prompt");
+                if (existing != null)
+                {
+                    Object.Destroy(existing);
+                }
+
                 GameObject canvasObject = new GameObject("Interaction Prompt");
                 Canvas canvas = canvasObject.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;

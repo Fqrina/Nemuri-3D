@@ -79,6 +79,11 @@ namespace Nemuri.Core
 
         private void FixedUpdate()
         {
+            if (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive)
+            {
+                return;
+            }
+
             if (_members.Count <= 1)
             {
                 return;

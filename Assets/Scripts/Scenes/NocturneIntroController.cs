@@ -37,6 +37,8 @@ namespace Nemuri.Scenes
             BridgeSuccessDialogue,
             Puzzle3IntroDialogue,
             Puzzle3SuccessDialogue,
+            Puzzle3Part2IntroDialogue,
+            Puzzle3Part2SuccessDialogue,
             Puzzle3CollectedDialogue,
             WaitingForBridge1Dialogue,
             WaitingForBunnyDialoguePostDreampearl,
@@ -44,7 +46,9 @@ namespace Nemuri.Scenes
             WaitingForPortalDialogue,
             PortalDialoguePartA,
             PortalDialoguePartB,
-            PortalDialoguePartC
+            PortalDialoguePartC,
+            PortalSolveCrystalDialogue,
+            VinesMinigameBriefing
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -88,6 +92,12 @@ namespace Nemuri.Scenes
         [SerializeField] private GameObject _keikoNpc;
         [SerializeField] private GameObject _feanorNpc;
         [SerializeField] private GameObject _ferryNpc;
+
+        public GameObject RonaNpc => _ronaNpc;
+        public GameObject MurialNpc => _murialNpc;
+        public GameObject KeikoNpc => _keikoNpc;
+        public GameObject FeanorNpc => _feanorNpc;
+        public GameObject FerryNpc => _ferryNpc;
 
         [Header("Murial Fall Coordinates")]
         [SerializeField] private Transform _murialSpawnPoint;
@@ -296,6 +306,9 @@ namespace Nemuri.Scenes
         public bool HasPuzzle3IntroStarted { get; private set; } = false;
         public bool HasPuzzle3IntroEnded { get; private set; } = false;
         public bool HasPuzzle3BridgeCreated { get; private set; } = false;
+        public bool HasPuzzle3Part2IntroStarted { get; private set; } = false;
+        public bool HasPuzzle3Part2IntroEnded { get; private set; } = false;
+        public bool HasPuzzle3Part2BridgeCreated { get; private set; } = false;
         public bool HasPuzzle3Collected { get; private set; } = false;
 
         private bool _startCrescentWalk = false;
@@ -575,7 +588,7 @@ namespace Nemuri.Scenes
             }
 
             // Dynamically configure Puzzle3InteractionPoint
-            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
             if (p3Ip != null)
             {
                 var interactable = p3Ip.GetComponent<Interactable>();
@@ -587,6 +600,21 @@ namespace Nemuri.Scenes
                 interactable.OnInteract.RemoveAllListeners();
                 interactable.OnInteract.AddListener(OnPuzzle3Interacted);
                 interactable.enabled = false; // Initially inactive until Crescent Tear is collected
+            }
+
+            // Dynamically configure Puzzle3Part2InteractionPoint
+            GameObject p3p2Ip = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+            if (p3p2Ip != null)
+            {
+                var interactable = p3p2Ip.GetComponent<Interactable>();
+                if (interactable == null) interactable = p3p2Ip.AddComponent<Interactable>();
+                interactable.PromptText = "Investigate Structure (E)";
+                interactable.InteractionRange = 4.0f;
+                interactable.HoldSeconds = 0f;
+                if (interactable.OnInteract == null) interactable.OnInteract = new UnityEngine.Events.UnityEvent();
+                interactable.OnInteract.RemoveAllListeners();
+                interactable.OnInteract.AddListener(OnPuzzle3Part2Interacted);
+                interactable.enabled = false; // Activated after Puzzle 3 Part 1 bridge success
             }
 
             if (CharacterSwapManager.Instance != null)
@@ -651,6 +679,18 @@ namespace Nemuri.Scenes
                         mat.color = c;
                     }
                 }
+            }
+
+            // Ensure PuzzleBridge (Part 2 bridge) starts inactive
+            GameObject startP3Bridge2 = FindPuzzle3Bridge();
+            if (startP3Bridge2 != null)
+            {
+                startP3Bridge2.SetActive(false);
+                Debug.Log("[NocturneIntroController] PuzzleBridge set inactive on start.");
+            }
+            else
+            {
+                Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found on start - check object name under PINEALGRAND.");
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -1170,181 +1210,7 @@ namespace Nemuri.Scenes
                         _crystalObject = FindCrystalObject();
                     }
 
-                    // Only move NPCs if the walking sequence has been started by the player's interaction
-                    if (_startGemPuzzleWalk)
-                    {
-                        // 1. Rona NPC path movement to Gem Puzzle
-                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count)
-                        {
-                            Vector2 target2D = _ronaPathToGem[_ronaPathIndex];
-                            float currentY = _ronaNpc.transform.position.y;
-                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            ronaTarget.y = GetGroundHeight(ronaTarget);
 
-                            float distToTarget = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_ronaNpc, true);
-                            }
-                            else
-                            {
-                                _ronaPathIndex++;
-                                if (_ronaPathIndex >= _ronaPathToGem.Count)
-                                {
-                                    SetNpcMoving(_ronaNpc, false);
-                                }
-                            }
-                        }
-                        else if (_ronaNpc != null)
-                        {
-                            SetNpcMoving(_ronaNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_ronaNpc, _crystalObject);
-                            }
-                        }
-
-                        // 2. Murial NPC path movement to Gem Puzzle
-                        if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count)
-                        {
-                            Vector2 target2D = _murialPathToGem[_murialPathIndex];
-                            float currentY = _murialNpc.transform.position.y;
-                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            murialTarget.y = GetGroundHeight(murialTarget);
-
-                            float distToTarget = Vector3.Distance(_murialNpc.transform.position, murialTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_murialNpc, true);
-                            }
-                            else
-                            {
-                                _murialPathIndex++;
-                                if (_murialPathIndex >= _murialPathToGem.Count)
-                                {
-                                    SetNpcMoving(_murialNpc, false);
-                                }
-                            }
-                        }
-                        else if (_murialNpc != null)
-                        {
-                            SetNpcMoving(_murialNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_murialNpc, _crystalObject);
-                            }
-                        }
-
-                        // 3. Keiko NPC path movement to Gem Puzzle
-                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count)
-                        {
-                            Vector2 target2D = _keikoPathToGem[_keikoPathIndex];
-                            float currentY = _keikoNpc.transform.position.y;
-                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            keikoTarget.y = GetGroundHeight(keikoTarget);
-
-                            float distToTarget = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_keikoNpc, true);
-                            }
-                            else
-                            {
-                                _keikoPathIndex++;
-                                if (_keikoPathIndex >= _keikoPathToGem.Count)
-                                {
-                                    SetNpcMoving(_keikoNpc, false);
-                                }
-                            }
-                        }
-                        else if (_keikoNpc != null)
-                        {
-                            SetNpcMoving(_keikoNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_keikoNpc, _crystalObject);
-                            }
-                        }
-
-                        // 4. Feanor NPC path movement to Gem Puzzle
-                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count)
-                        {
-                            Vector2 target2D = _feanorPathToGem[_feanorPathIndex];
-                            float currentY = _feanorNpc.transform.position.y;
-                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            feanorTarget.y = GetGroundHeight(feanorTarget);
-
-                            float distToTarget = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
-                            if (distToTarget > 0.2f)
-                            {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_feanorNpc, true);
-                            }
-                            else
-                            {
-                                _feanorPathIndex++;
-                                if (_feanorPathIndex >= _feanorPathToGem.Count)
-                                {
-                                    SetNpcMoving(_feanorNpc, false);
-                                }
-                            }
-                        }
-                        else if (_feanorNpc != null)
-                        {
-                            SetNpcMoving(_feanorNpc, false);
-                            if (_crystalObject != null)
-                            {
-                                RotateNpcToFaceTarget(_feanorNpc, _crystalObject);
-                            }
-                        }
-
-                        // Start dialogue only after all NPCs have reached their targets!
-                        if (!_dialogueSomniaStarted)
-                        {
-                            bool allArrived = true;
-                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToGem.Count) allArrived = false;
-                            if (_murialNpc != null && _murialPathIndex < _murialPathToGem.Count) allArrived = false;
-                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToGem.Count) allArrived = false;
-                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToGem.Count) allArrived = false;
-
-                            if (allArrived)
-                            {
-                                _dialogueSomniaStarted = true;
-                                TriggerSomniaSeedPart1Dialogue();
-                            }
-                        }
-                    }
 
                     if (HasPuzzle3Collected && !_startBunnyWalkPostDreampearl)
                     {
@@ -1369,158 +1235,6 @@ namespace Nemuri.Scenes
                     break;
 
                 case IntroState.WaitingForCrescentDialogue:
-                    if (_startCrescentWalk)
-                    {
-                        GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-
-                        // 1. Rona
-                        if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _ronaPathToCrescent[_ronaPathIndex];
-                            float currentY = _ronaNpc.transform.position.y;
-                            Vector3 ronaTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            ronaTarget.y = GetGroundHeight(ronaTarget);
-
-                            float dist = Vector3.Distance(_ronaNpc.transform.position, ronaTarget);
-                            if (dist > 0.2f)
-                            {
-                                _ronaNpc.transform.position = Vector3.MoveTowards(_ronaNpc.transform.position, ronaTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (ronaTarget - _ronaNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _ronaNpc.transform.rotation = Quaternion.Slerp(_ronaNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_ronaNpc, true);
-                            }
-                            else
-                            {
-                                _ronaPathIndex++;
-                                if (_ronaPathIndex >= _ronaPathToCrescent.Count) SetNpcMoving(_ronaNpc, false);
-                            }
-                        }
-                        else if (_ronaNpc != null)
-                        {
-                            SetNpcMoving(_ronaNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_ronaNpc, p2Ip);
-                        }
-
-                        // 2. Murial
-                        if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _murialPathToCrescent[_murialPathIndex];
-                            float currentY = _murialNpc.transform.position.y;
-                            Vector3 murialTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            murialTarget.y = GetGroundHeight(murialTarget);
-
-                            float dist = Vector3.Distance(_murialNpc.transform.position, murialTarget);
-                            if (dist > 0.2f)
-                            {
-                                _murialNpc.transform.position = Vector3.MoveTowards(_murialNpc.transform.position, murialTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (murialTarget - _murialNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _murialNpc.transform.rotation = Quaternion.Slerp(_murialNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_murialNpc, true);
-                            }
-                            else
-                            {
-                                _murialPathIndex++;
-                                if (_murialPathIndex >= _murialPathToCrescent.Count) SetNpcMoving(_murialNpc, false);
-                            }
-                        }
-                        else if (_murialNpc != null)
-                        {
-                            SetNpcMoving(_murialNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_murialNpc, p2Ip);
-                        }
-
-                        // 3. Keiko
-                        if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _keikoPathToCrescent[_keikoPathIndex];
-                            float currentY = _keikoNpc.transform.position.y;
-                            Vector3 keikoTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            keikoTarget.y = GetGroundHeight(keikoTarget);
-
-                            float dist = Vector3.Distance(_keikoNpc.transform.position, keikoTarget);
-                            if (dist > 0.2f)
-                            {
-                                _keikoNpc.transform.position = Vector3.MoveTowards(_keikoNpc.transform.position, keikoTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (keikoTarget - _keikoNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _keikoNpc.transform.rotation = Quaternion.Slerp(_keikoNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_keikoNpc, true);
-                            }
-                            else
-                            {
-                                _keikoPathIndex++;
-                                if (_keikoPathIndex >= _keikoPathToCrescent.Count) SetNpcMoving(_keikoNpc, false);
-                            }
-                        }
-                        else if (_keikoNpc != null)
-                        {
-                            SetNpcMoving(_keikoNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_keikoNpc, p2Ip);
-                        }
-
-                        // 4. Feanor
-                        if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count)
-                        {
-                            Vector2 target2D = _feanorPathToCrescent[_feanorPathIndex];
-                            float currentY = _feanorNpc.transform.position.y;
-                            Vector3 feanorTarget = new Vector3(target2D.x, currentY, target2D.y);
-                            feanorTarget.y = GetGroundHeight(feanorTarget);
-
-                            float dist = Vector3.Distance(_feanorNpc.transform.position, feanorTarget);
-                            if (dist > 0.2f)
-                            {
-                                _feanorNpc.transform.position = Vector3.MoveTowards(_feanorNpc.transform.position, feanorTarget, 3f * Time.deltaTime);
-                                Vector3 dir = (feanorTarget - _feanorNpc.transform.position);
-                                dir.y = 0f;
-                                dir.Normalize();
-                                if (dir != Vector3.zero)
-                                {
-                                    _feanorNpc.transform.rotation = Quaternion.Slerp(_feanorNpc.transform.rotation, Quaternion.LookRotation(dir, Vector3.up), 15f * Time.deltaTime);
-                                }
-                                SetNpcMoving(_feanorNpc, true);
-                            }
-                            else
-                            {
-                                _feanorPathIndex++;
-                                if (_feanorPathIndex >= _feanorPathToCrescent.Count) SetNpcMoving(_feanorNpc, false);
-                            }
-                        }
-                        else if (_feanorNpc != null)
-                        {
-                            SetNpcMoving(_feanorNpc, false);
-                            if (p2Ip != null) RotateNpcToFaceTarget(_feanorNpc, p2Ip);
-                        }
-
-                        // Check if all arrived to trigger Dialogue Part 1
-                        if (!_crescentDialogueStarted)
-                        {
-                            bool allArrived = true;
-                            if (_ronaNpc != null && _ronaPathIndex < _ronaPathToCrescent.Count) allArrived = false;
-                            if (_murialNpc != null && _murialPathIndex < _murialPathToCrescent.Count) allArrived = false;
-                            if (_keikoNpc != null && _keikoPathIndex < _keikoPathToCrescent.Count) allArrived = false;
-                            if (_feanorNpc != null && _feanorPathIndex < _feanorPathToCrescent.Count) allArrived = false;
-
-                            if (allArrived)
-                            {
-                                _crescentDialogueStarted = true;
-                                TriggerCrescentTearPart1Dialogue();
-                            }
-                        }
-                    }
                     break;
 
                 case IntroState.WaitingForBridge1Dialogue:
@@ -2374,6 +2088,22 @@ namespace Nemuri.Scenes
                     Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended. Forced swap to Feanor.");
                     break;
 
+                case IntroState.VinesMinigameBriefing:
+                    SetPlayerMovementEnabled(true);
+                    GameObject p2IpBriefing = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2IpBriefing != null)
+                    {
+                        var minigame = p2IpBriefing.GetComponent<Nemuri.Interactions.VinesMinigame>();
+                        if (minigame == null) minigame = p2IpBriefing.AddComponent<Nemuri.Interactions.VinesMinigame>();
+                        minigame.StartMinigame();
+                        Debug.Log("[NocturneIntroController] Vines minigame briefing ended. Starting VinesMinigame.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle2InteractionPoint not found when starting vines minigame.");
+                    }
+                    break;
+
                 case IntroState.CrescentTearPart3:
                     SetPlayerMovementEnabled(true);
                     HasCrescentTearPart3Ended = true;
@@ -2421,41 +2151,138 @@ namespace Nemuri.Scenes
                 case IntroState.BridgeSuccessDialogue:
                     SetPlayerMovementEnabled(true);
                     SetBridgeInteractionActive(false, "", 0f);
-                    GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
-                    if (p3Ip != null)
+                    GameObject p3p2IpBridge = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpBridge != null)
                     {
-                        var inter = p3Ip.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = true;
-                    }
-                    Debug.Log("[NocturneIntroController] Bridge success dialogue ended. Activated Puzzle3InteractionPoint.");
-                    break;
-
-                case IntroState.Puzzle3IntroDialogue:
-                    HasPuzzle3IntroEnded = true;
-                    SetPlayerMovementEnabled(true);
-                    GameObject p3IpObj = GameObject.Find("Puzzle3InteractionPoint");
-                    if (p3IpObj != null)
-                    {
-                        var inter = p3IpObj.GetComponent<Interactable>();
+                        var inter = p3p2IpBridge.GetComponent<Interactable>();
                         if (inter != null)
                         {
-                            inter.PromptText = "Press E to create bridge";
+                            inter.PromptText = "Press E to raise bridge";
                             inter.HoldSeconds = 3.0f;
                             inter.enabled = true;
                         }
                     }
-                    Debug.Log("[NocturneIntroController] Puzzle 3 intro dialogue ended. Prompt changed to Press E to create bridge.");
+                    Debug.Log("[NocturneIntroController] Bridge success dialogue ended. Enabled Puzzle3Part2InteractionPoint raise bridge.");
+                    break;
+
+                case IntroState.Puzzle3IntroDialogue:
+                    HasPuzzle3IntroEnded = true;
+                    HasPuzzle3BridgeCreated = true; // no separate Rona-hold step on this IP
+                    SetPlayerMovementEnabled(true);
+
+                    // Disable Part 1 interaction point permanently
+                    GameObject p3IpAfter = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
+                    if (p3IpAfter != null)
+                    {
+                        var inter = p3IpAfter.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    // Activate PuzzleBridge so it's visible and ready for Part 2
+                    GameObject pb2Early = FindGameObjectByNameCaseInsensitive("PuzzleBridge");
+                    if (pb2Early != null)
+                    {
+                        pb2Early.SetActive(true);
+                        Debug.Log("[NocturneIntroController] PuzzleBridge activated after Puzzle3IntroDialogue.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found when activating after intro dialogue.");
+                    }
+
+                    // Enable Part 2 interaction point
+                    GameObject p3p2IpEarly = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpEarly != null)
+                    {
+                        var inter = p3p2IpEarly.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Investigate Structure (E)";
+                            inter.HoldSeconds = 0f;
+                            inter.enabled = true;
+                            Debug.Log("[NocturneIntroController] Puzzle3Part2InteractionPoint enabled after intro dialogue.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint not found after intro dialogue.");
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 intro dialogue ended. Part 2 interaction activated.");
                     break;
 
                 case IntroState.Puzzle3SuccessDialogue:
                     SetPlayerMovementEnabled(true);
-                    GameObject p3IpObj2 = GameObject.Find("Puzzle3InteractionPoint");
+                    GameObject p3IpObj2 = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
                     if (p3IpObj2 != null)
                     {
                         var inter = p3IpObj2.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
+                        if (inter != null)
+                        {
+                            inter.enabled = false;
+                            Debug.Log("[NocturneIntroController] Puzzle3InteractionPoint (Part 1) interactable disabled.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3InteractionPoint not found when trying to disable after Part 1.");
                     }
 
+                    // Activate PuzzleBridge (Part 2 bridge) and enable Part 2 interaction point
+                    GameObject pb2ToActivate = FindPuzzle3Bridge();
+                    if (pb2ToActivate != null)
+                    {
+                        pb2ToActivate.SetActive(true);
+                        Debug.Log("[NocturneIntroController] PuzzleBridge activated for Part 2.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found when activating for Part 2.");
+                    }
+
+                    GameObject p3p2IpObj = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpObj != null)
+                    {
+                        var inter = p3p2IpObj.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Investigate Structure (E)";
+                            inter.HoldSeconds = 0f;
+                            inter.enabled = true;
+                            Debug.Log("[NocturneIntroController] Puzzle3Part2InteractionPoint enabled.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint not found in scene - add it to the scene.");
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 1 success dialogue ended. Activated Part 2 bridge interaction.");
+                    break;
+
+                case IntroState.Puzzle3Part2IntroDialogue:
+                    HasPuzzle3Part2IntroEnded = true;
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3p2IpAfterIntro = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpAfterIntro != null)
+                    {
+                        var inter = p3p2IpAfterIntro.GetComponent<Interactable>();
+                        if (inter != null)
+                        {
+                            inter.PromptText = "Press E to raise bridge";
+                            inter.HoldSeconds = 3.0f;
+                            inter.enabled = true;
+                        }
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 intro dialogue ended. Prompt changed to raise bridge.");
+                    break;
+
+                case IntroState.Puzzle3Part2SuccessDialogue:
+                    SetPlayerMovementEnabled(true);
+                    GameObject p3p2IpDisable = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpDisable != null)
+                    {
+                        var inter = p3p2IpDisable.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
                     GameObject dobj002 = FindCrystalByName("dobj.002");
                     if (dobj002 != null)
                     {
@@ -2464,16 +2291,33 @@ namespace Nemuri.Scenes
                         var inter = dobj002.GetComponent<Interactable>();
                         if (inter != null) inter.enabled = true;
                     }
-                    Debug.Log("[NocturneIntroController] Puzzle 3 success dialogue ended. Dreampearl is now collectable.");
+                    Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 success dialogue ended. Dreampearl is now collectable.");
                     break;
 
                 case IntroState.Puzzle3CollectedDialogue:
                     SetPlayerMovementEnabled(true);
+                    _state = IntroState.Completed;
                     Debug.Log("[NocturneIntroController] Puzzle 3 collected dialogue ended.");
                     break;
 
                 case IntroState.BunnyDialoguePostDreampearl:
                     OnBunnyDialoguePostDreampearlEnded();
+                    break;
+
+                case IntroState.PortalSolveCrystalDialogue:
+                    // Hide the metarig bunny NPC (Ferry disappears!)
+                    GameObject pgObj = GameObject.Find("PINEALGRAND");
+                    if (pgObj != null)
+                    {
+                        Transform go1 = pgObj.transform.Find("GameObject (1)");
+                        if (go1 != null)
+                        {
+                            Transform metarig = go1.Find("metarig");
+                            if (metarig != null) metarig.gameObject.SetActive(false);
+                        }
+                    }
+                    // Start portal walk sequence!
+                    TriggerPortalWalkSequence();
                     break;
 
                 case IntroState.PortalDialoguePartA:
@@ -2560,26 +2404,59 @@ namespace Nemuri.Scenes
             }
         }
 
+        private IEnumerator TeleportWithFadeRoutine(System.Action teleportAction)
+        {
+            if (Nemuri.UI.ScreenFader.Instance != null)
+            {
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToBlack(0.25f);
+            }
+
+            teleportAction?.Invoke();
+
+            if (Nemuri.UI.ScreenFader.Instance != null)
+            {
+                yield return Nemuri.UI.ScreenFader.Instance.FadeToClear(0.25f);
+            }
+        }
+
         public void TriggerSomniaSeedWalkSequence()
         {
             if (HasSomniaSeedPart1Started) return;
             HasSomniaSeedPart1Started = true;
             SetPlayerMovementEnabled(false);
             
-            // Perform local swap to Kael so Kael appears at the activation spot
-            if (CharacterSwapManager.Instance != null)
+            StartCoroutine(TeleportWithFadeRoutine(() =>
             {
-                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
-            }
+                // Perform local swap to Kael so Kael appears at the activation spot
+                if (CharacterSwapManager.Instance != null)
+                {
+                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                }
 
-            // Reset path indices to 0 to start NPC walk sequence
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+                // Immediately teleport Kael and companion NPCs to Gems 1 dialogue positions
+                Vector3 ronaPos = new Vector3(-15.011f, 0f, 111.458f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-16.14f, 0f, 112.703f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-13.787f, 0f, 113.613f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-14.361f, 0f, 112.13f); feanorPos.y = GetGroundHeight(feanorPos);
+                Vector3 kaelPos = new Vector3(-13.5f, 0f, 110f); kaelPos.y = GetGroundHeight(kaelPos);
 
-            _startGemPuzzleWalk = true;
-            Debug.Log("[NocturneIntroController] Player interacted with rockpuzzle1! Commencing NPC walking sequence.");
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+                // Active player stays at their last interaction position
+
+                _ronaPathIndex = _ronaPathToGem.Count;
+                _murialPathIndex = _murialPathToGem.Count;
+                _keikoPathIndex = _keikoPathToGem.Count;
+                _feanorPathIndex = _feanorPathToGem.Count;
+
+                _startGemPuzzleWalk = true;
+                _dialogueSomniaStarted = true;
+
+                TriggerSomniaSeedPart1Dialogue();
+            }));
         }
 
         private void TriggerSomniaSeedPart1Dialogue()
@@ -2757,20 +2634,36 @@ namespace Nemuri.Scenes
                 // Must be Feanor to untangle the vines
                 if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
                 {
-                    // Disable interactable temporarily
                     if (inter != null)
                     {
                         inter.enabled = false;
                         inter.DismissInteraction();
                     }
 
-                    // Start the Vines rhythm minigame
-                    var minigame = p2Ip.GetComponent<Nemuri.Interactions.VinesMinigame>();
-                    if (minigame == null)
+                    List<DialogueNode> briefingNodes = new List<DialogueNode>()
                     {
-                        minigame = p2Ip.AddComponent<Nemuri.Interactions.VinesMinigame>();
+                        new DialogueNode()
+                        {
+                            speaker = "Narrator",
+                            text = "Use Z, X, C, and V for each column and press when circles align with the hit zone. Match the timing perfectly to solve the puzzle.",
+                            portraitName = "",
+                            typingSpeed = 0.05f
+                        },
+                        new DialogueNode()
+                        {
+                            speaker = "Narrator",
+                            text = "If you miss too many circles or your timing is off, the puzzle will fail. Reset and try again.",
+                            portraitName = "",
+                            typingSpeed = 0.05f
+                        }
+                    };
+
+                    _state = IntroState.VinesMinigameBriefing;
+                    SetPlayerMovementEnabled(false);
+                    if (DialogueManager.Instance != null)
+                    {
+                        DialogueManager.Instance.StartConversation(briefingNodes);
                     }
-                    minigame.StartMinigame();
                 }
                 else
                 {
@@ -2790,28 +2683,45 @@ namespace Nemuri.Scenes
 
             SetPlayerMovementEnabled(false);
 
-            // Swap player to Kael (index 0) in-place during sequence
-            if (CharacterSwapManager.Instance != null)
+            StartCoroutine(TeleportWithFadeRoutine(() =>
             {
-                CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
-            }
+                // Swap player to Kael (index 0) in-place during sequence
+                if (CharacterSwapManager.Instance != null)
+                {
+                    CharacterSwapManager.Instance.SwapToCharacter(0, isDialogueSwap: true);
+                }
 
-            // Reset path indices to 0 for the crescent path walk
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+                // Immediately teleport Kael and companion NPCs to Crescent dialogue positions
+                Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
+                Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
 
-            _state = IntroState.WaitingForCrescentDialogue;
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
 
-            GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
-            if (p2Ip != null)
-            {
-                var inter = p2Ip.GetComponent<Interactable>();
-                if (inter != null) inter.DismissInteraction();
-            }
+                // Active player stays at their last interaction position
 
-            Debug.Log("[NocturneIntroController] Player interacted with Puzzle2InteractionPoint! Commencing NPC crescent walk sequence.");
+                _ronaPathIndex = _ronaPathToCrescent.Count;
+                _murialPathIndex = _murialPathToCrescent.Count;
+                _keikoPathIndex = _keikoPathToCrescent.Count;
+                _feanorPathIndex = _feanorPathToCrescent.Count;
+
+                _state = IntroState.WaitingForCrescentDialogue;
+                _crescentDialogueStarted = true;
+
+                GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
+                if (p2Ip != null)
+                {
+                    var inter = p2Ip.GetComponent<Interactable>();
+                    if (inter != null) inter.DismissInteraction();
+                }
+
+                TriggerCrescentTearPart1Dialogue();
+            }));
         }
 
         private void AlignCharactersAtCrescentTearDialoguePositions()
@@ -2819,26 +2729,6 @@ namespace Nemuri.Scenes
             if (CharacterSwapManager.Instance != null)
             {
                 CharacterSwapManager.Instance.ResetSwapStateToKael();
-            }
-
-            Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
-            Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
-            Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
-            Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
-            Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
-
-            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
-            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
-            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
-            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
-
-            Transform activePlayer = FindActivePlayerTransform();
-            if (activePlayer != null)
-            {
-                var cc = activePlayer.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-                activePlayer.position = kaelPos;
-                if (cc != null) cc.enabled = true;
             }
 
             GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
@@ -3055,17 +2945,24 @@ namespace Nemuri.Scenes
             if (!_startBridge1Walk)
             {
                 _startBridge1Walk = true;
-                
-                // Set movement disabled to lock Kael in place
-                SetPlayerMovementEnabled(false);
 
-                // Reset indices for the bridge path walk
-                _ronaPathIndex = 0;
-                _murialPathIndex = 0;
-                _keikoPathIndex = 0;
-                _feanorPathIndex = 0;
+                // Immediately teleport companion NPCs to Bridge 1 coordinates
+                Vector3 ronaPos = new Vector3(-16.73f, 0f, 102.8f); ronaPos.y = GetGroundHeight(ronaPos);
+                Vector3 murialPos = new Vector3(-16.77f, 0f, 101.65f); murialPos.y = GetGroundHeight(murialPos);
+                Vector3 keikoPos = new Vector3(-16.88f, 0f, 100.33f); keikoPos.y = GetGroundHeight(keikoPos);
+                Vector3 feanorPos = new Vector3(-17.0f, 0f, 98.61f); feanorPos.y = GetGroundHeight(feanorPos);
 
-                _state = IntroState.WaitingForBridge1Dialogue;
+                if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
+                if (_murialNpc != null) _murialNpc.transform.position = murialPos;
+                if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
+                if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
+
+                _ronaPathIndex = _ronaPathToBridge1.Count;
+                _murialPathIndex = _murialPathToBridge1.Count;
+                _keikoPathIndex = _keikoPathToBridge1.Count;
+                _feanorPathIndex = _feanorPathToBridge1.Count;
+
+                TriggerBridge1Dialogue();
             }
         }
 
@@ -3085,19 +2982,18 @@ namespace Nemuri.Scenes
                     RotatePlayerToFaceTarget(dreampearl);
                 }
                 
-                // Show bridge intro dialogue
                 List<DialogueNode> nodes = new List<DialogueNode>()
                 {
-                    new DialogueNode() { speaker = "Narrator", text = "Following the resonance, you arrive at a tranquil lake. At its center rests a giant seashell, tightly closed around a faintly glowing Dreampearl.", portraitName = "", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Keiko", text = "It's there... I can hear it.", portraitName = "Keiko", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Kael", text = "But there's no way to reach it.", portraitName = "Kael", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Narrator", text = "The lake stretches endlessly before you. Every stepping stone has crumbled into the water, leaving the Dreampearl completely inaccessible.", portraitName = "", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Feanor", text = "The tremors destroyed the path long ago.", portraitName = "Feanor", typingSpeed = 0.05f },
-                    new DialogueNode() { speaker = "Rona", text = "Then we'll make our own.", portraitName = "Rona", typingSpeed = 0.05f }
+                    new DialogueNode() { speaker = "Narrator",  text = "Following the resonance, you arrive at a tranquil lake. At its center rests a faintly glowing Dreampearl.",               portraitName = "",      typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Keiko",     text = "It's there... I can hear it.",                                                                                             portraitName = "Keiko", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Kael",      text = "But there's no way to reach it.",                                                                                          portraitName = "Kael",  typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Narrator",  text = "The lake stretches endlessly before you, leaving you far away from the pearl.",                                             portraitName = "",      typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Feanor",    text = "The tremors destroyed the bridge path long ago.",                                                                           portraitName = "Feanor",typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona",      text = "Don't worry, let's fix the bridge.",                                                                                       portraitName = "Rona",  typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Objective", text = "Use Rona's power to rebuild the bridge.",                                                                                   portraitName = "",      typingSpeed = 0.05f }
                 };
 
                 _state = IntroState.BridgeIntroDialogue;
-                SetPlayerMovementEnabled(false);
                 if (DialogueManager.Instance != null)
                 {
                     DialogueManager.Instance.StartConversation(nodes);
@@ -3127,11 +3023,17 @@ namespace Nemuri.Scenes
             // Delay 6 seconds for bridge animation
             yield return new WaitForSeconds(6.0f);
 
-            // Trigger Rona dialogue
             List<DialogueNode> nodes = new List<DialogueNode>()
             {
-                new DialogueNode() { speaker = "Rona", text = "A path isn't something you wait for...", portraitName = "Rona", typingSpeed = 0.05f },
-                new DialogueNode() { speaker = "Rona", text = "It's something you create.", portraitName = "Rona", typingSpeed = 0.05f }
+                new DialogueNode() { speaker = "Kael",      text = "It's still too far away.",                                                              portraitName = "Kael",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial",    text = "What if we swim our way there?",                                                         portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Feanor",    text = "Totally not possible, the water current is strong.",                                     portraitName = "Feanor", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko",     text = "Rona! You can build a path right?",                                                      portraitName = "Keiko",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "I'm not too sure\u2026 It's not entirely stable.",                                      portraitName = "Rona",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Murial",    text = "Well it's better than nothing.",                                                         portraitName = "Murial", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael",      text = "Rona, we're going to figure it out, but we need your powers.",                          portraitName = "Kael",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "I will try\u2026",                                                                      portraitName = "Rona",   typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Use Rona's Ambition to forge a path across the lake.",                                  portraitName = "",       typingSpeed = 0.05f }
             };
 
             _state = IntroState.BridgeSuccessDialogue;
@@ -3143,7 +3045,7 @@ namespace Nemuri.Scenes
 
         private void OnPuzzle3Interacted()
         {
-            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
             Interactable inter = null;
             if (p3Ip != null) inter = p3Ip.GetComponent<Interactable>();
 
@@ -3177,17 +3079,57 @@ namespace Nemuri.Scenes
 
                 if (inter != null) inter.DismissInteraction();
             }
-            else if (HasPuzzle3IntroEnded && !HasPuzzle3BridgeCreated)
-            {
-                // Must be Rona to build the second bridge
-                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 1)
-                {
-                    HasPuzzle3BridgeCreated = true;
+            // phase 2 (Rona hold E) is handled by Puzzle3Part2InteractionPoint
+        }
 
-                    // Disable interactable temporarily
+        private void OnPuzzle3Part2Interacted()
+        {
+            Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 interaction pressed. IntroStarted={HasPuzzle3Part2IntroStarted} IntroEnded={HasPuzzle3Part2IntroEnded} BridgeCreated={HasPuzzle3Part2BridgeCreated}");
+
+            GameObject p3p2Ip = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+            Interactable inter = null;
+            if (p3p2Ip != null)
+            {
+                inter = p3p2Ip.GetComponent<Interactable>();
+            }
+            else
+            {
+                Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint GameObject not found.");
+            }
+
+            if (!HasPuzzle3Part2IntroStarted)
+            {
+                HasPuzzle3Part2IntroStarted = true;
+                Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 intro dialogue triggered.");
+
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Kael", text = "There is something else here... It looks like it can be raised.", portraitName = "Kael", typingSpeed = 0.05f },
+                    new DialogueNode() { speaker = "Rona", text = "Leave it to me.", portraitName = "Rona", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.Puzzle3Part2IntroDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
+
+                if (inter != null) inter.DismissInteraction();
+            }
+            else if (HasPuzzle3Part2IntroEnded && !HasPuzzle3Part2BridgeCreated)
+            {
+                int activeIndex = CharacterSwapManager.Instance != null ? CharacterSwapManager.Instance.ActiveCharacterIndex : -1;
+                bool isRona = activeIndex == 1;
+                Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 bridge attempt. ActiveCharacterIndex={activeIndex} IsRona={isRona}");
+
+                if (isRona)
+                {
+                    HasPuzzle3Part2BridgeCreated = true;
+
                     if (inter != null) inter.enabled = false;
 
-                    TriggerPuzzle3BridgeSuccess();
+                    TriggerPuzzle3Bridge2Success();
                     if (inter != null) inter.DismissInteraction();
                 }
                 else
@@ -3196,9 +3138,140 @@ namespace Nemuri.Scenes
                     {
                         inter.SetOverridePromptText("You must use Rona as player to interact", 3f);
                     }
-                    Debug.Log("[NocturneIntroController] Only Rona can create the second bridge!");
+                    Debug.Log("[NocturneIntroController] Only Rona can raise the second bridge!");
                 }
             }
+            else
+            {
+                Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 interaction ignored. State not ready: IntroStarted={HasPuzzle3Part2IntroStarted} IntroEnded={HasPuzzle3Part2IntroEnded} BridgeCreated={HasPuzzle3Part2BridgeCreated}");
+            }
+        }
+
+        private void TriggerPuzzle3Bridge2Success()
+        {
+            SetPlayerMovementEnabled(false);
+
+            GameObject p3Bridge2 = FindPuzzleBridge2();
+            if (p3Bridge2 != null) p3Bridge2.SetActive(true);
+            StartCoroutine(SmoothMovePuzzleBridge2Routine(p3Bridge2));
+        }
+
+        private IEnumerator SmoothMovePuzzleBridge2Routine(GameObject p3Bridge2)
+        {
+            float duration = 3.0f;
+            float elapsed = 0f;
+
+            if (p3Bridge2 != null)
+            {
+                Rigidbody[] rbs = p3Bridge2.GetComponentsInChildren<Rigidbody>(true);
+                foreach (var rb in rbs)
+                {
+                    if (rb != null)
+                    {
+                        rb.isKinematic = true;
+                        rb.useGravity = false;
+                    }
+                }
+            }
+
+            float startY = p3Bridge2 != null ? p3Bridge2.transform.localPosition.y : 0.92f;
+            float endY = 2.985f;
+
+            Renderer[] renderers = p3Bridge2 != null ? p3Bridge2.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
+
+            List<RendererMatInfo> matInfos = new List<RendererMatInfo>();
+            foreach (var r in renderers)
+            {
+                if (r != null && r.material != null)
+                {
+                    Material mat = r.material;
+                    mat.SetFloat("_Surface", 1f);
+                    mat.SetFloat("_Blend", 0f);
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHATEST_ON");
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+                    Color c = mat.color;
+                    c.a = 0f;
+                    mat.color = c;
+
+                    matInfos.Add(new RendererMatInfo { r = r, m = mat, origColor = mat.color });
+                }
+            }
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float tSmooth = Mathf.SmoothStep(0f, 1f, elapsed / duration);
+
+                if (p3Bridge2 != null)
+                {
+                    Vector3 pos = p3Bridge2.transform.localPosition;
+                    pos.y = Mathf.Lerp(startY, endY, tSmooth);
+                    p3Bridge2.transform.localPosition = pos;
+                }
+
+                foreach (var info in matInfos)
+                {
+                    if (info.m != null)
+                    {
+                        Color c = info.origColor;
+                        c.a = Mathf.Lerp(0f, 1f, tSmooth);
+                        info.m.color = c;
+                    }
+                }
+
+                yield return null;
+            }
+
+            if (p3Bridge2 != null)
+            {
+                Vector3 finalPos = p3Bridge2.transform.localPosition;
+                finalPos.y = endY;
+                p3Bridge2.transform.localPosition = finalPos;
+            }
+
+            foreach (var info in matInfos)
+            {
+                if (info.m != null)
+                {
+                    Color c = info.origColor;
+                    c.a = 1f;
+                    info.m.color = c;
+
+                    info.m.SetFloat("_Surface", 0f);
+                    info.m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                    info.m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                    info.m.SetInt("_ZWrite", 1);
+                    info.m.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                    info.m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
+                }
+            }
+
+            List<DialogueNode> nodes = new List<DialogueNode>()
+            {
+                new DialogueNode() { speaker = "Narrator",  text = "Rona steps forward and raises her hand. Waves of pink energy ripple across the lake. Wherever her determination reaches, luminous platforms rise from beneath the water, forging a path toward the giant seashell.", portraitName = "",      typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Kael",      text = "A path isn't something you wait for...",                                                                                                                                                                        portraitName = "Kael",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Rona",      text = "It's something you create.",                                                                                                                                                                                    portraitName = "Rona",  typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Narrator",  text = "You carefully cross the newly formed path and arrive to the dreampearl, the last crystal to complete the shrine.",                                                                                              portraitName = "",      typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Keiko",     text = "The resonance...",                                                                                                                                                                                             portraitName = "Keiko", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Obtain the Dreampearl.",                                                                                                                                                                                        portraitName = "",      typingSpeed = 0.05f }
+            };
+
+            _state = IntroState.Puzzle3Part2SuccessDialogue;
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+        }
+
+        private GameObject FindPuzzleBridge2()
+        {
+            // PuzzleBridge may be inactive; use inactive-aware search
+            return FindGameObjectByNameCaseInsensitive("PuzzleBridge");
         }
 
         private GameObject FindPuzzle3Bridge()
@@ -3241,7 +3314,7 @@ namespace Nemuri.Scenes
                 }
             }
 
-            Vector3 startPos = p3Bridge != null ? p3Bridge.transform.position : Vector3.zero;
+            Vector3 startPos = p3Bridge != null ? p3Bridge.transform.localPosition : Vector3.zero;
             float startY = p3Bridge != null ? startPos.y : 0.92f;
             float endY = 2.985f; // puzzle bridge Y dari startY ke 2.985
 
@@ -3276,15 +3349,18 @@ namespace Nemuri.Scenes
 
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                for (int i = 0; i < 1; i++) // dummy loop for unique block matching
+                {
+                    elapsed += Time.deltaTime;
+                }
                 float t = elapsed / duration;
                 float tSmooth = Mathf.SmoothStep(0f, 1f, t);
 
                 if (p3Bridge != null)
                 {
-                    Vector3 currentPos = p3Bridge.transform.position;
+                    Vector3 currentPos = p3Bridge.transform.localPosition;
                     currentPos.y = Mathf.Lerp(startY, endY, tSmooth);
-                    p3Bridge.transform.position = currentPos;
+                    p3Bridge.transform.localPosition = currentPos;
                 }
 
                 // Smoothly fade-in renderers
@@ -3303,9 +3379,9 @@ namespace Nemuri.Scenes
 
             if (p3Bridge != null)
             {
-                Vector3 finalPos = p3Bridge.transform.position;
+                Vector3 finalPos = p3Bridge.transform.localPosition;
                 finalPos.y = endY;
-                p3Bridge.transform.position = finalPos;
+                p3Bridge.transform.localPosition = finalPos;
             }
 
             // Restore opaque shaders and full alpha
@@ -3358,7 +3434,6 @@ namespace Nemuri.Scenes
             };
             
             _state = IntroState.Puzzle3CollectedDialogue;
-            SetPlayerMovementEnabled(false);
 
             if (DialogueManager.Instance != null)
             {
@@ -3521,8 +3596,8 @@ namespace Nemuri.Scenes
 
         public static float GetGroundHeight(Vector3 position)
         {
-            Ray ray = new Ray(new Vector3(position.x, position.y + 2.0f, position.z), Vector3.down);
-            RaycastHit[] hits = Physics.RaycastAll(ray, 10f, 1 << 0);
+            Ray ray = new Ray(new Vector3(position.x, 300.0f, position.z), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 600f, ~0);
             
             float bestY = position.y;
             float highestGroundY = -999f;
@@ -3650,21 +3725,33 @@ namespace Nemuri.Scenes
             return null;
         }
 
+        private GameObject FindGameObjectByNameCaseInsensitive(string name)
+        {
+            string lower = name.ToLower();
+            foreach (GameObject go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (go.name.ToLower() == lower) return go;
+            }
+            return null;
+        }
+
         public void TriggerBunnyWalkPostDreampearlSequence()
         {
             if (_startBunnyWalkPostDreampearl) return;
             _startBunnyWalkPostDreampearl = true;
 
-            SetPlayerMovementEnabled(false);
+            // Teleport companion NPCs to the position where they first met Feanor
+            Vector3 ronaPos = new Vector3(-26.44f, 0f, 74.89f); ronaPos.y = GetGroundHeight(ronaPos);
+            Vector3 keikoPos = new Vector3(-27.94f, 0f, 74.39f); keikoPos.y = GetGroundHeight(keikoPos);
+            Vector3 murialPos = new Vector3(-28.61f, 0f, 77.21f); murialPos.y = GetGroundHeight(murialPos);
+            Vector3 feanorPos = new Vector3(-28.94f, 0f, 72.0f); feanorPos.y = GetGroundHeight(feanorPos);
 
-            // Reset path indices to 0 for the bunny walk
-            _ronaPathIndex = 0;
-            _murialPathIndex = 0;
-            _keikoPathIndex = 0;
-            _feanorPathIndex = 0;
+            if (_ronaNpc != null) { _ronaNpc.transform.position = ronaPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_ronaNpc, _ferryNpc); }
+            if (_keikoNpc != null) { _keikoNpc.transform.position = keikoPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_keikoNpc, _ferryNpc); }
+            if (_murialNpc != null) { _murialNpc.transform.position = murialPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_murialNpc, _ferryNpc); }
+            if (_feanorNpc != null) { _feanorNpc.transform.position = feanorPos; if (_ferryNpc != null) RotateNpcToFaceTarget(_feanorNpc, _ferryNpc); }
 
-            _state = IntroState.WaitingForBunnyDialoguePostDreampearl;
-            Debug.Log("[NocturneIntroController] Player approached bunny post-Dreampearl! NPCs commencing walk sequence.");
+            TriggerBunnyDialoguePostDreampearl();
         }
 
         public void TriggerBunnyDialoguePostDreampearl()
@@ -3678,7 +3765,8 @@ namespace Nemuri.Scenes
                 new DialogueNode() { speaker = "Rona", text = "Will this fix the Nocturne heart?", portraitName = "Rona", typingSpeed = 0.05f },
                 new DialogueNode() { speaker = "Ferry", text = "It’s not that simple dear…", portraitName = "", typingSpeed = 0.05f },
                 new DialogueNode() { speaker = "Murial", text = "What do you mean?", portraitName = "Murial", typingSpeed = 0.05f },
-                new DialogueNode() { speaker = "Ferry", text = "Just go ahead and put the crystals and you’ll find out by yourself", portraitName = "", typingSpeed = 0.05f }
+                new DialogueNode() { speaker = "Ferry", text = "Just go ahead and put the crystals and you’ll find out by yourself", portraitName = "", typingSpeed = 0.05f },
+                new DialogueNode() { speaker = "Objective", text = "Put crystals in the portal", portraitName = "", typingSpeed = 0.05f }
             };
 
             _state = IntroState.BunnyDialoguePostDreampearl;
@@ -3706,7 +3794,7 @@ namespace Nemuri.Scenes
                 if (inter == null) inter = cube015.AddComponent<Interactable>();
                 inter.PromptText = "Fix Portal (E)";
                 inter.InteractionRange = 4.0f;
-                inter.HoldSeconds = 0f;
+                inter.HoldSeconds = 3.0f;
                 if (inter.OnInteract == null) inter.OnInteract = new UnityEngine.Events.UnityEvent();
                 inter.OnInteract.RemoveAllListeners();
                 inter.OnInteract.AddListener(OnPortalInteracted);
@@ -3731,20 +3819,34 @@ namespace Nemuri.Scenes
                     if (inter != null) inter.enabled = false;
                 }
 
-                // Hide the metarig bunny NPC (Ferry disappears!)
-                GameObject pg = GameObject.Find("PINEALGRAND");
-                if (pg != null)
+                // Teleport Kael (middle) in front of the portal
+                Transform activePlayer = FindActivePlayerTransform();
+                if (activePlayer != null)
                 {
-                    Transform go1 = pg.transform.Find("GameObject (1)");
-                    if (go1 != null)
-                    {
-                        Transform metarig = go1.Find("metarig");
-                        if (metarig != null) metarig.gameObject.SetActive(false);
-                    }
+                    Vector3 portalCenter = cube015 != null ? cube015.transform.position : Vector3.zero;
+                    Vector3 targetKaelPos = portalCenter + new Vector3(0f, 0f, -3f); // 3 units back in Z
+                    targetKaelPos.y = GetGroundHeight(targetKaelPos);
+                    
+                    var cc = activePlayer.GetComponent<CharacterController>();
+                    if (cc != null) cc.enabled = false;
+                    activePlayer.position = targetKaelPos;
+                    if (cc != null) cc.enabled = true;
+                    
+                    if (cube015 != null) RotatePlayerToFaceTarget(cube015);
                 }
 
-                // Start portal walk sequence!
-                TriggerPortalWalkSequence();
+                // Trigger: D Put the crystals into the shrine
+                List<DialogueNode> nodes = new List<DialogueNode>()
+                {
+                    new DialogueNode() { speaker = "Kael", text = "Put the crystals into the shrine", portraitName = "Kael", typingSpeed = 0.05f }
+                };
+
+                _state = IntroState.PortalSolveCrystalDialogue;
+                SetPlayerMovementEnabled(false);
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(nodes);
+                }
             }
             else
             {
@@ -3757,7 +3859,7 @@ namespace Nemuri.Scenes
                     var inter = cube015.GetComponent<Interactable>();
                     if (inter != null)
                     {
-                        inter.DisplayInteraction("You must use Kael as player to interact", 0f);
+                        inter.SetOverridePromptText("You must use Kael as player to interact", 3f);
                     }
                 }
             }

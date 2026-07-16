@@ -111,14 +111,18 @@ namespace Nemuri.Core
                 }
             }
             // Determine if character swapping is currently allowed/unlocked
+            bool isDialogueActive = (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive);
             bool canSwap = false;
-            if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+            if (!isDialogueActive)
             {
-                canSwap = Nemuri.Scenes.NocturneIntroController.CanSwapTo(0);
-            }
-            else
-            {
-                canSwap = true; // Fallback default
+                if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+                {
+                    canSwap = Nemuri.Scenes.NocturneIntroController.CanSwapTo(0);
+                }
+                else
+                {
+                    canSwap = true; // Fallback default
+                }
             }
 
             // Hide NPCs when character swapping is unlocked (free roaming/play mode)
@@ -126,12 +130,9 @@ namespace Nemuri.Core
             {
                 for (int i = 0; i < _characters.Count; i++)
                 {
-                    if (_characters[i].npcObject == null)
+                    if (_characters[i].npcObject == null || !_characters[i].npcObject.scene.IsValid())
                     {
-                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                        GameObject found = GameObject.Find(searchName);
-                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                        if (found != null) _characters[i].npcObject = found;
+                        _characters[i].npcObject = GetNpcObject(i);
                     }
 
                     if (_characters[i].npcObject != null && _characters[i].npcObject.activeSelf)
@@ -147,12 +148,9 @@ namespace Nemuri.Core
                 // Show NPCs (except the active player's own NPC representation) when swapping is locked (cutscenes/dialogue/story walks)
                 for (int i = 0; i < _characters.Count; i++)
                 {
-                    if (_characters[i].npcObject == null)
+                    if (_characters[i].npcObject == null || !_characters[i].npcObject.scene.IsValid())
                     {
-                        string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                        GameObject found = GameObject.Find(searchName);
-                        if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                        if (found != null) _characters[i].npcObject = found;
+                        _characters[i].npcObject = GetNpcObject(i);
                     }
 
                     if (_characters[i].npcObject != null)
@@ -172,6 +170,63 @@ namespace Nemuri.Core
             }
         }
 
+        private GameObject GetNpcObject(int i)
+        {
+            GameObject result = null;
+            if (Nemuri.Scenes.NocturneIntroController.Instance != null)
+            {
+                if (i == 1) result = Nemuri.Scenes.NocturneIntroController.Instance.RonaNpc;
+                else if (i == 2) result = Nemuri.Scenes.NocturneIntroController.Instance.MurialNpc;
+                else if (i == 3) result = Nemuri.Scenes.NocturneIntroController.Instance.KeikoNpc;
+                else if (i == 4) result = Nemuri.Scenes.NocturneIntroController.Instance.FeanorNpc;
+            }
+
+            if (result != null && result.scene.IsValid())
+            {
+                return result;
+            }
+
+            string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
+            result = FindSceneObjectByName(searchName);
+            if (result == null)
+            {
+                result = FindSceneObjectByName(searchName.Replace("NPC", " NPC"));
+            }
+            return result;
+        }
+
+        private GameObject GetPlayerObject(int i)
+        {
+            string searchName = _characters[i].characterName.Replace("CHARA", "").Trim();
+            GameObject result = FindSceneObjectByName(searchName);
+            if (result == null)
+            {
+                result = FindSceneObjectByName(searchName.ToLower());
+            }
+            return result;
+        }
+
+        private GameObject FindSceneObjectByName(string name)
+        {
+            string lower = name.ToLower();
+            foreach (GameObject go in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (go.hideFlags == HideFlags.NotEditable || go.hideFlags == HideFlags.HideAndDontSave)
+                    continue;
+
+                #if UNITY_EDITOR
+                if (UnityEditor.EditorUtility.IsPersistent(go.transform.root.gameObject))
+                    continue;
+                #endif
+
+                if (go.scene.IsValid() && go.name.ToLower() == lower)
+                {
+                    return go;
+                }
+            }
+            return null;
+        }
+
         private void InitializeCharacters()
         {
             if (_characters == null || _characters.Count == 0)
@@ -183,13 +238,16 @@ namespace Nemuri.Core
             {
                 bool isActive = (i == _activeCharacterIndex);
                 
-                // Automatically find npcObject if null in Inspector
-                if (_characters[i].npcObject == null)
+                // Automatically find npcObject if null or prefab in Inspector
+                if (_characters[i].npcObject == null || !_characters[i].npcObject.scene.IsValid())
                 {
-                    string searchName = i == 0 ? "KAELNPC" : _characters[i].characterName.Replace("CHARA", "").Trim() + "NPC";
-                    GameObject found = GameObject.Find(searchName);
-                    if (found == null) found = GameObject.Find(searchName.Replace("NPC", " NPC"));
-                    if (found != null) _characters[i].npcObject = found;
+                    _characters[i].npcObject = GetNpcObject(i);
+                }
+
+                // Automatically find playerObject if null or prefab in Inspector
+                if (_characters[i].playerObject == null || !_characters[i].playerObject.scene.IsValid())
+                {
+                    _characters[i].playerObject = GetPlayerObject(i);
                 }
 
                 if (_characters[i].playerObject != null)
@@ -213,7 +271,7 @@ namespace Nemuri.Core
                 }
             }
 
-            if (_characters[_activeCharacterIndex].playerObject != null)
+            if (_activeCharacterIndex >= 0 && _activeCharacterIndex < _characters.Count && _characters[_activeCharacterIndex].playerObject != null)
             {
                 UpdateCameraTargets(_characters[_activeCharacterIndex].playerObject.transform);
             }
@@ -245,6 +303,16 @@ namespace Nemuri.Core
                 return;
             }
 
+            // Ensure player objects are valid scene instances
+            if (_characters[_activeCharacterIndex].playerObject == null || !_characters[_activeCharacterIndex].playerObject.scene.IsValid())
+            {
+                _characters[_activeCharacterIndex].playerObject = GetPlayerObject(_activeCharacterIndex);
+            }
+            if (_characters[index].playerObject == null || !_characters[index].playerObject.scene.IsValid())
+            {
+                _characters[index].playerObject = GetPlayerObject(index);
+            }
+
             GameObject currentCharacterObj = _characters[_activeCharacterIndex].playerObject;
             GameObject targetCharacterObj = _characters[index].playerObject;
 
@@ -253,9 +321,21 @@ namespace Nemuri.Core
                 return;
             }
 
-            // In-place mesh swap: no teleportation of player and no NPC positioning!
+            // In-place mesh swap: target character takes current character's position and rotation
+            targetCharacterObj.transform.position = currentCharacterObj.transform.position;
+            targetCharacterObj.transform.rotation = currentCharacterObj.transform.rotation;
             currentCharacterObj.SetActive(false);
             targetCharacterObj.SetActive(true);
+
+            // Ensure npcObjects are valid scene instances
+            if (_characters[_activeCharacterIndex].npcObject == null || !_characters[_activeCharacterIndex].npcObject.scene.IsValid())
+            {
+                _characters[_activeCharacterIndex].npcObject = GetNpcObject(_activeCharacterIndex);
+            }
+            if (_characters[index].npcObject == null || !_characters[index].npcObject.scene.IsValid())
+            {
+                _characters[index].npcObject = GetNpcObject(index);
+            }
 
             // Toggle companion NPC active states
             if (_characters[_activeCharacterIndex].npcObject != null)
