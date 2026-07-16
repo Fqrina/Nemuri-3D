@@ -1,0 +1,232 @@
+{
+  "nodes": [
+    {
+      "speaker": "Narrator",
+      "text": "Kael and the Energeons are pulled into a mysterious world, where forgotten memories slowly begin to take shape.",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "What is this place...?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I can feel something here... but I've never been here before.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Wait... look over there. There are three islands.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Hey fellas!",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Gosh... why does he always appear out of nowhere?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Welcome to Hippocampus!",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Hippocampus... a realm where memories are stored, reconstructed, and understood.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Exactly!",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "But what does this place have to do with restoring the Nocturne Heart?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "The answer is not something you can simply be told.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "It is something you must discover yourself...",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Because the key to restoring the Nocturne Heart lies within your own memories, Kael.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "My memories...?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Three fragments await you.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "The memories of your habits...",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "The memories of what you have forgotten...",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "And the memories of what you fear.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Only by understanding them can you uncover the truth.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Huh, can we really trust a rabbit that can suddenly disappear like that…",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "I don’t know, but it seems we don't really have a choice here",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "I think he left something",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "It’s a bag",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Obtain the bag",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Objective",
+      "text": "Explore The Circadian Isle",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Narrator",
+      "text": "At the center of the island stands a massive clock tower, towering over the endless night..",
+      "portraitName": "",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "This place... feels unsettling.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "An endless night... It feels like this island is trapped in a cycle.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "A cycle...?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Yeah. Like it's waiting for something... but morning never comes.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Kael... this place seems familiar to you, doesn't it?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "...",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "I don't know. But somehow... it feels like I've been here before.",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "Wait... I feel something nearby.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "You do? Where?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I’m not sure... but something is pulling us there.",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Then let's follow it.",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Lead the way, Keiko.",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    }
+  ]
+}

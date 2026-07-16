@@ -147,7 +147,7 @@ public class BridgeController : MonoBehaviour
 
     private Transform GetBridgeDetectionCenter()
     {
-        GameObject pg = GameObject.Find("PINEALGRAND");
+        GameObject pg = GameObject.Find("PINEALGLAND");
         if (pg != null)
         {
             Transform pivotBridge = pg.transform.Find("pivot bridge");

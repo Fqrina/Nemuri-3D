@@ -164,16 +164,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Scenes.MainMenuController
   _menuVideo: {fileID: 32900000, guid: c49d9d63ecd95e047978477997d72442, type: 3}
+  _menuMusic: {fileID: 8300000, guid: d3e28a96d34546b45abe1f8bde6281cb, type: 3}
+  _musicVolume: 1
   _nextSceneName: Mindlit
   _fadeDuration: 1.5
-  _playButtonLabel: PLAY
-  _playButtonAnchoredPosition: {x: 0, y: 60}
-  _playButtonSize: {x: 500, y: 120}
-  _buttonNormalColor: {r: 0.15, g: 0.15, b: 0.15, a: 0.85}
-  _buttonHoverColor: {r: 1, g: 0.1462264, b: 0.8198773, a: 0.95}
-  _buttonPressedColor: {r: 0.9339623, g: 0.039649326, b: 0.8095199, a: 1}
-  _buttonTextColor: {r: 0.4026266, g: 0, b: 0.4716981, a: 1}
-  _buttonFontSize: 72
+  _titleAnchoredPosition: {x: -500, y: 100}
+  _titleSize: {x: 1600, y: 2500}
+  _playButtonAnchoredPosition: {x: -500, y: 40}
+  _playButtonSize: {x: 400, y: 200}
+  _buttonHoverScale: 1.05
+  _guideButtonAnchoredPosition: {x: -500, y: -150}
+  _guideButtonSize: {x: 400, y: 200}
+  _guideText: 
+  _guidePanelAnchoredPosition: {x: 0, y: 0}
+  _guidePanelSize: {x: 900, y: 600}
+  _guideTextFontSize: 28
+  _guidePanelColor: {r: 0, g: 0, b: 0, a: 0.7}
 --- !u!1 &564722714
 GameObject:
   m_ObjectHideFlags: 0

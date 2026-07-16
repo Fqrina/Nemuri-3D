@@ -107,6 +107,12 @@ namespace Nemuri.Core
                         _guideLightCooldown = 7f;
                         SpawnGuideLight(_characters[3].playerObject.transform.position, target.transform.position);
                         Debug.Log("[CharacterSwapManager] Keiko cast Guide Light targeting: " + target.name);
+
+                        AudioClip blinkClip = Resources.Load<AudioClip>("CrystalBlink");
+                        if (blinkClip != null)
+                        {
+                            AudioSource.PlayClipAtPoint(blinkClip, _characters[3].playerObject.transform.position);
+                        }
                     }
                 }
             }
@@ -156,7 +162,9 @@ namespace Nemuri.Core
                     if (_characters[i].npcObject != null)
                     {
                         bool shouldBeActive = (i != _activeCharacterIndex);
-                        if (i == 2 && Nemuri.Scenes.NocturneIntroController.Instance != null && !Nemuri.Scenes.NocturneIntroController.Instance.HasMurialFallen)
+                        if (i == 2 && Nemuri.Scenes.NocturneIntroController.Instance != null && 
+                            !Nemuri.Scenes.NocturneIntroController.Instance.HasMurialFallen && 
+                            !Nemuri.Scenes.NocturneIntroController.Instance.IsMurialFalling)
                         {
                             shouldBeActive = false;
                         }
@@ -541,7 +549,7 @@ namespace Nemuri.Core
                 {
                     if (!intro.HasBunnyDialogueEnded)
                     {
-                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        GameObject pg = GameObject.Find("PINEALGLAND");
                         if (pg != null)
                         {
                             Transform go1 = pg.transform.Find("GameObject (1)");
@@ -554,7 +562,7 @@ namespace Nemuri.Core
                     }
                     else if (!intro.HasPortalFixed)
                     {
-                        GameObject pg = GameObject.Find("PINEALGRAND");
+                        GameObject pg = GameObject.Find("PINEALGLAND");
                         if (pg != null)
                         {
                             Transform cube015 = FindChildRecursiveTransform(pg.transform, "cube 015");
@@ -591,7 +599,7 @@ namespace Nemuri.Core
 
         private GameObject FindCrystalByName(string name)
         {
-            GameObject pg = GameObject.Find("PINEALGRAND");
+            GameObject pg = GameObject.Find("PINEALGLAND");
             if (pg != null)
             {
                 Transform found = FindChildRecursiveTransform(pg.transform, name);
