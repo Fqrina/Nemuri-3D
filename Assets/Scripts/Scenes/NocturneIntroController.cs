@@ -3141,7 +3141,7 @@ namespace Nemuri.Scenes
                 }
             }
 
-            float startY = p3Bridge2 != null ? p3Bridge2.transform.position.y : 0.92f;
+            float startY = p3Bridge2 != null ? p3Bridge2.transform.localPosition.y : 0.92f;
             float endY = 2.985f;
 
             Renderer[] renderers = p3Bridge2 != null ? p3Bridge2.GetComponentsInChildren<Renderer>(true) : new Renderer[0];
@@ -3176,9 +3176,9 @@ namespace Nemuri.Scenes
 
                 if (p3Bridge2 != null)
                 {
-                    Vector3 pos = p3Bridge2.transform.position;
+                    Vector3 pos = p3Bridge2.transform.localPosition;
                     pos.y = Mathf.Lerp(startY, endY, tSmooth);
-                    p3Bridge2.transform.position = pos;
+                    p3Bridge2.transform.localPosition = pos;
                 }
 
                 foreach (var info in matInfos)
@@ -3196,9 +3196,9 @@ namespace Nemuri.Scenes
 
             if (p3Bridge2 != null)
             {
-                Vector3 finalPos = p3Bridge2.transform.position;
+                Vector3 finalPos = p3Bridge2.transform.localPosition;
                 finalPos.y = endY;
-                p3Bridge2.transform.position = finalPos;
+                p3Bridge2.transform.localPosition = finalPos;
             }
 
             foreach (var info in matInfos)
@@ -3277,7 +3277,7 @@ namespace Nemuri.Scenes
                 }
             }
 
-            Vector3 startPos = p3Bridge != null ? p3Bridge.transform.position : Vector3.zero;
+            Vector3 startPos = p3Bridge != null ? p3Bridge.transform.localPosition : Vector3.zero;
             float startY = p3Bridge != null ? startPos.y : 0.92f;
             float endY = 2.985f; // puzzle bridge Y dari startY ke 2.985
 
@@ -3312,15 +3312,18 @@ namespace Nemuri.Scenes
 
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                for (int i = 0; i < 1; i++) // dummy loop for unique block matching
+                {
+                    elapsed += Time.deltaTime;
+                }
                 float t = elapsed / duration;
                 float tSmooth = Mathf.SmoothStep(0f, 1f, t);
 
                 if (p3Bridge != null)
                 {
-                    Vector3 currentPos = p3Bridge.transform.position;
+                    Vector3 currentPos = p3Bridge.transform.localPosition;
                     currentPos.y = Mathf.Lerp(startY, endY, tSmooth);
-                    p3Bridge.transform.position = currentPos;
+                    p3Bridge.transform.localPosition = currentPos;
                 }
 
                 // Smoothly fade-in renderers
@@ -3339,9 +3342,9 @@ namespace Nemuri.Scenes
 
             if (p3Bridge != null)
             {
-                Vector3 finalPos = p3Bridge.transform.position;
+                Vector3 finalPos = p3Bridge.transform.localPosition;
                 finalPos.y = endY;
-                p3Bridge.transform.position = finalPos;
+                p3Bridge.transform.localPosition = finalPos;
             }
 
             // Restore opaque shaders and full alpha
