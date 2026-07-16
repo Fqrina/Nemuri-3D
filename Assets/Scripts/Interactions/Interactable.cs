@@ -406,6 +406,10 @@ namespace Nemuri.Interactions
                 Owner = owner;
                 _label.text = text;
                 _progressFillRect.anchorMax = new Vector2(progress, 1f);
+                if (_root.transform.parent != null)
+                {
+                    _root.transform.parent.gameObject.SetActive(true);
+                }
                 _root.SetActive(true);
             }
 
