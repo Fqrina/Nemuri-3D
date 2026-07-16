@@ -46,7 +46,8 @@ namespace Nemuri.Scenes
             WaitingForPortalDialogue,
             PortalDialoguePartA,
             PortalDialoguePartB,
-            PortalDialoguePartC
+            PortalDialoguePartC,
+            VinesMinigameBriefing
         }
 
         public static NocturneIntroController Instance { get; private set; }
@@ -586,7 +587,7 @@ namespace Nemuri.Scenes
             }
 
             // Dynamically configure Puzzle3InteractionPoint
-            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
             if (p3Ip != null)
             {
                 var interactable = p3Ip.GetComponent<Interactable>();
@@ -601,7 +602,7 @@ namespace Nemuri.Scenes
             }
 
             // Dynamically configure Puzzle3Part2InteractionPoint
-            GameObject p3p2Ip = GameObject.Find("Puzzle3Part2InteractionPoint");
+            GameObject p3p2Ip = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
             if (p3p2Ip != null)
             {
                 var interactable = p3p2Ip.GetComponent<Interactable>();
@@ -679,11 +680,16 @@ namespace Nemuri.Scenes
                 }
             }
 
-            // Ensure PuzzleBridge2 starts inactive
-            GameObject startP3Bridge2 = FindPuzzleBridge2();
+            // Ensure PuzzleBridge (Part 2 bridge) starts inactive
+            GameObject startP3Bridge2 = FindPuzzle3Bridge();
             if (startP3Bridge2 != null)
             {
                 startP3Bridge2.SetActive(false);
+                Debug.Log("[NocturneIntroController] PuzzleBridge set inactive on start.");
+            }
+            else
+            {
+                Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found on start - check object name under PINEALGRAND.");
             }
 
             StartCoroutine(IntroStartRoutine());
@@ -2081,6 +2087,22 @@ namespace Nemuri.Scenes
                     Debug.Log("[NocturneIntroController] Crescent Tear Part 2 ended. Forced swap to Feanor.");
                     break;
 
+                case IntroState.VinesMinigameBriefing:
+                    SetPlayerMovementEnabled(true);
+                    GameObject p2IpBriefing = GameObject.Find("Puzzle2InteractionPoint");
+                    if (p2IpBriefing != null)
+                    {
+                        var minigame = p2IpBriefing.GetComponent<Nemuri.Interactions.VinesMinigame>();
+                        if (minigame == null) minigame = p2IpBriefing.AddComponent<Nemuri.Interactions.VinesMinigame>();
+                        minigame.StartMinigame();
+                        Debug.Log("[NocturneIntroController] Vines minigame briefing ended. Starting VinesMinigame.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle2InteractionPoint not found when starting vines minigame.");
+                    }
+                    break;
+
                 case IntroState.CrescentTearPart3:
                     SetPlayerMovementEnabled(true);
                     HasCrescentTearPart3Ended = true;
@@ -2128,7 +2150,7 @@ namespace Nemuri.Scenes
                 case IntroState.BridgeSuccessDialogue:
                     SetPlayerMovementEnabled(true);
                     SetBridgeInteractionActive(false, "", 0f);
-                    GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+                    GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
                     if (p3Ip != null)
                     {
                         var inter = p3Ip.GetComponent<Interactable>();
@@ -2139,35 +2161,79 @@ namespace Nemuri.Scenes
 
                 case IntroState.Puzzle3IntroDialogue:
                     HasPuzzle3IntroEnded = true;
+                    HasPuzzle3BridgeCreated = true; // no separate Rona-hold step on this IP
                     SetPlayerMovementEnabled(true);
-                    GameObject p3IpObj = GameObject.Find("Puzzle3InteractionPoint");
-                    if (p3IpObj != null)
+
+                    // Disable Part 1 interaction point permanently
+                    GameObject p3IpAfter = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
+                    if (p3IpAfter != null)
                     {
-                        var inter = p3IpObj.GetComponent<Interactable>();
+                        var inter = p3IpAfter.GetComponent<Interactable>();
+                        if (inter != null) inter.enabled = false;
+                    }
+
+                    // Activate PuzzleBridge so it's visible and ready for Part 2
+                    GameObject pb2Early = FindGameObjectByNameCaseInsensitive("PuzzleBridge");
+                    if (pb2Early != null)
+                    {
+                        pb2Early.SetActive(true);
+                        Debug.Log("[NocturneIntroController] PuzzleBridge activated after Puzzle3IntroDialogue.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found when activating after intro dialogue.");
+                    }
+
+                    // Enable Part 2 interaction point
+                    GameObject p3p2IpEarly = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
+                    if (p3p2IpEarly != null)
+                    {
+                        var inter = p3p2IpEarly.GetComponent<Interactable>();
                         if (inter != null)
                         {
-                            inter.PromptText = "Press E to create bridge";
-                            inter.HoldSeconds = 3.0f;
+                            inter.PromptText = "Investigate Structure (E)";
+                            inter.HoldSeconds = 0f;
                             inter.enabled = true;
+                            Debug.Log("[NocturneIntroController] Puzzle3Part2InteractionPoint enabled after intro dialogue.");
                         }
                     }
-                    Debug.Log("[NocturneIntroController] Puzzle 3 intro dialogue ended. Prompt changed to Press E to create bridge.");
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint not found after intro dialogue.");
+                    }
+                    Debug.Log("[NocturneIntroController] Puzzle 3 intro dialogue ended. Part 2 interaction activated.");
                     break;
 
                 case IntroState.Puzzle3SuccessDialogue:
                     SetPlayerMovementEnabled(true);
-                    GameObject p3IpObj2 = GameObject.Find("Puzzle3InteractionPoint");
+                    GameObject p3IpObj2 = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
                     if (p3IpObj2 != null)
                     {
                         var inter = p3IpObj2.GetComponent<Interactable>();
-                        if (inter != null) inter.enabled = false;
+                        if (inter != null)
+                        {
+                            inter.enabled = false;
+                            Debug.Log("[NocturneIntroController] Puzzle3InteractionPoint (Part 1) interactable disabled.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3InteractionPoint not found when trying to disable after Part 1.");
                     }
 
-                    // Activate PuzzleBridge2 in scene and enable its interaction point
-                    GameObject pb2ToActivate = FindPuzzleBridge2();
-                    if (pb2ToActivate != null) pb2ToActivate.SetActive(true);
+                    // Activate PuzzleBridge (Part 2 bridge) and enable Part 2 interaction point
+                    GameObject pb2ToActivate = FindPuzzle3Bridge();
+                    if (pb2ToActivate != null)
+                    {
+                        pb2ToActivate.SetActive(true);
+                        Debug.Log("[NocturneIntroController] PuzzleBridge activated for Part 2.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] PuzzleBridge not found when activating for Part 2.");
+                    }
 
-                    GameObject p3p2IpObj = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    GameObject p3p2IpObj = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
                     if (p3p2IpObj != null)
                     {
                         var inter = p3p2IpObj.GetComponent<Interactable>();
@@ -2176,7 +2242,12 @@ namespace Nemuri.Scenes
                             inter.PromptText = "Investigate Structure (E)";
                             inter.HoldSeconds = 0f;
                             inter.enabled = true;
+                            Debug.Log("[NocturneIntroController] Puzzle3Part2InteractionPoint enabled.");
                         }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint not found in scene - add it to the scene.");
                     }
                     Debug.Log("[NocturneIntroController] Puzzle 3 Part 1 success dialogue ended. Activated Part 2 bridge interaction.");
                     break;
@@ -2184,7 +2255,7 @@ namespace Nemuri.Scenes
                 case IntroState.Puzzle3Part2IntroDialogue:
                     HasPuzzle3Part2IntroEnded = true;
                     SetPlayerMovementEnabled(true);
-                    GameObject p3p2IpAfterIntro = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    GameObject p3p2IpAfterIntro = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
                     if (p3p2IpAfterIntro != null)
                     {
                         var inter = p3p2IpAfterIntro.GetComponent<Interactable>();
@@ -2200,7 +2271,7 @@ namespace Nemuri.Scenes
 
                 case IntroState.Puzzle3Part2SuccessDialogue:
                     SetPlayerMovementEnabled(true);
-                    GameObject p3p2IpDisable = GameObject.Find("Puzzle3Part2InteractionPoint");
+                    GameObject p3p2IpDisable = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
                     if (p3p2IpDisable != null)
                     {
                         var inter = p3p2IpDisable.GetComponent<Interactable>();
@@ -2353,14 +2424,7 @@ namespace Nemuri.Scenes
                 if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
                 if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
 
-                Transform activePlayer = FindActivePlayerTransform();
-                if (activePlayer != null)
-                {
-                    var cc = activePlayer.GetComponent<CharacterController>();
-                    if (cc != null) cc.enabled = false;
-                    activePlayer.position = kaelPos;
-                    if (cc != null) cc.enabled = true;
-                }
+                // Active player stays at their last interaction position
 
                 _ronaPathIndex = _ronaPathToGem.Count;
                 _murialPathIndex = _murialPathToGem.Count;
@@ -2549,20 +2613,36 @@ namespace Nemuri.Scenes
                 // Must be Feanor to untangle the vines
                 if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 4)
                 {
-                    // Disable interactable temporarily
                     if (inter != null)
                     {
                         inter.enabled = false;
                         inter.DismissInteraction();
                     }
 
-                    // Start the Vines rhythm minigame
-                    var minigame = p2Ip.GetComponent<Nemuri.Interactions.VinesMinigame>();
-                    if (minigame == null)
+                    List<DialogueNode> briefingNodes = new List<DialogueNode>()
                     {
-                        minigame = p2Ip.AddComponent<Nemuri.Interactions.VinesMinigame>();
+                        new DialogueNode()
+                        {
+                            speaker = "Narrator",
+                            text = "Use Z, X, C, and V for each column and press when circles align with the hit zone. Match the timing perfectly to solve the puzzle.",
+                            portraitName = "",
+                            typingSpeed = 0.05f
+                        },
+                        new DialogueNode()
+                        {
+                            speaker = "Narrator",
+                            text = "If you miss too many circles or your timing is off, the puzzle will fail. Reset and try again.",
+                            portraitName = "",
+                            typingSpeed = 0.05f
+                        }
+                    };
+
+                    _state = IntroState.VinesMinigameBriefing;
+                    SetPlayerMovementEnabled(false);
+                    if (DialogueManager.Instance != null)
+                    {
+                        DialogueManager.Instance.StartConversation(briefingNodes);
                     }
-                    minigame.StartMinigame();
                 }
                 else
                 {
@@ -2602,14 +2682,7 @@ namespace Nemuri.Scenes
                 if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
                 if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
 
-                Transform activePlayer = FindActivePlayerTransform();
-                if (activePlayer != null)
-                {
-                    var cc = activePlayer.GetComponent<CharacterController>();
-                    if (cc != null) cc.enabled = false;
-                    activePlayer.position = kaelPos;
-                    if (cc != null) cc.enabled = true;
-                }
+                // Active player stays at their last interaction position
 
                 _ronaPathIndex = _ronaPathToCrescent.Count;
                 _murialPathIndex = _murialPathToCrescent.Count;
@@ -2635,26 +2708,6 @@ namespace Nemuri.Scenes
             if (CharacterSwapManager.Instance != null)
             {
                 CharacterSwapManager.Instance.ResetSwapStateToKael();
-            }
-
-            Vector3 ronaPos = new Vector3(-8.12f, 0f, 105.99f); ronaPos.y = GetGroundHeight(ronaPos);
-            Vector3 murialPos = new Vector3(-8.73f, 0f, 104.27f); murialPos.y = GetGroundHeight(murialPos);
-            Vector3 keikoPos = new Vector3(-10.13f, 0f, 101.96f); keikoPos.y = GetGroundHeight(keikoPos);
-            Vector3 feanorPos = new Vector3(-9.17f, 0f, 105.59f); feanorPos.y = GetGroundHeight(feanorPos);
-            Vector3 kaelPos = new Vector3(-10.0f, 0f, 104.0f); kaelPos.y = GetGroundHeight(kaelPos);
-
-            if (_ronaNpc != null) _ronaNpc.transform.position = ronaPos;
-            if (_murialNpc != null) _murialNpc.transform.position = murialPos;
-            if (_keikoNpc != null) _keikoNpc.transform.position = keikoPos;
-            if (_feanorNpc != null) _feanorNpc.transform.position = feanorPos;
-
-            Transform activePlayer = FindActivePlayerTransform();
-            if (activePlayer != null)
-            {
-                var cc = activePlayer.GetComponent<CharacterController>();
-                if (cc != null) cc.enabled = false;
-                activePlayer.position = kaelPos;
-                if (cc != null) cc.enabled = true;
             }
 
             GameObject p2Ip = GameObject.Find("Puzzle2InteractionPoint");
@@ -2959,7 +3012,7 @@ namespace Nemuri.Scenes
 
         private void OnPuzzle3Interacted()
         {
-            GameObject p3Ip = GameObject.Find("Puzzle3InteractionPoint");
+            GameObject p3Ip = FindGameObjectByNameCaseInsensitive("Puzzle3InteractionPoint");
             Interactable inter = null;
             if (p3Ip != null) inter = p3Ip.GetComponent<Interactable>();
 
@@ -2993,39 +3046,28 @@ namespace Nemuri.Scenes
 
                 if (inter != null) inter.DismissInteraction();
             }
-            else if (HasPuzzle3IntroEnded && !HasPuzzle3BridgeCreated)
-            {
-                // Must be Rona to build the second bridge
-                if (CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 1)
-                {
-                    HasPuzzle3BridgeCreated = true;
-
-                    // Disable interactable temporarily
-                    if (inter != null) inter.enabled = false;
-
-                    TriggerPuzzle3BridgeSuccess();
-                    if (inter != null) inter.DismissInteraction();
-                }
-                else
-                {
-                    if (inter != null)
-                    {
-                        inter.SetOverridePromptText("You must use Rona as player to interact", 3f);
-                    }
-                    Debug.Log("[NocturneIntroController] Only Rona can create the second bridge!");
-                }
-            }
+            // phase 2 (Rona hold E) is handled by Puzzle3Part2InteractionPoint
         }
 
         private void OnPuzzle3Part2Interacted()
         {
-            GameObject p3p2Ip = GameObject.Find("Puzzle3Part2InteractionPoint");
+            Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 interaction pressed. IntroStarted={HasPuzzle3Part2IntroStarted} IntroEnded={HasPuzzle3Part2IntroEnded} BridgeCreated={HasPuzzle3Part2BridgeCreated}");
+
+            GameObject p3p2Ip = FindGameObjectByNameCaseInsensitive("Puzzle3Part2InteractionPoint");
             Interactable inter = null;
-            if (p3p2Ip != null) inter = p3p2Ip.GetComponent<Interactable>();
+            if (p3p2Ip != null)
+            {
+                inter = p3p2Ip.GetComponent<Interactable>();
+            }
+            else
+            {
+                Debug.LogWarning("[NocturneIntroController] Puzzle3Part2InteractionPoint GameObject not found.");
+            }
 
             if (!HasPuzzle3Part2IntroStarted)
             {
                 HasPuzzle3Part2IntroStarted = true;
+                Debug.Log("[NocturneIntroController] Puzzle 3 Part 2 intro dialogue triggered.");
 
                 List<DialogueNode> nodes = new List<DialogueNode>()
                 {
@@ -3044,7 +3086,9 @@ namespace Nemuri.Scenes
             }
             else if (HasPuzzle3Part2IntroEnded && !HasPuzzle3Part2BridgeCreated)
             {
-                bool isRona = CharacterSwapManager.Instance != null && CharacterSwapManager.Instance.ActiveCharacterIndex == 1;
+                int activeIndex = CharacterSwapManager.Instance != null ? CharacterSwapManager.Instance.ActiveCharacterIndex : -1;
+                bool isRona = activeIndex == 1;
+                Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 bridge attempt. ActiveCharacterIndex={activeIndex} IsRona={isRona}");
 
                 if (isRona)
                 {
@@ -3063,6 +3107,10 @@ namespace Nemuri.Scenes
                     }
                     Debug.Log("[NocturneIntroController] Only Rona can raise the second bridge!");
                 }
+            }
+            else
+            {
+                Debug.Log($"[NocturneIntroController] Puzzle 3 Part 2 interaction ignored. State not ready: IntroStarted={HasPuzzle3Part2IntroStarted} IntroEnded={HasPuzzle3Part2IntroEnded} BridgeCreated={HasPuzzle3Part2BridgeCreated}");
             }
         }
 
@@ -3185,19 +3233,8 @@ namespace Nemuri.Scenes
 
         private GameObject FindPuzzleBridge2()
         {
-            GameObject pg = GameObject.Find("PINEALGRAND");
-            if (pg != null)
-            {
-                GameObject found = FindChildRecursive(pg.transform, "PuzzleBridge2");
-                if (found != null) return found;
-                found = FindChildRecursive(pg.transform, "puzzle bridge 2");
-                if (found != null) return found;
-                found = FindChildRecursive(pg.transform, "PuzzleBridge 2");
-                if (found != null) return found;
-            }
-            GameObject global = GameObject.Find("PuzzleBridge2");
-            if (global == null) global = GameObject.Find("puzzle bridge 2");
-            return global;
+            // PuzzleBridge may be inactive; use inactive-aware search
+            return FindGameObjectByNameCaseInsensitive("PuzzleBridge");
         }
 
         private GameObject FindPuzzle3Bridge()
@@ -3645,6 +3682,16 @@ namespace Nemuri.Scenes
             {
                 GameObject result = FindChildRecursive(parent.GetChild(i), name);
                 if (result != null) return result;
+            }
+            return null;
+        }
+
+        private GameObject FindGameObjectByNameCaseInsensitive(string name)
+        {
+            string lower = name.ToLower();
+            foreach (GameObject go in FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (go.name.ToLower() == lower) return go;
             }
             return null;
         }
