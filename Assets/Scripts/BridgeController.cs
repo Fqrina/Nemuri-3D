@@ -88,12 +88,8 @@ public class BridgeController : MonoBehaviour
 
                 if (!intro.HasBridgeIntroStarted)
                 {
-                    _interactable?.DisplayInteraction("Press E to Interact", 0f);
-                    if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                    {
-                        intro.OnBridgeInteracted();
-                        _interactable?.DismissInteraction();
-                    }
+                    intro.OnBridgeInteracted();
+                    _interactable?.DismissInteraction();
                 }
                 else if (intro.HasBridgeIntroEnded && !intro.HasBridgeFixed)
                 {
@@ -131,7 +127,7 @@ public class BridgeController : MonoBehaviour
                         _interactable?.DisplayInteraction("Press E to fix bridge", 0f);
                         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                         {
-                            _interactable?.DisplayInteraction("You must use Rona as player to interact", 0f);
+                            _interactable?.SetOverridePromptText("You must use Rona as player to interact", 3f);
                         }
                     }
                 }

@@ -30,6 +30,15 @@ namespace Nemuri.Interactions
         private Bounds _interactionBounds;
         private bool _hasInteractionBounds;
 
+        private string _overrideText = null;
+        private float _overrideTimer = 0f;
+
+        public void SetOverridePromptText(string text, float duration)
+        {
+            _overrideText = text;
+            _overrideTimer = duration;
+        }
+
         public string PromptText
         {
             get => _promptText;
@@ -134,7 +143,16 @@ namespace Nemuri.Interactions
         private void ShowPrompt()
         {
             float progress = _holdSeconds > 0f ? Mathf.Clamp01(_holdTimer / _holdSeconds) : 0f;
-            _prompt.Show(this, _promptText, progress);
+            if (_overrideTimer > 0f && !string.IsNullOrEmpty(_overrideText))
+            {
+                _overrideTimer -= Time.deltaTime;
+                _prompt.Show(this, _overrideText, 0f);
+            }
+            else
+            {
+                _overrideText = null;
+                _prompt.Show(this, _promptText, progress);
+            }
         }
 
         private void HidePromptAndReset()
