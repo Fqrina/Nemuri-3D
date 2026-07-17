@@ -59,6 +59,7 @@ namespace Nemuri.UI
         private void Update()
         {
             if (Keyboard.current == null || _isAnimating) return;
+            if (VisionManager.Instance != null && VisionManager.Instance.IsVisionActive) return;
 
             if (Keyboard.current.iKey.wasPressedThisFrame)
             {

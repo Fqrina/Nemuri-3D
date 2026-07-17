@@ -20,6 +20,17 @@ namespace Nemuri.UI
 
         private void Start()
         {
+            // automatically ensure the inspect script is attached
+            if (GetComponent<ItemInspector>() == null)
+            {
+                gameObject.AddComponent<ItemInspector>();
+            }
+            // automatically ensure the vision manager is attached
+            if (GetComponent<VisionManager>() == null)
+            {
+                gameObject.AddComponent<VisionManager>();
+            }
+
             InitializeUI();
 
             if (HotbarInventory.Instance != null)
