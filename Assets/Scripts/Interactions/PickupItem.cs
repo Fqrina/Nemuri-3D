@@ -8,6 +8,7 @@ namespace Nemuri.Interactions
     {
         [SerializeField] private string _displayName = "item";
         [SerializeField] private Sprite _itemIcon;
+        [TextArea(2, 5)] [SerializeField] private string _description = "This is a description.";
 
         private Interactable _interactable;
 
@@ -35,7 +36,7 @@ namespace Nemuri.Interactions
         {
             if (HotbarInventory.Instance != null)
             {
-                bool added = HotbarInventory.Instance.AddItem(_displayName, _itemIcon);
+                bool added = HotbarInventory.Instance.AddItem(_displayName, _itemIcon, _description);
                 if (added)
                 {
                     _interactable.enabled = false;

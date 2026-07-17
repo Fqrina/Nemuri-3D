@@ -7,11 +7,13 @@ namespace Nemuri.Inventory
     {
         public string displayName;
         public Sprite icon;
+        public string description;
 
-        public HotbarItem(string displayName, Sprite icon)
+        public HotbarItem(string displayName, Sprite icon, string description)
         {
             this.displayName = displayName;
             this.icon = icon;
+            this.description = description;
         }
     }
 
@@ -25,6 +27,8 @@ namespace Nemuri.Inventory
 
         public event System.Action<int> OnSlotSelected;
         public event System.Action OnInventoryUpdated;
+
+        public bool IsLocked { get; set; }
 
         public int SelectedIndex => _selectedIndex;
         public int SlotCount => TotalSlots;
@@ -42,6 +46,7 @@ namespace Nemuri.Inventory
 
         private void Update()
         {
+            if (IsLocked) return;
             HandleSelectionInput();
         }
 
@@ -93,13 +98,13 @@ namespace Nemuri.Inventory
             }
         }
 
-        public bool AddItem(string displayName, Sprite icon)
+        public bool AddItem(string displayName, Sprite icon, string description)
         {
             for (int i = 0; i < TotalSlots; i++)
             {
                 if (_slots[i] == null)
                 {
-                    _slots[i] = new HotbarItem(displayName, icon);
+                    _slots[i] = new HotbarItem(displayName, icon, description);
                     OnInventoryUpdated?.Invoke();
                     return true;
                 }
