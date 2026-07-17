@@ -1,5 +1,6 @@
 using UnityEngine;
 using Nemuri.Inventory;
+using Nemuri.UI;
 
 namespace Nemuri.Interactions
 {
