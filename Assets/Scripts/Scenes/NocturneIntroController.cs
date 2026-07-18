@@ -111,6 +111,13 @@ namespace Nemuri.Scenes
 
         private AudioSource _audioSource;
 
+        // Chapter 1 Audio Volume Settings (Set manually between 0.0f and 1.0f)
+        private float _chap1BgVolume = 0.1f;
+        private float _worldFallApartVolume = 2.0f;
+        private float _vinesVolume = 40.0f;
+        private float _crystalCrackVolume = 20.0f;
+        private float _threeBridgeVolume = 50.0f;
+
         [Header("Trigger Settings")]
         [SerializeField, Min(0.1f)] private float _dialogueTriggerDistance = 3.5f;
 
@@ -527,7 +534,14 @@ namespace Nemuri.Scenes
             if (_ronaNpc != null) _ronaNpc.SetActive(true);
             if (_keikoNpc != null) _keikoNpc.SetActive(true);
             if (_feanorNpc != null) _feanorNpc.SetActive(true);
-            if (_ferryNpc != null) _ferryNpc.SetActive(true);
+            if (_ferryNpc != null)
+            {
+                _ferryNpc.SetActive(true);
+                if (_ferryNpc.GetComponent<HoverAnimationController>() == null)
+                {
+                    _ferryNpc.AddComponent<HoverAnimationController>();
+                }
+            }
 
             ConfigureNpcPhysics(_ronaNpc);
             ConfigureNpcPhysics(_murialNpc);
@@ -547,6 +561,21 @@ namespace Nemuri.Scenes
                 _audioSource = gameObject.AddComponent<AudioSource>();
             }
             _audioSource.playOnAwake = false;
+
+            // Setup BGM
+            AudioSource bgmSource = gameObject.AddComponent<AudioSource>();
+            bgmSource.clip = Resources.Load<AudioClip>("Chap1Bg");
+            bgmSource.loop = true;
+            bgmSource.volume = _chap1BgVolume;
+            bgmSource.playOnAwake = false;
+            if (bgmSource.clip != null)
+            {
+                bgmSource.Play();
+            }
+            else
+            {
+                Debug.LogWarning("[NocturneIntroController] Chap1Bg music clip not found in Resources.");
+            }
 
             // Find missing references automatically at runtime
             if (_murialSpawnPoint == null)
@@ -750,12 +779,14 @@ namespace Nemuri.Scenes
         {
             DialogueManager.OnNodeDisplayed += HandleNodeDisplayed;
             DialogueManager.OnConversationEnd += HandleConversationEnd;
+            Cinemachine.CinemachineCore.CameraUpdatedEvent.AddListener(OnCameraUpdated);
         }
 
         private void OnDisable()
         {
             DialogueManager.OnNodeDisplayed -= HandleNodeDisplayed;
             DialogueManager.OnConversationEnd -= HandleConversationEnd;
+            Cinemachine.CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
         }
 
         private void OnDestroy()
@@ -1774,11 +1805,6 @@ namespace Nemuri.Scenes
                 float y = Random.Range(-1f, 1f) * _currentShakeMagnitude;
                 float z = Random.Range(-1f, 1f) * _currentShakeMagnitude;
                 _shakeOffset = new Vector3(x, y, z);
-
-                if (Camera.main != null)
-                {
-                    Camera.main.transform.position += _shakeOffset;
-                }
             }
             else
             {
@@ -1803,40 +1829,24 @@ namespace Nemuri.Scenes
             if (node.speaker == "SFX")
             {
                 string text = node.text;
-                bool isShake = text.Contains("tremor") ||
-                               text.Contains("shak") ||
-                               text.Contains("quake") ||
-                               text.Contains("rumble") ||
-                               (text.Contains("crash") && text.Contains("ground"));
 
-                if (isShake)
+                if (text.Contains("Slight tremor"))
                 {
                     AudioClip clip = Resources.Load<AudioClip>("WorldFallApart");
                     if (clip != null && _audioSource != null)
                     {
-                        _audioSource.PlayOneShot(clip, 1f);
+                        _audioSource.PlayOneShot(clip, 0.3f * _worldFallApartVolume); // low volume scaled by settings
                     }
-
-                    float duration = 2.0f;
-                    float magnitude = 1.0f;
-
-                    if (text.Contains("Slight tremor"))
+                    TriggerShake(3.75f, 0.3f); // slight shake, not violent
+                }
+                else if (text.Contains("shakes violently") || text.Contains("violent quake"))
+                {
+                    AudioClip clip = Resources.Load<AudioClip>("WorldFallApart");
+                    if (clip != null && _audioSource != null)
                     {
-                        duration = 1.5f;
-                        magnitude = 0.5f;
+                        _audioSource.PlayOneShot(clip, 1.0f * _worldFallApartVolume); // normal volume scaled by settings
                     }
-                    else if (text.Contains("shakes violently") || text.Contains("violent quake") || text.Contains("shakes hard") || text.Contains("violent shake"))
-                    {
-                        duration = 3.0f;
-                        magnitude = 1.6f;
-                    }
-                    else if (text.Contains("shakes") || text.Contains("shaking"))
-                    {
-                        duration = 2.0f;
-                        magnitude = 1.0f;
-                    }
-
-                    TriggerShake(duration, magnitude);
+                    TriggerShake(3.75f, 0.6f); // violent shake
                 }
 
                 if (node.text.Contains("bushes rustle"))
@@ -1874,6 +1884,14 @@ namespace Nemuri.Scenes
         {
             _currentShakeTime = duration;
             _currentShakeMagnitude = magnitude;
+        }
+
+        private void OnCameraUpdated(Cinemachine.CinemachineBrain brain)
+        {
+            if (_shakeOffset != Vector3.zero && brain != null && brain.OutputCamera != null)
+            {
+                brain.OutputCamera.transform.position += _shakeOffset;
+            }
         }
 
         private IEnumerator MurialFallRoutine()
@@ -2640,7 +2658,7 @@ namespace Nemuri.Scenes
             AudioClip crackClip = Resources.Load<AudioClip>("CrystalCrack");
             if (crackClip != null && rockObj != null)
             {
-                AudioSource.PlayClipAtPoint(crackClip, rockObj.transform.position);
+                AudioSource.PlayClipAtPoint(crackClip, rockObj.transform.position, _crystalCrackVolume);
             }
 
             float duration = 2.0f; // Smoothly lower over 2 seconds
@@ -2787,7 +2805,7 @@ namespace Nemuri.Scenes
                         new DialogueNode()
                         {
                             speaker = "Narrator",
-                            text = "Use Z, X, C, and V for each column and press when circles align with the hit zone. Match the timing perfectly to solve the puzzle.",
+                            text = "Use X, C, B, and N for each column and press when circles align with the hit zone. Match the timing perfectly to solve the puzzle.",
                             portraitName = "",
                             typingSpeed = 0.05f
                         },
@@ -2970,6 +2988,12 @@ namespace Nemuri.Scenes
 
         private IEnumerator SmoothMovePuzzle2Routine(GameObject cubeObj, GameObject dobjObj)
         {
+            AudioClip clip = Resources.Load<AudioClip>("Vines");
+            if (clip != null && cubeObj != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, cubeObj.transform.position, _vinesVolume);
+            }
+
             float duration = 2.0f; // Smooth move over 2 seconds
             float elapsed = 0f;
 
@@ -3300,6 +3324,12 @@ namespace Nemuri.Scenes
 
         private IEnumerator SmoothMovePuzzleBridge2Routine(GameObject p3Bridge2)
         {
+            AudioClip clip = Resources.Load<AudioClip>("ThreeBridge");
+            if (clip != null && p3Bridge2 != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, p3Bridge2.transform.position, _threeBridgeVolume);
+            }
+
             float duration = 3.0f;
             float elapsed = 0f;
 
@@ -3774,7 +3804,9 @@ namespace Nemuri.Scenes
                     nameLower.Contains("leaf") ||
                     nameLower.Contains("leaves") ||
                     nameLower.Contains("branch") ||
-                    nameLower.Contains("canopy"))
+                    nameLower.Contains("canopy") ||
+                    nameLower.Contains("grasstrigger") ||
+                    nameLower.Contains("normaltrigger"))
                 {
                     continue;
                 }

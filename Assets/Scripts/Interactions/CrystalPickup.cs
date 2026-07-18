@@ -10,6 +10,9 @@ namespace Nemuri.Interactions
         [SerializeField] private bool _requiresMinigame;
         private bool _collected;
 
+        // Audio Volume (Set manually between 0.0f and 1.0f)
+        private float _gemsVolume = 10.0f;
+
         private void Awake()
         {
             GetComponent<SphereCollider>().isTrigger = true;
@@ -32,6 +35,13 @@ namespace Nemuri.Interactions
 
             _collected = true;
             PuzzleManager.Instance.CollectCrystal(_crystalIndex);
+
+            AudioClip gemsClip = Resources.Load<AudioClip>("Gems");
+            if (gemsClip != null)
+            {
+                AudioSource.PlayClipAtPoint(gemsClip, transform.position, _gemsVolume);
+            }
+
             gameObject.SetActive(false);
 
             if (gameObject.name == "dobj.001")

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 using Nemuri.Dialogue;
 using Nemuri.Player;
 
@@ -22,6 +23,16 @@ namespace Nemuri.Core
         [SerializeField] private List<CharacterBinding> _characters = new List<CharacterBinding>();
         [SerializeField] private int _activeCharacterIndex = 0;
         public int ActiveCharacterIndex => _activeCharacterIndex;
+
+        // Audio Volume (Set manually between 0.0f and 1.0f)
+        private float _crystalBlinkVolume = 10.0f;
+
+        [Header("Character Swap UI Configuration")]
+        [SerializeField] private Vector2 _uiImageSize = new Vector2(200f, 200f);
+        [SerializeField] private Vector2 _uiImagePosition = new Vector2(-50f, 0f);
+
+        private GameObject _uiCanvasObject;
+        private Image _uiImageComponent;
 
         public GameObject GetActivePlayerObject()
         {
@@ -46,6 +57,8 @@ namespace Nemuri.Core
             if (index >= 0 && index < _unlockedCharacters.Length)
             {
                 _unlockedCharacters[index] = unlocked;
+                EnsureUIInitialized();
+                UpdateCharacterImageSprite();
             }
         }
 
@@ -72,22 +85,37 @@ namespace Nemuri.Core
         private void Start()
         {
             InitializeCharacters();
+            EnsureUIInitialized();
         }
 
         private void OnEnable()
         {
             DialogueManager.OnConversationStart += HandleConversationStart;
             DialogueManager.OnConversationEnd += HandleConversationEnd;
+            DialogueManager.OnConversationStart += RefreshCharacterImage;
+            DialogueManager.OnConversationEnd += RefreshCharacterImage;
         }
 
         private void OnDisable()
         {
             DialogueManager.OnConversationStart -= HandleConversationStart;
             DialogueManager.OnConversationEnd -= HandleConversationEnd;
+            DialogueManager.OnConversationStart -= RefreshCharacterImage;
+            DialogueManager.OnConversationEnd -= RefreshCharacterImage;
+        }
+
+        private void RefreshCharacterImage()
+        {
+            EnsureUIInitialized();
+            UpdateCharacterImageSprite();
         }
 
         private void Update()
         {
+            EnsureUIInitialized();
+            UpdateCharacterImageTransform();
+            UpdateCharacterImageSprite();
+
             if (_guideLightCooldown > 0f)
             {
                 _guideLightCooldown -= Time.deltaTime;
@@ -111,7 +139,7 @@ namespace Nemuri.Core
                         AudioClip blinkClip = Resources.Load<AudioClip>("CrystalBlink");
                         if (blinkClip != null)
                         {
-                            AudioSource.PlayClipAtPoint(blinkClip, _characters[3].playerObject.transform.position);
+                            AudioSource.PlayClipAtPoint(blinkClip, _characters[3].playerObject.transform.position, _crystalBlinkVolume);
                         }
                     }
                 }
@@ -363,6 +391,8 @@ namespace Nemuri.Core
             UpdateCameraTargets(targetCharacterObj.transform);
 
             _activeCharacterIndex = index;
+            EnsureUIInitialized();
+            UpdateCharacterImageSprite();
         }
 
         private void SetNpcPositionAndRotation(GameObject npc, Vector3 position, Quaternion rotation)
@@ -618,5 +648,161 @@ namespace Nemuri.Core
             }
             return null;
         }
+
+        private void EnsureUIInitialized()
+        {
+            if (_uiImageComponent != null && _uiCanvasObject != null)
+            {
+                return;
+            }
+
+            _uiCanvasObject = new GameObject("CharacterSwapUI_Canvas");
+            Canvas canvas = _uiCanvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 800; // Render behind dialogue (900) but on top of normal UI
+
+            CanvasScaler scaler = _uiCanvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            _uiCanvasObject.AddComponent<GraphicRaycaster>();
+
+            GameObject imageObj = new GameObject("ActiveCharacter_Image");
+            imageObj.transform.SetParent(_uiCanvasObject.transform, false);
+
+            _uiImageComponent = imageObj.AddComponent<Image>();
+            
+            // Configure RectTransform for right-alignment (Middle-Right anchor and pivot)
+            RectTransform rectTransform = _uiImageComponent.rectTransform;
+            rectTransform.anchorMin = new Vector2(1f, 0.5f);
+            rectTransform.anchorMax = new Vector2(1f, 0.5f);
+            rectTransform.pivot = new Vector2(1f, 0.5f);
+            
+            UpdateCharacterImageTransform();
+            UpdateCharacterImageSprite();
+        }
+
+        private void UpdateCharacterImageTransform()
+        {
+            if (_uiImageComponent != null)
+            {
+                RectTransform rectTransform = _uiImageComponent.rectTransform;
+                if (rectTransform != null)
+                {
+                    rectTransform.sizeDelta = _uiImageSize;
+                    rectTransform.anchoredPosition = _uiImagePosition;
+                }
+            }
+        }
+
+        private Sprite LoadSprite(string path)
+        {
+            Sprite sprite = Resources.Load<Sprite>(path);
+            if (sprite != null)
+            {
+                return sprite;
+            }
+            Texture2D tex = Resources.Load<Texture2D>(path);
+            if (tex != null)
+            {
+                return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+            }
+            return null;
+        }
+
+        private void UpdateCharacterImageSprite()
+        {
+            if (_uiImageComponent == null) return;
+
+            // 1. Calculate how many characters are unlocked
+            int unlockedCount = 0;
+            for (int i = 0; i < _unlockedCharacters.Length; i++)
+            {
+                if (_unlockedCharacters[i])
+                {
+                    unlockedCount++;
+                }
+            }
+
+            // 2. Decide the prefix (3p or 5p) based on unlockedCount
+            string prefix = "";
+            if (unlockedCount == 3)
+            {
+                prefix = "3p";
+            }
+            else if (unlockedCount == 5)
+            {
+                prefix = "5p";
+            }
+
+            if (string.IsNullOrEmpty(prefix))
+            {
+                // If neither 3 nor 5, hide the image
+                _uiImageComponent.gameObject.SetActive(false);
+                return;
+            }
+
+            // 3. Check for dialogue, narrative, scene transition, or menu hiding conditions
+            bool isDialogueActive = (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive);
+            bool isTransitioning = (Nemuri.UI.ScreenFader.Instance != null && Nemuri.UI.ScreenFader.Instance.CurrentAlpha > 0.01f);
+            
+            var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            bool isMenu = activeScene.name.ToLower().Contains("mainmenu") || activeScene.name.ToLower().Contains("menu");
+
+            if (isDialogueActive || isTransitioning || isMenu)
+            {
+                _uiImageComponent.gameObject.SetActive(false);
+                return;
+            }
+
+            // 4. Determine the active character image index (1-indexed)
+            int imageIndex = _activeCharacterIndex + 1; // 1-indexed (1 to 5)
+
+            if (unlockedCount == 3 && imageIndex > 3)
+            {
+                _uiImageComponent.gameObject.SetActive(false);
+                return;
+            }
+            if (unlockedCount == 5 && imageIndex > 5)
+            {
+                _uiImageComponent.gameObject.SetActive(false);
+                return;
+            }
+
+            string resourcePath = "PlayerInfo/" + prefix + "-" + imageIndex;
+
+            // 5. Load and display sprite
+            Sprite characterSprite = LoadSprite(resourcePath);
+
+            if (characterSprite != null)
+            {
+                _uiImageComponent.sprite = characterSprite;
+                _uiImageComponent.gameObject.SetActive(true);
+            }
+            else
+            {
+                _uiImageComponent.gameObject.SetActive(false);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_uiCanvasObject != null)
+            {
+                Destroy(_uiCanvasObject);
+            }
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (Application.isPlaying && _uiImageComponent != null)
+            {
+                UpdateCharacterImageTransform();
+                UpdateCharacterImageSprite();
+            }
+        }
+#endif
     }
 }

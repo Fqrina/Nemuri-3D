@@ -419,6 +419,15 @@ namespace Nemuri.Scenes
             }
         }
 
+        private void PlayClickSound()
+        {
+            AudioClip clickClip = Resources.Load<AudioClip>("ButtonClick");
+            if (clickClip != null)
+            {
+                AudioSource.PlayClipAtPoint(clickClip, Camera.main != null ? Camera.main.transform.position : Vector3.zero);
+            }
+        }
+
         private void OnPlayClicked()
         {
             if (_isTransitioning)
@@ -426,6 +435,7 @@ namespace Nemuri.Scenes
                 return;
             }
 
+            PlayClickSound();
             StartCoroutine(TransitionToMindlitRoutine());
         }
 
@@ -436,11 +446,13 @@ namespace Nemuri.Scenes
                 return;
             }
 
+            PlayClickSound();
             _guideOverlay.SetActive(!_guideOverlay.activeSelf);
         }
 
         private void CloseGuideOverlay()
         {
+            PlayClickSound();
             if (_guideOverlay != null)
             {
                 _guideOverlay.SetActive(false);

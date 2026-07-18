@@ -25,6 +25,8 @@ namespace Nemuri.UI
         private Image _fadeImage;
         private float _currentAlpha = 0f;
 
+        public float CurrentAlpha => _currentAlpha;
+
         private void Awake()
         {
             if (_instance != null && _instance != this)

@@ -24,6 +24,30 @@ public class FixedWorldOffsetCamera : MonoBehaviour
 
     private void Start()
     {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+        {
+            var bossCam = GetComponent<BossFightCamera>();
+            if (bossCam == null)
+            {
+                bossCam = gameObject.AddComponent<BossFightCamera>();
+                bossCam.player = this.target;
+                bossCam.followDistance = new Vector3(this.worldOffset.x, 0f, this.worldOffset.z).magnitude;
+                bossCam.cameraHeight = this.worldOffset.y;
+                bossCam.enableCollision = this.enableCollision;
+                bossCam.collisionLayers = this.collisionLayers;
+                bossCam.cameraSphereRadius = this.cameraSphereRadius;
+                bossCam.playerCollisionHeightOffset = this.playerCollisionHeightOffset;
+                bossCam.wallSafetyDistance = this.wallSafetyDistance;
+                bossCam.minDistanceToPlayer = this.minDistance;
+                bossCam.lookAtOffset = this.lookAtOffset;
+                bossCam.positionSmoothSpeed = smoothMovement ? movementSmoothSpeed : 5.0f;
+                bossCam.rotationSmoothSpeed = rotationSmoothSpeed;
+            }
+
+            this.enabled = false;
+            return;
+        }
+
         if (collisionLayers.value == ~0 || collisionLayers.value == 0)
         {
             int layer = LayerMask.NameToLayer("cameraCollision");
