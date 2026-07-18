@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 4889fcee5f0084a4e8a1c45f616a86dd
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168611
+  packageName: Ultimate 10+ Shaders
+  packageVersion: 1.0.2
+  assetPath: Assets/Ultimate 10 Plus Shaders/Shaders/Ocean.shader
+  uploadId: 385061

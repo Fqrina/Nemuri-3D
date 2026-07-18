@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 19e79e6fdce5d29418196afe8a2347a0
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168611
+  packageName: Ultimate 10+ Shaders
+  packageVersion: 1.0.2
+  assetPath: Assets/Ultimate 10 Plus Shaders/Shaders/Plasma.shader
+  uploadId: 385061

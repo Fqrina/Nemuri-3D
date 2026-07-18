@@ -9034,64 +9034,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &764044186
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 74.59301
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -68.85727
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 57.046375
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-      propertyPath: m_Name
-      value: BRIDGEHIPPOCAMPUS
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 8164078558771037576, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 2e1d40495f98cec4e927d670c181111d, type: 3}
 --- !u!1 &775295904
 GameObject:
   m_ObjectHideFlags: 0
@@ -9773,8 +9715,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3844b4830d93ad943aba5bba5840e4c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Player.PlayerMovement
-  _moveSpeed: 5
-  _rotationSpeed: 12
+  _moveSpeed: 10
+  _rotationSpeed: 18
   _skillActionName: Attack
 --- !u!4 &850811796
 Transform:
@@ -12651,7 +12593,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 32a76832b79e84347ad9df08b12709c3, type: 2}
+  - {fileID: 2100000, guid: 899aa62c2a752744f925ca05de380870, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -20162,10 +20104,6 @@ PrefabInstance:
       propertyPath: m_Lightmapping
       value: 2
       objectReference: {fileID: 0}
-    - target: {fileID: -1244234205430477131, guid: 585786029d7fafd4285d59067b92b5ef, type: 3}
-      propertyPath: m_Name
-      value: Bridge1
-      objectReference: {fileID: 0}
     - target: {fileID: -516098083770646512, guid: 585786029d7fafd4285d59067b92b5ef, type: 3}
       propertyPath: m_Layer
       value: 3
@@ -23627,4 +23565,3 @@ SceneRoots:
   - {fileID: 886433026}
   - {fileID: 691478796}
   - {fileID: 763378507}
-  - {fileID: 764044186}
