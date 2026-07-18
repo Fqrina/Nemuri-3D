@@ -14,6 +14,9 @@ public class Chapt1gatecontroller : MonoBehaviour
     [Header("Target Character Settings")]
     [SerializeField] private string[] targetCharacterNames = { "MURIALCHARA" };
 
+    // Audio Volume (Set manually between 0.0f and 1.0f)
+    private float _vinesVolume = 40.0f;
+
     [Header("Hold Interaction")]
     public float holdDuration = 3f;
 
@@ -186,6 +189,12 @@ public class Chapt1gatecontroller : MonoBehaviour
 
     IEnumerator MoveSmoothly()
     {
+        AudioClip clip = Resources.Load<AudioClip>("Vines");
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position, _vinesVolume);
+        }
+
         float elapsed = 0f;
         while (elapsed < duration)
         {

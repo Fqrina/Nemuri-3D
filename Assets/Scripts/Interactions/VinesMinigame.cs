@@ -32,6 +32,10 @@ namespace Nemuri.Interactions
         }
 
         private bool _isPlaying;
+
+        // Audio Volume (Set manually between 0.0f and 1.0f)
+        private float _rhythmVolume = 5.0f;
+
         private float _timer;
         private int _hits;
         private int _misses;
@@ -228,10 +232,10 @@ namespace Nemuri.Interactions
             }
 
             // handle lanes key inputs
-            bool zPressed = Keyboard.current != null && Keyboard.current.zKey.isPressed;
-            bool xPressed = Keyboard.current != null && Keyboard.current.xKey.isPressed;
-            bool cPressed = Keyboard.current != null && Keyboard.current.cKey.isPressed;
-            bool vPressed = Keyboard.current != null && Keyboard.current.vKey.isPressed;
+            bool zPressed = Keyboard.current != null && Keyboard.current.xKey.isPressed;
+            bool xPressed = Keyboard.current != null && Keyboard.current.cKey.isPressed;
+            bool cPressed = Keyboard.current != null && Keyboard.current.bKey.isPressed;
+            bool vPressed = Keyboard.current != null && Keyboard.current.nKey.isPressed;
 
             UpdateTargetZoneFeedback(0, zPressed);
             UpdateTargetZoneFeedback(1, xPressed);
@@ -240,10 +244,10 @@ namespace Nemuri.Interactions
 
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.zKey.wasPressedThisFrame) HandleKeyPress(0);
-                if (Keyboard.current.xKey.wasPressedThisFrame) HandleKeyPress(1);
-                if (Keyboard.current.cKey.wasPressedThisFrame) HandleKeyPress(2);
-                if (Keyboard.current.vKey.wasPressedThisFrame) HandleKeyPress(3);
+                if (Keyboard.current.xKey.wasPressedThisFrame) HandleKeyPress(0);
+                if (Keyboard.current.cKey.wasPressedThisFrame) HandleKeyPress(1);
+                if (Keyboard.current.bKey.wasPressedThisFrame) HandleKeyPress(2);
+                if (Keyboard.current.nKey.wasPressedThisFrame) HandleKeyPress(3);
             }
 
             // evaluate if all notes have been spawned and processed
@@ -301,6 +305,13 @@ namespace Nemuri.Interactions
                 Destroy(closestNote.gameObject);
                 _activeNotes.Remove(closestNote);
                 UpdateScoreText();
+
+                string clipName = "RhythmHit" + (lane + 1);
+                AudioClip clip = Resources.Load<AudioClip>(clipName);
+                if (clip != null)
+                {
+                    AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, _rhythmVolume);
+                }
             }
         }
 
@@ -554,7 +565,7 @@ namespace Nemuri.Interactions
             }
 
             float[] laneXs = { -120f, -40f, 40f, 120f };
-            string[] keys = { "Z", "X", "C", "V" };
+            string[] keys = { "X", "C", "B", "N" };
 
             for (int i = 0; i < 4; i++)
             {

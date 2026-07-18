@@ -14,6 +14,9 @@ public class BridgeController : MonoBehaviour
 
     [SerializeField] private string[] allCharacterNames = { "KEIKOCHARA", "Player2" };
 
+    // Audio Volume (Set manually between 0.0f and 1.0f)
+    private float _bridgeVolume = 2.0f;
+
     private Animator[] childAnimators;
     private BoxCollider[] childColliders;
     private bool isTriggered = false;
@@ -211,6 +214,12 @@ public class BridgeController : MonoBehaviour
     void TriggerBridge()
     {
         isTriggered = true;
+
+        AudioClip clip = Resources.Load<AudioClip>("Bridge");
+        if (clip != null)
+        {
+            AudioSource.PlayClipAtPoint(clip, transform.position, _bridgeVolume);
+        }
 
         foreach (var anim in childAnimators)
         {
