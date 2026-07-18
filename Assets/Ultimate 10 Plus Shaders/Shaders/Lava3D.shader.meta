@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 0b65beeff2abd8f49a7633b323425f2c
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168611
+  packageName: Ultimate 10+ Shaders
+  packageVersion: 1.0.2
+  assetPath: Assets/Ultimate 10 Plus Shaders/Shaders/Lava3D.shader
+  uploadId: 385061

@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a9a8211f737bfbd4fb8a469399c59177
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 168611
+  packageName: Ultimate 10+ Shaders
+  packageVersion: 1.0.2
+  assetPath: Assets/Ultimate 10 Plus Shaders/Shaders/Outline.shader
+  uploadId: 385061

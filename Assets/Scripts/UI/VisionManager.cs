@@ -96,15 +96,31 @@ namespace Nemuri.UI
 
         public void PlayVision(string itemName, Sprite visionSprite, TextAsset dialogueJson)
         {
-            if (_triggeredVisions.Contains(itemName)) return;
+            Debug.Log("[VisionManager] PlayVision requested for item name: " + itemName);
+
+            if (_triggeredVisions.Contains(itemName))
+            {
+                Debug.Log("[VisionManager] Vision already triggered for item: " + itemName + ". Bypassing.");
+                return;
+            }
+
             if (dialogueJson == null)
             {
-                Debug.LogWarning("[VisionManager] No dialogue JSON assigned for vision item: " + itemName);
-                return;
+                dialogueJson = Resources.Load<TextAsset>("Dialogue/first_item_narrative");
+                if (dialogueJson == null)
+                {
+                    Debug.LogWarning("[VisionManager] Cannot play vision for " + itemName + " because the Vision Dialogue Json field is empty and no fallback 'first_item_narrative' JSON exists in Resources/Dialogue!");
+                    return;
+                }
+                else
+                {
+                    Debug.Log("[VisionManager] Using fallback 'first_item_narrative' JSON for testing: " + itemName);
+                }
             }
 
             _triggeredVisions.Add(itemName);
             _isVisionActive = true;
+            Debug.Log("[VisionManager] Launching vision overlay for: " + itemName);
 
             // lock player movement and selection
             if (PlayerMovement.Instance != null)
@@ -164,7 +180,16 @@ namespace Nemuri.UI
             _visionImage.color = baseColor;
 
             // load dialogue sequence
-            DialogueSequence sequence = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
+            DialogueSequence sequence = null;
+            try
+            {
+                sequence = JsonUtility.FromJson<DialogueSequence>(dialogueJson.text);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("[VisionManager] JSON Parsing Exception: " + ex.Message);
+            }
+
             if (sequence != null && DialogueManager.Instance != null)
             {
                 DialogueManager.OnConversationEnd += OnVisionDialogueEnd;
@@ -172,7 +197,14 @@ namespace Nemuri.UI
             }
             else
             {
-                Debug.LogError("[VisionManager] Failed to start narrative dialogue!");
+                if (sequence == null)
+                {
+                    Debug.LogError("[VisionManager] Dialogue sequence parsed as null. Check your JSON formatting or content: " + (dialogueJson != null ? dialogueJson.text : "null"));
+                }
+                if (DialogueManager.Instance == null)
+                {
+                    Debug.LogError("[VisionManager] DialogueManager.Instance is null! Please ensure a DialogueManager (or DialogueManagerChapter2) script exists in the scene hierarchy and is active.");
+                }
                 OnVisionDialogueEnd();
             }
         }
