@@ -137,7 +137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &61239268
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -552,6 +552,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -8961359253771211100, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: -8700617353114198275, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -660,6 +664,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: AMYGDALA
       objectReference: {fileID: 0}
+    - target: {fileID: 4767400413853537203, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5811517544658636179, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
       propertyPath: m_LocalScale.x
       value: 84.089
@@ -675,6 +683,10 @@ PrefabInstance:
     - target: {fileID: 5811517544658636179, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
       propertyPath: m_LocalPosition.z
       value: -18.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6507901977716847365, guid: 4b5f6c0d9266257429c8eb2abaa84390, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1077,12 +1089,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 731478670}
-  - component: {fileID: 731478669}
   - component: {fileID: 731478668}
   - component: {fileID: 731478667}
   - component: {fileID: 731478666}
   - component: {fileID: 731478665}
-  - component: {fileID: 731478664}
+  - component: {fileID: 731478671}
   m_Layer: 0
   m_Name: Walking Player
   m_TagString: Player
@@ -1090,21 +1101,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &731478664
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 731478663}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50b86958486d6b2409dea8294566c264, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Player.PlayerMovementChapt1
-  _moveSpeed: 5
-  _rotationSpeed: 12
-  _skillActionName: Attack
 --- !u!136 &731478665
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1206,21 +1202,6 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
---- !u!114 &731478669
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 731478663}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3844b4830d93ad943aba5bba5840e4c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Player.PlayerMovement
-  _moveSpeed: 10
-  _rotationSpeed: 18
-  _skillActionName: Attack
 --- !u!4 &731478670
 Transform:
   m_ObjectHideFlags: 0
@@ -1230,7 +1211,7 @@ Transform:
   m_GameObject: {fileID: 731478663}
   serializedVersion: 2
   m_LocalRotation: {x: -1.0670997e-15, y: 0.60072356, z: 1.4201208e-15, w: 0.79945683}
-  m_LocalPosition: {x: 66.6, y: -89.58, z: 104.5}
+  m_LocalPosition: {x: 76.42, y: -88.5, z: 129.34}
   m_LocalScale: {x: 1.8861027, y: 1.8861027, z: 1.8861027}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1242,6 +1223,21 @@ Transform:
   - {fileID: 2078301932}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 73.843, z: 0}
+--- !u!114 &731478671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731478663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50b86958486d6b2409dea8294566c264, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Player.PlayerMovementChapt1
+  _moveSpeed: 6
+  _rotationSpeed: 12
+  _skillActionName: Attack
 --- !u!1 &858300732
 GameObject:
   m_ObjectHideFlags: 3
@@ -2029,7 +2025,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1283487798
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2141,7 +2137,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1289597152
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2764,17 +2760,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BossFightCamera
   player: {fileID: 0}
   boss: {fileID: 0}
-  followDistance: 20
-  cameraHeight: 20
+  followDistance: 30
+  cameraHeight: 25
   rightOffset: 1
   positionSmoothSpeed: 8
   rotationSmoothSpeed: 10
+  shakeOffset: {x: 0, y: 0, z: 0}
   lookAtOffset: {x: 0, y: 1, z: 0}
   enableDynamicHeightLookAt: 1
   closeLookAtHeight: 40
-  farLookAtHeight: 0
+  farLookAtHeight: -20
   heightBlendMinDistance: 20
-  heightBlendMaxDistance: 70
+  heightBlendMaxDistance: 100
   enableCollision: 1
   collisionLayers:
     serializedVersion: 2
@@ -2856,8 +2853,8 @@ MonoBehaviour:
     playerObject: {fileID: 1415537075}
     npcObject: {fileID: 0}
   _activeCharacterIndex: 0
-  _uiImageSize: {x: 1200, y: 800}
-  _uiImagePosition: {x: 320, y: 120}
+  _uiImageSize: {x: 900, y: 600}
+  _uiImagePosition: {x: 240, y: 230}
   _followCamera: {fileID: 0}
   _unlockedCharacters: 0100000000
 --- !u!4 &1712066418
@@ -2898,7 +2895,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1903795580
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3010,7 +3007,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1908288615
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -3292,7 +3289,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &2112248406
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -88,6 +88,14 @@ namespace Nemuri.Player
             }
         }
 
+        private bool IsGrounded()
+        {
+            // Highly robust ground check: check raycast up to 2.5m or if vertical velocity has settled near 0
+            bool hasRaycastHit = Physics.Raycast(transform.position + Vector3.up * 0.2f, Vector3.down, 2.5f);
+            bool isVelocityZero = Mathf.Abs(_rb.linearVelocity.y) < 0.15f;
+            return hasRaycastHit || isVelocityZero;
+        }
+
         private void Update()
         {
             if (!_canMove)
@@ -97,6 +105,17 @@ namespace Nemuri.Player
             else if (_moveAction != null)
             {
                 _moveInput = _moveAction.ReadValue<Vector2>();
+            }
+
+            // Rona-specific jump ability (Index 1 is Rona)
+            if (_canMove && Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1)
+            {
+                if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame && IsGrounded())
+                {
+                    Vector3 vel = _rb.linearVelocity;
+                    vel.y = 8f; // Jump high velocity
+                    _rb.linearVelocity = vel;
+                }
             }
 
             UpdateAnimation();
@@ -110,7 +129,14 @@ namespace Nemuri.Player
         protected virtual void Move()
         {
             Vector3 moveDirection = Vector3.ClampMagnitude(new Vector3(_moveInput.x, 0f, _moveInput.y), 1f);
-            Vector3 targetVelocity = moveDirection * _moveSpeed;
+            
+            float speed = _moveSpeed;
+            if (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1)
+            {
+                speed = 8f; // Rona moves at speed 8
+            }
+
+            Vector3 targetVelocity = moveDirection * speed;
             targetVelocity.y = _rb.linearVelocity.y;
             _rb.linearVelocity = targetVelocity;
 
