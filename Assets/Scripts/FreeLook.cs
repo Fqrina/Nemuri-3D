@@ -7,6 +7,9 @@ public class FreelookCamera : MonoBehaviour
     public float shiftSpeedMultiplier = 2.5f;
     public float lookSensitivity = 0.05f; 
 
+    [HideInInspector]
+    public bool isPlaying = false;
+
     private float rotationX = 0f;
     private float rotationY = 0f;
 
@@ -19,6 +22,16 @@ public class FreelookCamera : MonoBehaviour
 
     void Update()
     {
+        if (isPlaying)
+        {
+            if (Cursor.lockState != CursorLockMode.None)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            return;
+        }
+
         var mouse = Mouse.current;
         var keyboard = Keyboard.current;
 

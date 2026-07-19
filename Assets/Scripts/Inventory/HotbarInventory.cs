@@ -3,17 +3,28 @@ using UnityEngine.InputSystem;
 
 namespace Nemuri.Inventory
 {
+    public enum ItemGroup
+    {
+        Group1, // items 1-3
+        Group2, // items 4-6
+        Group3  // items 7-9
+    }
+
     public class HotbarItem
     {
         public string displayName;
         public Sprite icon;
         public string description;
+        public ItemGroup group;
+        public int itemId;
 
-        public HotbarItem(string displayName, Sprite icon, string description)
+        public HotbarItem(string displayName, Sprite icon, string description, ItemGroup group, int itemId)
         {
             this.displayName = displayName;
             this.icon = icon;
             this.description = description;
+            this.group = group;
+            this.itemId = itemId;
         }
     }
 
@@ -27,6 +38,8 @@ namespace Nemuri.Inventory
 
         public event System.Action<int> OnSlotSelected;
         public event System.Action OnInventoryUpdated;
+
+        private readonly bool[,] _collectedGroupItems = new bool[3, 3]; // [group, itemIdx (0-2)]
 
         public bool IsLocked { get; set; }
 
@@ -48,6 +61,48 @@ namespace Nemuri.Inventory
         {
             if (IsLocked) return;
             HandleSelectionInput();
+            HandleCraftingInput();
+        }
+
+        private void HandleCraftingInput()
+        {
+        }
+
+        public void CraftGroup(ItemGroup group)
+        {
+            int g = (int)group;
+
+            // clear items of this group from inventory slots
+            for (int i = 0; i < TotalSlots; i++)
+            {
+                if (_slots[i] != null && _slots[i].group == group)
+                {
+                    _slots[i] = null;
+                }
+            }
+
+            // reset collection state
+            _collectedGroupItems[g, 0] = false;
+            _collectedGroupItems[g, 1] = false;
+            _collectedGroupItems[g, 2] = false;
+
+            OnInventoryUpdated?.Invoke();
+        }
+
+        public bool IsGroupFullyCollected(ItemGroup group)
+        {
+            int g = (int)group;
+            return _collectedGroupItems[g, 0] && _collectedGroupItems[g, 1] && _collectedGroupItems[g, 2];
+        }
+
+        public int GetCollectedCount(ItemGroup group)
+        {
+            int g = (int)group;
+            int count = 0;
+            if (_collectedGroupItems[g, 0]) count++;
+            if (_collectedGroupItems[g, 1]) count++;
+            if (_collectedGroupItems[g, 2]) count++;
+            return count;
         }
 
         private void HandleSelectionInput()
@@ -98,13 +153,26 @@ namespace Nemuri.Inventory
             }
         }
 
-        public bool AddItem(string displayName, Sprite icon, string description)
+        public bool AddItem(string displayName, Sprite icon, string description, ItemGroup group, int itemId)
         {
             for (int i = 0; i < TotalSlots; i++)
             {
                 if (_slots[i] == null)
                 {
-                    _slots[i] = new HotbarItem(displayName, icon, description);
+                    _slots[i] = new HotbarItem(displayName, icon, description, group, itemId);
+
+                    // mark item as collected in the group array
+                    int gIndex = (int)group;
+                    int itemIdx = Mathf.Clamp(itemId - 1, 0, 2);
+                    _collectedGroupItems[gIndex, itemIdx] = true;
+
+                    Debug.Log("[HotbarInventory] Collected: " + displayName + " for Group: " + group + " (Index: " + itemId + ")");
+
+                    if (IsGroupFullyCollected(group))
+                    {
+                        Debug.Log("[HotbarInventory] Group " + group + " is fully collected!");
+                    }
+
                     OnInventoryUpdated?.Invoke();
                     return true;
                 }

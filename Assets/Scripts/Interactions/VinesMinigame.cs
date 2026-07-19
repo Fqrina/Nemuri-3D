@@ -117,10 +117,10 @@ namespace Nemuri.Interactions
 
         private void InitializeSprites()
         {
-            _targetSprite = CreateCircleSprite(30, Color.white, true, 3);
+            _targetSprite = CreateCircleSprite(45, Color.white, true, 4); // enlarged radius
             for (int i = 0; i < 4; i++)
             {
-                _noteSprites[i] = CreateCircleSprite(25, GetLaneColor(i), false, 0);
+                _noteSprites[i] = CreateCircleSprite(40, GetLaneColor(i), false, 0); // enlarged radius
             }
         }
 
@@ -317,7 +317,7 @@ namespace Nemuri.Interactions
 
         private void SpawnNote(int lane)
         {
-            float[] laneXs = { -120f, -40f, 40f, 120f };
+            float[] laneXs = { -165f, -55f, 55f, 165f }; // widened spacing
             GameObject noteGo = new GameObject("Note_" + lane);
             noteGo.transform.SetParent(_notesContainer, false);
             Image noteImage = noteGo.AddComponent<Image>();
@@ -328,7 +328,7 @@ namespace Nemuri.Interactions
             rect.anchorMax = new Vector2(0.5f, 0.5f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.anchoredPosition = new Vector2(laneXs[lane], SpawnY);
-            rect.sizeDelta = new Vector2(50f, 50f);
+            rect.sizeDelta = new Vector2(80f, 80f); // enlarged note size
 
             NoteInstance instance = new NoteInstance();
             instance.lane = lane;
@@ -350,7 +350,7 @@ namespace Nemuri.Interactions
             }
             else if (text == "GOOD!")
             {
-                _feedbackText.color = new Color(0.2f, 0.8f, 0.2f, 1f);
+                _feedbackText.color = new Color(0.2f, 0.95f, 0.85f, 1f); // bright cyan to stand out from green background
             }
             else
             {
@@ -496,24 +496,35 @@ namespace Nemuri.Interactions
             GameObject borderPanel = new GameObject("Border Panel");
             borderPanel.transform.SetParent(_uiCanvasRoot.transform, false);
             Image borderImage = borderPanel.AddComponent<Image>();
-            borderImage.color = new Color(0.5f, 0.2f, 0.8f, 0.4f);
+            borderImage.color = Color.clear;
 
             RectTransform borderRect = borderPanel.GetComponent<RectTransform>();
             borderRect.anchorMin = new Vector2(0.5f, 0.5f);
             borderRect.anchorMax = new Vector2(0.5f, 0.5f);
             borderRect.pivot = new Vector2(0.5f, 0.5f);
-            borderRect.sizeDelta = new Vector2(_panelWidth + 8f, _panelHeight + 8f);
+            borderRect.sizeDelta = new Vector2(1920f, 1080f);
 
             GameObject panel = new GameObject("Main Panel");
             panel.transform.SetParent(borderPanel.transform, false);
             Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0.04f, 0.04f, 0.04f, 0.95f);
+
+            Sprite customBg = Resources.Load<Sprite>("UntangleVines");
+            if (customBg != null)
+            {
+                panelImage.sprite = customBg;
+                panelImage.color = Color.white;
+            }
+            else
+            {
+                panelImage.color = new Color(0.04f, 0.04f, 0.04f, 0.95f);
+            }
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(_panelWidth, _panelHeight);
+            panelRect.sizeDelta = new Vector2(1920f, 1080f);
+            panelRect.localScale = new Vector3(0.8f, 0.8f, 1f); // scaled back up for readability
 
             GameObject titleGo = new GameObject("Title Text");
             titleGo.transform.SetParent(panel.transform, false);
@@ -531,6 +542,7 @@ namespace Nemuri.Interactions
             titleRect.pivot = new Vector2(0.5f, 1f);
             titleRect.anchoredPosition = new Vector2(0f, -20f);
             titleRect.sizeDelta = new Vector2(0f, 40f);
+            titleGo.SetActive(false);
 
             GameObject subtitleGo = new GameObject("Subtitle Text");
             subtitleGo.transform.SetParent(panel.transform, false);
@@ -547,14 +559,15 @@ namespace Nemuri.Interactions
             subtitleRect.pivot = new Vector2(0.5f, 1f);
             subtitleRect.anchoredPosition = new Vector2(0f, -55f);
             subtitleRect.sizeDelta = new Vector2(0f, 20f);
+            subtitleGo.SetActive(false);
 
-            float[] separatorXs = { -80f, 0f, 80f };
+            float[] separatorXs = { -110f, 0f, 110f }; // aligned midway between lanes
             foreach (float x in separatorXs)
             {
                 GameObject sep = new GameObject("Separator");
                 sep.transform.SetParent(panel.transform, false);
                 Image sepImage = sep.AddComponent<Image>();
-                sepImage.color = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+                sepImage.color = new Color(1f, 1f, 1f, 0.15f); // visible low-opacity lines in the track lanes
 
                 RectTransform sepRect = sep.GetComponent<RectTransform>();
                 sepRect.anchorMin = new Vector2(0.5f, 0.5f);
@@ -564,7 +577,7 @@ namespace Nemuri.Interactions
                 sepRect.sizeDelta = new Vector2(2f, 520f);
             }
 
-            float[] laneXs = { -120f, -40f, 40f, 120f };
+            float[] laneXs = { -165f, -55f, 55f, 165f }; // widened spacing
             string[] keys = { "X", "C", "B", "N" };
 
             for (int i = 0; i < 4; i++)
@@ -580,7 +593,7 @@ namespace Nemuri.Interactions
                 _targetZoneRects[i].anchorMax = new Vector2(0.5f, 0.5f);
                 _targetZoneRects[i].pivot = new Vector2(0.5f, 0.5f);
                 _targetZoneRects[i].anchoredPosition = new Vector2(laneXs[i], TargetY);
-                _targetZoneRects[i].sizeDelta = new Vector2(60f, 60f);
+                _targetZoneRects[i].sizeDelta = new Vector2(90f, 90f); // enlarged target zone size
 
                 GameObject labelGo = new GameObject("Key Label " + i);
                 labelGo.transform.SetParent(panel.transform, false);
@@ -620,11 +633,11 @@ namespace Nemuri.Interactions
             _scoreText.font = ResolveUiFont();
 
             RectTransform scoreRect = scoreGo.GetComponent<RectTransform>();
-            scoreRect.anchorMin = new Vector2(0f, 1f);
-            scoreRect.anchorMax = new Vector2(1f, 1f);
-            scoreRect.pivot = new Vector2(0.5f, 1f);
-            scoreRect.anchoredPosition = new Vector2(0f, -80f);
-            scoreRect.sizeDelta = new Vector2(0f, 24f);
+            scoreRect.anchorMin = new Vector2(0.5f, 0.5f);
+            scoreRect.anchorMax = new Vector2(0.5f, 0.5f);
+            scoreRect.pivot = new Vector2(0.5f, 0.5f);
+            scoreRect.anchoredPosition = new Vector2(0f, 320f);
+            scoreRect.sizeDelta = new Vector2(200f, 24f);
 
             GameObject feedbackGo = new GameObject("Feedback Text");
             feedbackGo.transform.SetParent(panel.transform, false);
@@ -658,6 +671,7 @@ namespace Nemuri.Interactions
             helpRect.pivot = new Vector2(0.5f, 0f);
             helpRect.anchoredPosition = new Vector2(0f, 15f);
             helpRect.sizeDelta = new Vector2(0f, 20f);
+            helpGo.SetActive(false);
 
             _gameOverPanel = new GameObject("Game Over Panel");
             _gameOverPanel.transform.SetParent(panel.transform, false);
@@ -665,11 +679,10 @@ namespace Nemuri.Interactions
             goImage.color = new Color(0f, 0f, 0f, 0.9f);
 
             RectTransform goRect = _gameOverPanel.GetComponent<RectTransform>();
-            goRect.anchorMin = Vector2.zero;
-            goRect.anchorMax = Vector2.one;
+            goRect.anchorMin = new Vector2(0.5f, 0.5f);
+            goRect.anchorMax = new Vector2(0.5f, 0.5f);
             goRect.pivot = new Vector2(0.5f, 0.5f);
-            goRect.offsetMin = Vector2.zero;
-            goRect.offsetMax = Vector2.zero;
+            goRect.sizeDelta = new Vector2(400f, 700f);
 
             GameObject goTextGo = new GameObject("Game Over Text");
             goTextGo.transform.SetParent(_gameOverPanel.transform, false);
@@ -710,7 +723,12 @@ namespace Nemuri.Interactions
 
         private Font ResolveUiFont()
         {
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font font = Resources.Load<Font>("Spinnenkop DEMO");
+            if (font != null)
+            {
+                return font;
+            }
+            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (font == null)
             {
                 font = Font.CreateDynamicFontFromOSFont("Arial", 16);

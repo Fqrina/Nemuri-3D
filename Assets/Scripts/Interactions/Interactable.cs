@@ -21,6 +21,12 @@ namespace Nemuri.Interactions
 
         public UnityEvent OnInteract = new UnityEvent();
 
+        [Header("Interaction Prompt UI Configuration")]
+        [SerializeField] private Vector2 _uiImageSize = new Vector2(750f, 275.13f);
+        [SerializeField] private Vector2 _uiImagePosition = new Vector2(0f, 0f);
+        [SerializeField] private int _uiFontSize = 64;
+        [SerializeField] private float _uiFontYOffset = -20f;
+
         private Transform _player;
         private PlayerInput _playerInput;
         private InputAction _interactAction;
@@ -146,12 +152,12 @@ namespace Nemuri.Interactions
             if (_overrideTimer > 0f && !string.IsNullOrEmpty(_overrideText))
             {
                 _overrideTimer -= Time.deltaTime;
-                _prompt.Show(this, _overrideText, 0f);
+                _prompt.Show(this, _overrideText, 0f, _uiImageSize, _uiImagePosition, _uiFontSize, _uiFontYOffset);
             }
             else
             {
                 _overrideText = null;
-                _prompt.Show(this, _promptText, progress);
+                _prompt.Show(this, _promptText, progress, _uiImageSize, _uiImagePosition, _uiFontSize, _uiFontYOffset);
             }
         }
 
@@ -178,7 +184,7 @@ namespace Nemuri.Interactions
             {
                 _prompt = InteractionPrompt.Create();
             }
-            _prompt.Show(this, promptText, Mathf.Clamp01(normalizedProgress));
+            _prompt.Show(this, promptText, Mathf.Clamp01(normalizedProgress), _uiImageSize, _uiImagePosition, _uiFontSize, _uiFontYOffset);
         }
 
         public void DismissInteraction()
@@ -314,14 +320,18 @@ namespace Nemuri.Interactions
             private readonly GameObject _root;
             private readonly Text _label;
             private readonly RectTransform _progressFillRect;
+            private readonly Image _panelImage;
+            private readonly RectTransform _barBackRect;
 
             public Interactable Owner { get; private set; }
 
-            private InteractionPrompt(GameObject root, Text label, RectTransform progressFillRect)
+            private InteractionPrompt(GameObject root, Text label, RectTransform progressFillRect, Image panelImage, RectTransform barBackRect)
             {
                 _root = root;
                 _label = label;
                 _progressFillRect = progressFillRect;
+                _panelImage = panelImage;
+                _barBackRect = barBackRect;
                 _root.SetActive(false);
             }
 
@@ -354,26 +364,27 @@ namespace Nemuri.Interactions
                 panelRect.anchorMin = new Vector2(0.5f, 0.12f);
                 panelRect.anchorMax = new Vector2(0.5f, 0.12f);
                 panelRect.pivot = new Vector2(0.5f, 0.5f);
-                panelRect.sizeDelta = new Vector2(320f, 76f);
+                panelRect.sizeDelta = new Vector2(750f, 275.13f);
 
                 GameObject labelObject = new GameObject("Prompt Text");
                 labelObject.transform.SetParent(panel.transform, false);
                 Text label = labelObject.AddComponent<Text>();
                 label.alignment = TextAnchor.MiddleCenter;
                 label.color = Color.white;
-                label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                
+                label.font = Resources.Load<Font>("Spinnenkop DEMO");
                 if (label.font == null)
                 {
-                    label.font = Font.CreateDynamicFontFromOSFont("Arial", 26);
+                    label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 }
 
-                label.fontSize = 26;
+                label.fontSize = 64; // enlarged font size for large bubble
 
                 RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-                labelRect.anchorMin = new Vector2(0f, 0.28f);
+                labelRect.anchorMin = new Vector2(0f, 0f); // fill completely
                 labelRect.anchorMax = new Vector2(1f, 1f);
                 labelRect.offsetMin = new Vector2(16f, 0f);
-                labelRect.offsetMax = new Vector2(-16f, -4f);
+                labelRect.offsetMax = new Vector2(-16f, 0f);
 
                 GameObject barBack = new GameObject("Hold Progress Back");
                 barBack.transform.SetParent(panel.transform, false);
@@ -384,8 +395,8 @@ namespace Nemuri.Interactions
                 backRect.anchorMin = new Vector2(0f, 0f);
                 backRect.anchorMax = new Vector2(1f, 0f);
                 backRect.pivot = new Vector2(0.5f, 0f);
-                backRect.offsetMin = new Vector2(18f, 14f);
-                backRect.offsetMax = new Vector2(-18f, 22f);
+                backRect.offsetMin = new Vector2(60f, 60f); // positioned inside the bubble
+                backRect.offsetMax = new Vector2(-60f, 75f);
 
                 GameObject barFill = new GameObject("Hold Progress Fill");
                 barFill.transform.SetParent(barBack.transform, false);
@@ -398,14 +409,117 @@ namespace Nemuri.Interactions
                 fillRect.offsetMin = Vector2.zero;
                 fillRect.offsetMax = Vector2.zero;
 
-                return new InteractionPrompt(panel, label, fillRect);
+                return new InteractionPrompt(panel, label, fillRect, panelImage, backRect);
             }
 
-            public void Show(Interactable owner, string text, float progress)
+            public void Show(Interactable owner, string text, float progress, Vector2 uiSize, Vector2 uiPosition, int fontSize, float fontYOffset)
             {
                 Owner = owner;
-                _label.text = text;
+
+                // Fallback / Auto-upgrade old serialized defaults (450x90) to the new dimensions
+                if (uiSize == new Vector2(450f, 90f) || uiSize == Vector2.zero)
+                {
+                    uiSize = new Vector2(750f, 275.13f);
+                }
+
+                // Dynamically apply size and position from inspector configuration
+                RectTransform panelRect = _root.GetComponent<RectTransform>();
+                panelRect.sizeDelta = uiSize;
+                panelRect.anchoredPosition = uiPosition;
+                
+                bool isHoldEPrompt = text.ToLower().Contains("hold e") || 
+                                     text.ToLower().Contains("press e") || 
+                                     text.ToLower().Contains("e to") ||
+                                     text.Contains("(E)") ||
+                                     text.Contains("(e)");
+
+                Sprite promptBg = null;
+                if (isHoldEPrompt)
+                {
+                    promptBg = Resources.Load<Sprite>("Ebutton");
+                }
+                
+                if (promptBg == null)
+                {
+                    promptBg = Resources.Load<Sprite>("bottomUI");
+                }
+
+                if (promptBg != null)
+                {
+                    _panelImage.sprite = promptBg;
+                    _panelImage.color = Color.white;
+                }
+                else
+                {
+                    _panelImage.sprite = null;
+                    _panelImage.color = new Color(0f, 0f, 0f, 0.72f);
+                }
+
+                // Set dynamic font size
+                _label.fontSize = fontSize;
+
+                // Adjust positioning of label and center vertically based on whether progress bar is needed
+                if (owner.HoldSeconds > 0f)
+                {
+                    _label.rectTransform.anchorMin = new Vector2(0f, 0.15f); // Shifted up slightly to accommodate bar
+                    _label.rectTransform.anchorMax = new Vector2(1f, 1f);
+                }
+                else
+                {
+                    _label.rectTransform.anchorMin = new Vector2(0f, 0f); // Fully centered vertically
+                    _label.rectTransform.anchorMax = new Vector2(1f, 1f);
+                }
+
+                if (isHoldEPrompt && promptBg != null && promptBg.name == "Ebutton")
+                {
+                    _label.rectTransform.offsetMin = new Vector2(180f, 0f); // Offset to the right to clear the big "E" icon
+                    _label.rectTransform.offsetMax = new Vector2(-40f, 0f);
+                }
+                else
+                {
+                    _label.rectTransform.offsetMin = new Vector2(40f, 0f); // Centered horizontally
+                    _label.rectTransform.offsetMax = new Vector2(-40f, 0f);
+                }
+
+                // Apply custom Y offset for font centering
+                _label.rectTransform.anchoredPosition = new Vector2(_label.rectTransform.anchoredPosition.x, fontYOffset);
+
+                // Keep progress bar fully symmetric and centered (doesn't shift with Ebutton)
+                if (_barBackRect != null)
+                {
+                    _barBackRect.offsetMin = new Vector2(60f, 60f);
+                    _barBackRect.offsetMax = new Vector2(-60f, 75f);
+                    
+                    // Show progress bar only when the interactable requires holding the key
+                    _barBackRect.gameObject.SetActive(owner.HoldSeconds > 0f);
+                }
+
+                // Clean instructions to fit with the visual E button icon
+                string processedText = text;
+                
+                // Auto-shorten "You must use [Name] as player to interact" -> "Use [Name]"
+                var characterMatch = System.Text.RegularExpressions.Regex.Match(processedText, @"must\s+use\s+(\w+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (characterMatch.Success)
+                {
+                    processedText = "Use " + characterMatch.Groups[1].Value;
+                }
+                else
+                {
+                    processedText = processedText.Replace("(E)", "").Replace("(e)", "").Trim();
+                    processedText = System.Text.RegularExpressions.Regex.Replace(processedText, @"^(Hold\s+E\s+to\s+|Press\s+E\s+to\s+|E\s+to\s+|Hold\s+E\s+|Press\s+E\s+)", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                    if (isHoldEPrompt)
+                    {
+                        if (!processedText.StartsWith("to ", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            processedText = "to " + processedText;
+                        }
+                    }
+                }
+
+                _label.text = processedText;
                 _progressFillRect.anchorMax = new Vector2(progress, 1f);
+                
                 if (_root.transform.parent != null)
                 {
                     _root.transform.parent.gameObject.SetActive(true);

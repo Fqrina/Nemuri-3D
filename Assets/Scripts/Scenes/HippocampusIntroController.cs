@@ -1222,7 +1222,14 @@ namespace Nemuri.Scenes
         {
             _hasReconstructedMemory = true;
 
-            Sprite puzzleSprite = GetVisionSpriteFromItem(_reconstructTriggerGo);
+            Sprite puzzleSprite = null;
+#if UNITY_EDITOR
+            puzzleSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Maps/CHAPT2/full.PNG");
+#endif
+            if (puzzleSprite == null)
+            {
+                puzzleSprite = Resources.Load<Sprite>("full");
+            }
 
             if (_reconstructTriggerGo != null)
             {
@@ -1240,6 +1247,7 @@ namespace Nemuri.Scenes
             if (_customVisionImageUI != null)
             {
                 _customVisionImageUI.sprite = puzzleSprite;
+                _customVisionImageUI.color = Color.white;
                 _customVisionImageUI.gameObject.SetActive(true);
             }
 
