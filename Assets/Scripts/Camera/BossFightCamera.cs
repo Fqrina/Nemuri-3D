@@ -13,6 +13,7 @@ public class BossFightCamera : MonoBehaviour
     public float rightOffset = 1.0f;     // Slight over-the-shoulder offset (common in GoW)
     public float positionSmoothSpeed = 8.0f;
     public float rotationSmoothSpeed = 10.0f;
+    public Vector3 shakeOffset = Vector3.zero;
 
     [Header("LookAt Settings")]
     public Vector3 lookAtOffset = new Vector3(0f, 1.0f, 0f);
@@ -87,6 +88,19 @@ public class BossFightCamera : MonoBehaviour
                 if (bossObj == null) bossObj = FindSceneObjectByName("EVILRABBIT(Clone)");
                 if (bossObj == null) bossObj = FindSceneObjectContaining("EVILRABBIT");
                 if (bossObj != null) boss = bossObj.transform;
+            }
+
+            // Dynamically attach BossFightTester to the boss so they can immediately test the health bar
+            if (boss != null)
+            {
+                var tester = boss.GetComponent<BossFightTester>();
+                if (tester == null)
+                {
+                    tester = boss.gameObject.AddComponent<BossFightTester>();
+                    tester.bossName = "EVIL RABBIT";
+                    tester.maxHealth = 100f;
+                    tester.triggerDistance = 45f;
+                }
             }
         }
 
@@ -226,11 +240,11 @@ public class BossFightCamera : MonoBehaviour
         // Smooth position movement
         if (immediate)
         {
-            transform.position = desiredPosition;
+            transform.position = desiredPosition + shakeOffset;
         }
         else
         {
-            transform.position = Vector3.Lerp(transform.position, desiredPosition, positionSmoothSpeed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, positionSmoothSpeed * Time.deltaTime) + shakeOffset;
         }
 
         // Look target on the boss (locked on Plane.001 / CamTarget)

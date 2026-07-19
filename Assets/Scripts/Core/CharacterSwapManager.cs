@@ -43,6 +43,16 @@ namespace Nemuri.Core
             return null;
         }
 
+        public string GetActiveCharacterName()
+        {
+            if (_activeCharacterIndex >= 0 && _activeCharacterIndex < _characters.Count)
+            {
+                string name = _characters[_activeCharacterIndex].characterName;
+                return name.Replace("CHARA", "").Replace("chara", "").Trim();
+            }
+            return "PLAYER";
+        }
+
         [Header("Camera Configurations")]
         [SerializeField] private FixedWorldOffsetCamera _followCamera;
 
@@ -84,6 +94,13 @@ namespace Nemuri.Core
 
         private void Start()
         {
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+            {
+                for (int i = 0; i < _unlockedCharacters.Length; i++)
+                {
+                    _unlockedCharacters[i] = true;
+                }
+            }
             InitializeCharacters();
             EnsureUIInitialized();
         }
@@ -320,11 +337,13 @@ namespace Nemuri.Core
                 return;
             }
 
-            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(0)) SwapToCharacter(0);
-            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(1)) SwapToCharacter(1);
-            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(2)) SwapToCharacter(2);
-            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(3)) SwapToCharacter(3);
-            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && Nemuri.Scenes.NocturneIntroController.CanSwapTo(4)) SwapToCharacter(4);
+            bool bypassIntroLock = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3";
+
+            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(0))) SwapToCharacter(0);
+            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(1))) SwapToCharacter(1);
+            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(2))) SwapToCharacter(2);
+            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(3))) SwapToCharacter(3);
+            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(4))) SwapToCharacter(4);
         }
 
         public void SwapToCharacter(int index, bool isDialogueSwap = false)
