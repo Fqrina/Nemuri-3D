@@ -42,7 +42,7 @@ namespace Nemuri.Interactions
         private RectTransform _playerIndicatorRect;
         private RectTransform _progressFillRect;
         
-        private const float BarWidth = 560f;
+        private const float BarWidth = 820f;
 
         private void Awake()
         {
@@ -309,28 +309,38 @@ namespace Nemuri.Interactions
             _uiCanvasRoot.AddComponent<GraphicRaycaster>();
             DontDestroyOnLoad(_uiCanvasRoot);
 
-            // sleek outer border panel for premium glassmorphism outline
             GameObject borderPanel = new GameObject("Border Panel");
             borderPanel.transform.SetParent(_uiCanvasRoot.transform, false);
             Image borderImage = borderPanel.AddComponent<Image>();
-            borderImage.color = new Color(0.35f, 0.35f, 0.35f, 0.5f);
+            borderImage.color = Color.clear;
 
             RectTransform borderRect = borderPanel.GetComponent<RectTransform>();
             borderRect.anchorMin = new Vector2(0.5f, 0.5f);
             borderRect.anchorMax = new Vector2(0.5f, 0.5f);
             borderRect.pivot = new Vector2(0.5f, 0.5f);
-            borderRect.sizeDelta = new Vector2(624f, 224f);
+            borderRect.sizeDelta = new Vector2(1920f, 1080f);
 
             GameObject panel = new GameObject("Main Panel");
             panel.transform.SetParent(borderPanel.transform, false);
             Image panelImage = panel.AddComponent<Image>();
-            panelImage.color = new Color(0.06f, 0.06f, 0.06f, 0.94f);
+
+            Sprite customBg = Resources.Load<Sprite>("RockShatter");
+            if (customBg != null)
+            {
+                panelImage.sprite = customBg;
+                panelImage.color = Color.white;
+            }
+            else
+            {
+                panelImage.color = new Color(0.06f, 0.06f, 0.06f, 0.94f);
+            }
 
             RectTransform panelRect = panel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.5f, 0.5f);
             panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.sizeDelta = new Vector2(620f, 220f);
+            panelRect.sizeDelta = new Vector2(1920f, 1080f);
+            panelRect.localScale = new Vector3(0.8f, 0.8f, 1f); // scaled back up for readability
 
             GameObject titleGo = new GameObject("Title Text");
             titleGo.transform.SetParent(panel.transform, false);
@@ -348,17 +358,18 @@ namespace Nemuri.Interactions
             titleRect.pivot = new Vector2(0.5f, 1f);
             titleRect.anchoredPosition = new Vector2(0f, -20f);
             titleRect.sizeDelta = new Vector2(0f, 40f);
+            titleGo.SetActive(false);
 
             GameObject barBack = new GameObject("Bar Background");
             barBack.transform.SetParent(panel.transform, false);
             Image backImage = barBack.AddComponent<Image>();
-            backImage.color = new Color(0.12f, 0.12f, 0.12f, 1f);
+            backImage.color = Color.clear; // hide programmatic gray bar to prevent double line overlap
 
             RectTransform backRect = barBack.GetComponent<RectTransform>();
             backRect.anchorMin = new Vector2(0.5f, 0.5f);
             backRect.anchorMax = new Vector2(0.5f, 0.5f);
             backRect.pivot = new Vector2(0.5f, 0.5f);
-            backRect.anchoredPosition = new Vector2(0f, 10f);
+            backRect.anchoredPosition = new Vector2(0f, 10f); // Placed at 10 to align with the slot in the bubble image
             backRect.sizeDelta = new Vector2(BarWidth, 24f);
 
             GameObject targetZone = new GameObject("Target Zone");
@@ -388,14 +399,14 @@ namespace Nemuri.Interactions
             GameObject progressBack = new GameObject("Progress Background");
             progressBack.transform.SetParent(panel.transform, false);
             Image progressBackImage = progressBack.AddComponent<Image>();
-            progressBackImage.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+            progressBackImage.color = new Color(0f, 0f, 0f, 0.4f); // semi-transparent black background
 
             RectTransform progBackRect = progressBack.GetComponent<RectTransform>();
             progBackRect.anchorMin = new Vector2(0.5f, 0.5f);
             progBackRect.anchorMax = new Vector2(0.5f, 0.5f);
             progBackRect.pivot = new Vector2(0.5f, 0.5f);
-            progBackRect.anchoredPosition = new Vector2(0f, -25f);
-            progBackRect.sizeDelta = new Vector2(BarWidth, 12f);
+            progBackRect.anchoredPosition = new Vector2(0f, -15f); // Aligned at the bottom of the black slot
+            progBackRect.sizeDelta = new Vector2(BarWidth, 6f); // Made slimmer to fit elegantly inside the slot
 
             GameObject progressFill = new GameObject("Progress Fill");
             progressFill.transform.SetParent(progressBack.transform, false);
@@ -425,6 +436,7 @@ namespace Nemuri.Interactions
             helpRect.pivot = new Vector2(0.5f, 0f);
             helpRect.anchoredPosition = new Vector2(0f, 12f);
             helpRect.sizeDelta = new Vector2(0f, 54f);
+            helpGo.SetActive(false);
         }
 
         private void UpdateUI()
@@ -445,7 +457,12 @@ namespace Nemuri.Interactions
 
         private Font ResolveUiFont()
         {
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font font = Resources.Load<Font>("Spinnenkop DEMO");
+            if (font != null)
+            {
+                return font;
+            }
+            font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (font == null)
             {
                 font = Font.CreateDynamicFontFromOSFont("Arial", 16);

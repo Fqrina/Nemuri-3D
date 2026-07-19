@@ -756,6 +756,11 @@ namespace Nemuri.Dialogue
             }
         }
 
+        public void ToggleDialoguePanel(bool isActive)
+        {
+            SetDialoguePanelActive(isActive);
+        }
+
         private void EnsureDialogueUi()
         {
             if (_dialoguePanel != null && _nameText != null && _dialogueText != null && _skipPromptText != null)
