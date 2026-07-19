@@ -163,12 +163,31 @@ namespace Nemuri.Core
             }
             // Determine if character swapping is currently allowed/unlocked
             bool isDialogueActive = (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive);
+            bool isVisionModeActive = Nemuri.Scenes.HippocampusIntroController.IsVisionModeActive;
+            bool isPuzzleActive = (Nemuri.UI.VisionPuzzleManager.Instance != null && Nemuri.UI.VisionPuzzleManager.Instance.IsPuzzleActive);
+
+            if (_uiCanvasObject != null)
+            {
+                if (isPuzzleActive && _uiCanvasObject.activeSelf)
+                {
+                    _uiCanvasObject.SetActive(false);
+                }
+                else if (!isPuzzleActive && !_uiCanvasObject.activeSelf)
+                {
+                    _uiCanvasObject.SetActive(true);
+                }
+            }
+
             bool canSwap = false;
-            if (!isDialogueActive)
+            if (!isDialogueActive && !isVisionModeActive && !isPuzzleActive)
             {
                 if (Nemuri.Scenes.NocturneIntroController.Instance != null)
                 {
                     canSwap = Nemuri.Scenes.NocturneIntroController.CanSwapTo(0);
+                }
+                else if (Nemuri.Scenes.HippocampusIntroController.Instance != null)
+                {
+                    canSwap = true;
                 }
                 else
                 {
@@ -337,13 +356,29 @@ namespace Nemuri.Core
                 return;
             }
 
-            bool bypassIntroLock = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3";
+            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0) && CanSwapToIndex(0)) SwapToCharacter(0);
+            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1) && CanSwapToIndex(1)) SwapToCharacter(1);
+            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2) && CanSwapToIndex(2)) SwapToCharacter(2);
+            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3) && CanSwapToIndex(3)) SwapToCharacter(3);
+            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && CanSwapToIndex(4)) SwapToCharacter(4);
+        }
 
-            if (Keyboard.current.digit1Key.wasPressedThisFrame && IsCharacterUnlocked(0) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(0))) SwapToCharacter(0);
-            else if (Keyboard.current.digit2Key.wasPressedThisFrame && IsCharacterUnlocked(1) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(1))) SwapToCharacter(1);
-            else if (Keyboard.current.digit3Key.wasPressedThisFrame && IsCharacterUnlocked(2) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(2))) SwapToCharacter(2);
-            else if (Keyboard.current.digit4Key.wasPressedThisFrame && IsCharacterUnlocked(3) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(3))) SwapToCharacter(3);
-            else if (Keyboard.current.digit5Key.wasPressedThisFrame && IsCharacterUnlocked(4) && (bypassIntroLock || Nemuri.Scenes.NocturneIntroController.CanSwapTo(4))) SwapToCharacter(4);
+        private bool CanSwapToIndex(int index)
+        {
+            // Chapter 3 bypasses the intro controller checks
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+            {
+                return true;
+            }
+
+            // Hippocampus (Chapter 2) scene has no NocturneIntroController; allow swaps freely here
+            // since the canSwap gate in Update already enforces dialogue/vision blocks.
+            if (Nemuri.Scenes.HippocampusIntroController.Instance != null)
+            {
+                return true;
+            }
+
+            return Nemuri.Scenes.NocturneIntroController.CanSwapTo(index);
         }
 
         public void SwapToCharacter(int index, bool isDialogueSwap = false)
@@ -765,11 +800,12 @@ namespace Nemuri.Core
             // 3. Check for dialogue, narrative, scene transition, or menu hiding conditions
             bool isDialogueActive = (DialogueManager.Instance != null && DialogueManager.Instance.IsConversationActive);
             bool isTransitioning = (Nemuri.UI.ScreenFader.Instance != null && Nemuri.UI.ScreenFader.Instance.CurrentAlpha > 0.01f);
-            
+            bool isVisionMode = Nemuri.Scenes.HippocampusIntroController.IsVisionModeActive;
+
             var activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             bool isMenu = activeScene.name.ToLower().Contains("mainmenu") || activeScene.name.ToLower().Contains("menu");
 
-            if (isDialogueActive || isTransitioning || isMenu)
+            if (isDialogueActive || isTransitioning || isVisionMode || isMenu)
             {
                 _uiImageComponent.gameObject.SetActive(false);
                 return;

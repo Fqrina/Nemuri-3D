@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Nemuri.Dialogue;
 using Nemuri.Player;
 using Nemuri.Core;
@@ -12,6 +13,19 @@ namespace Nemuri.Scenes
 {
     public class HippocampusIntroController : MonoBehaviour
     {
+        private enum IntroStage
+        {
+            ObtainBag,
+            ExploreCircadianIsle,
+            NearClockTower,
+            CollectAlarmClock,
+            NearDeskLamp,
+            CollectDeskLamp,
+            NearFiles,
+            CollectFiles,
+            ReconstructMemoryPuzzle
+        }
+
         [Header("NPC GameObjects")]
         [SerializeField] private GameObject _keikoNpc;
         [SerializeField] private GameObject _ronaNpc;
@@ -45,33 +59,109 @@ namespace Nemuri.Scenes
         [SerializeField] private GameObject _bagObject;
         [SerializeField] private GameObject _hotbarCanvasOverride;
 
+        [Header("Broken Alarm Clock")]
+        [SerializeField] private GameObject _alarmClockGo;
+        [SerializeField] private GameObject _alarmClockTrigger;
+
+        [Header("Desk Lamp")]
+        [SerializeField] private GameObject _deskLampGo;
+        [SerializeField] private GameObject _deskLampTrigger;
+
+        [Header("Scattered Files")]
+        [SerializeField] private GameObject _filesGo;
+        [SerializeField] private GameObject _filesTrigger;
+
+        [Header("Puzzle Target")]
+        [SerializeField] private GameObject _reconstructTriggerGo;
+
         [Header("Island 1 (Circadian Isle) Trigger")]
         [SerializeField] private GameObject _island1Trigger;
         [SerializeField] private float _triggerDistance = 5.0f;
+
+        [Header("Custom UI Elements for Vision")]
+        [SerializeField] private Image _customVisionImageUI;
+
+        [Header("Animation Configurations")]
+        [SerializeField] private float _animatorSpeedMultiplier = 2.0f;
 
         [Header("Audio Configurations")]
         [SerializeField] private AudioSource _audioSource;
         [SerializeField] private AudioClip _ferryPoofSound;
 
+        public static HippocampusIntroController Instance { get; private set; }
+
+        public static bool IsVisionModeActive => Instance != null &&
+            Instance._customVisionImageUI != null &&
+            Instance._customVisionImageUI.gameObject.activeSelf;
+
+        private IntroStage _currentStage = IntroStage.ObtainBag;
+
+        public bool IsAtReconstructStage => _currentStage == IntroStage.ReconstructMemoryPuzzle;
+
         private Vector3 _ferryInitialPos;
         private Quaternion _ferryInitialRot;
         private bool _isFerryActiveInCutscene = false;
 
-        private bool _isWaitingForExplore = false;
-        private bool _island1DialogueTriggered = false;
         private bool _hasPickedUpBag = false;
+        private bool _hasPickedUpClock = false;
+        private bool _hasPickedUpLamp = false;
+        private bool _hasPickedUpFiles = false;
+        private bool _hasReconstructedMemory = false;
 
         private GameObject _hotbarCanvas;
         private List<Interactable> _disabledInteractables = new List<Interactable>();
+        private bool _conversationEnded = false;
+
+        // when true, proximity triggers in Update() are suppressed
+        private bool _triggerLocked = false;
+
+        // programmatically created black overlay used for vision sequences
+        // sorting order 848: above game world, below dialogue (900)
+        private Image _visionBackdrop;
 
         private void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
+
             // Cache reference to hotbar canvas while it is active on Awake
             _hotbarCanvas = _hotbarCanvasOverride != null ? _hotbarCanvasOverride : GameObject.Find("Hotbar Canvas");
+
+            // Deactivate the bag immediately on Awake to prevent early visibility
+            if (_bagObject != null)
+            {
+                _bagObject.SetActive(false);
+            }
         }
 
         private void Start()
         {
+            SetAllAnimatorsSpeed(_animatorSpeedMultiplier);
+
+            BuildVisionBackdrop();
+
+            // Force the vision image canvas to sort between VisionManager (400) and Dialogue (900)
+            if (_customVisionImageUI != null)
+            {
+                Canvas visionCanvas = _customVisionImageUI.GetComponentInParent<Canvas>();
+                if (visionCanvas != null)
+                {
+                    visionCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    visionCanvas.sortingOrder = 850;
+                }
+                _customVisionImageUI.gameObject.SetActive(false);
+            }
+
+            InitializeInteractableItem(_bagObject, OnBagPickedUp);
+            InitializeInteractableItem(_alarmClockGo, OnAlarmClockPickedUp);
+            InitializeInteractableItem(_deskLampGo, OnDeskLampPickedUp);
+            InitializeInteractableItem(_filesGo, OnFilesPickedUp);
+            InitializeInteractableItem(_reconstructTriggerGo, OnMemoryReconstructed);
+
             StartCoroutine(IntroStartRoutine());
         }
 
@@ -85,21 +175,102 @@ namespace Nemuri.Scenes
         {
             DialogueManager.OnNodeDisplayed -= HandleNodeDisplayed;
             DialogueManager.OnConversationEnd -= HandleConversationEnd;
+
+            // Restore normal speed when leaving this scene or when component is disabled
+            SetAllAnimatorsSpeed(1.0f);
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+            SetAllAnimatorsSpeed(1.0f);
         }
 
         private void Update()
         {
-            // Detect player approaching the Circadian Isle trigger point
-            if (_isWaitingForExplore && !_island1DialogueTriggered && _island1Trigger != null)
+            // suppress proximity triggers while a dialogue cutscene is explicitly locked
+            if (_triggerLocked) return;
+
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer == null) return;
+
+            // Stage-based proximity checks to automatically trigger dialogue sequences
+            switch (_currentStage)
             {
-                Transform activePlayer = FindActivePlayerTransform();
-                if (activePlayer != null)
-                {
-                    float distance = Vector3.Distance(activePlayer.position, _island1Trigger.transform.position);
-                    if (distance <= _triggerDistance)
+                case IntroStage.ExploreCircadianIsle:
+                    if (_island1Trigger != null)
                     {
-                        StartIsland1Dialogue();
+                        float dist = Vector3.Distance(activePlayer.position, _island1Trigger.transform.position);
+                        if (dist <= _triggerDistance)
+                        {
+                            Debug.Log($"[IntroController] Island1 trigger activated at distance {dist}!");
+                            StartIsland1Dialogue();
+                        }
                     }
+                    break;
+
+                case IntroStage.NearClockTower:
+                {
+                    Vector3 clockCheckPos = _alarmClockTrigger != null
+                        ? _alarmClockTrigger.transform.position
+                        : (_alarmClockGo != null ? _alarmClockGo.transform.position : Vector3.positiveInfinity);
+                    float dist = Vector3.Distance(activePlayer.position, clockCheckPos);
+                    
+                    // debug log to console so you can trace your distance to the trigger
+                    if (Time.frameCount % 30 == 0 && _alarmClockTrigger != null)
+                    {
+                        Debug.Log($"[IntroController] Distance to Clock Trigger: {dist:F2} (Target range: {_triggerDistance})");
+                    }
+
+                    if (dist <= _triggerDistance)
+                    {
+                        Debug.Log($"[IntroController] Clock trigger activated at distance {dist}!");
+                        StartAlarmClockDialogue();
+                    }
+                    break;
+                }
+
+                case IntroStage.NearDeskLamp:
+                {
+                    Vector3 lampCheckPos = _deskLampTrigger != null
+                        ? _deskLampTrigger.transform.position
+                        : (_deskLampGo != null ? _deskLampGo.transform.position : Vector3.positiveInfinity);
+                    float dist = Vector3.Distance(activePlayer.position, lampCheckPos);
+
+                    if (Time.frameCount % 30 == 0 && _deskLampTrigger != null)
+                    {
+                        Debug.Log($"[IntroController] Distance to Lamp Trigger: {dist:F2} (Target range: {_triggerDistance})");
+                    }
+
+                    if (dist <= _triggerDistance)
+                    {
+                        Debug.Log($"[IntroController] Lamp trigger activated at distance {dist}!");
+                        StartDeskLampDialogue();
+                    }
+                    break;
+                }
+
+                case IntroStage.NearFiles:
+                {
+                    Vector3 filesCheckPos = _filesTrigger != null
+                        ? _filesTrigger.transform.position
+                        : (_filesGo != null ? _filesGo.transform.position : Vector3.positiveInfinity);
+                    float dist = Vector3.Distance(activePlayer.position, filesCheckPos);
+
+                    if (Time.frameCount % 30 == 0 && _filesTrigger != null)
+                    {
+                        Debug.Log($"[IntroController] Distance to Files Trigger: {dist:F2} (Target range: {_triggerDistance})");
+                    }
+
+                    if (dist <= _triggerDistance)
+                    {
+                        Debug.Log($"[IntroController] Files trigger activated at distance {dist}!");
+                        StartFilesDialogue();
+                    }
+                    break;
                 }
             }
         }
@@ -112,6 +283,36 @@ namespace Nemuri.Scenes
             {
                 _ferryNpc.transform.position = _ferryInitialPos;
                 _ferryNpc.transform.rotation = _ferryInitialRot;
+            }
+        }
+
+        private void InitializeInteractableItem(GameObject go, UnityEngine.Events.UnityAction callback)
+        {
+            if (go == null) return;
+
+            Interactable inter = go.GetComponent<Interactable>();
+            if (inter == null) inter = go.GetComponentInChildren<Interactable>();
+            if (inter != null)
+            {
+                inter.InteractionRange = 2.0f;
+                inter.OnInteract.RemoveAllListeners();
+                inter.OnInteract.AddListener(callback);
+
+                // Clear the _interactionPoint so the prompt anchors to the object's actual
+                // world position instead of a stale transform reference
+                var ipField = typeof(Interactable).GetField("_interactionPoint", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (ipField != null)
+                {
+                    ipField.SetValue(inter, null);
+                }
+            }
+
+            // disable PickupItem so its built-in listener does not fire alongside this controller's callback
+            PickupItem pickup = go.GetComponent<PickupItem>();
+            if (pickup == null) pickup = go.GetComponentInChildren<PickupItem>();
+            if (pickup != null)
+            {
+                pickup.enabled = false;
             }
         }
 
@@ -146,13 +347,11 @@ namespace Nemuri.Scenes
                 _firstBridgeGo.SetActive(false);
             }
 
-            // Ensure bag starts inactive
-            if (_bagObject != null)
-            {
-                _bagObject.SetActive(false);
-            }
+            // Bag starts inactive until Ferry disappears and spawns it
+            if (_bagObject != null) _bagObject.SetActive(false);
 
-            // Disable all other interactables in the scene during dialogue to prevent roaming interactions
+            // Items remain visible in the world the whole time so players can see them,
+            // but their Interactable components are disabled until their dialogue trigger fires
             DisableAllOtherInteractables();
 
             // Wait a moment for initialization to settle
@@ -241,10 +440,18 @@ namespace Nemuri.Scenes
                 // Ensure interactables are fully re-enabled
                 ReEnableInteractables();
             }
+            else if (node.text.Contains("SFX World shaking"))
+            {
+                // Trigger screen shake
+                StartCoroutine(ScreenShakeRoutine(1.5f, 0.2f));
+            }
         }
 
         private void HandleConversationEnd()
         {
+            _conversationEnded = true;
+            _triggerLocked = false;
+
             // Re-enable Cinemachine Brain to return controls to character follow camera
             if (Camera.main != null)
             {
@@ -257,20 +464,11 @@ namespace Nemuri.Scenes
 
             SetPlayerMovementEnabled(true);
 
-            // If the player hasn't picked up the bag yet, keep inventory HUD disabled
-            // and keep non-bag interactables blocked, but allow camera movement
             if (!_hasPickedUpBag)
             {
                 return;
             }
 
-            // If we are currently in the middle of exploring, do not unlock swapping yet
-            if (_isWaitingForExplore && !_island1DialogueTriggered)
-            {
-                return;
-            }
-
-            // Unlock all character slots
             if (CharacterSwapManager.Instance != null)
             {
                 CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);
@@ -280,7 +478,6 @@ namespace Nemuri.Scenes
                 CharacterSwapManager.Instance.SetCharacterUnlocked(4, true);
             }
 
-            // Restore inventory systems
             SetInventoryLocked(false);
             ReEnableInteractables();
         }
@@ -529,15 +726,12 @@ namespace Nemuri.Scenes
                 _bagObject.transform.position = GetSnappedPosition(_ferryInitialPos);
                 _bagObject.SetActive(true);
 
-                // Register callback to resume dialogue once the bag is picked up
+                // Re-enable the interactable component for the bag explicitly
                 Interactable inter = _bagObject.GetComponent<Interactable>();
                 if (inter == null) inter = _bagObject.GetComponentInChildren<Interactable>();
                 if (inter != null)
                 {
-                    // Add listener. PickupItem is NOT needed, we handle pickup completely inside OnBagPickedUp.
-                    inter.OnInteract.RemoveAllListeners();
-                    inter.OnInteract.AddListener(OnBagPickedUp);
-                    inter.PromptText = "Press E to Obtain the Bag";
+                    inter.enabled = true;
                 }
             }
 
@@ -583,14 +777,7 @@ namespace Nemuri.Scenes
         {
             _hasPickedUpBag = true;
 
-            // Add the bag to the inventory database directly
-            if (HotbarInventory.Instance != null)
-            {
-                // We add the item directly, using a placeholder icon or finding a bag icon in the project if desired
-                HotbarInventory.Instance.AddItem("Bag", null, "A mysterious bag left by Ferry.");
-            }
-
-            // Remove/destroy the bag GameObject so it vanishes
+            // Remove/destroy the bag GameObject so it vanishes (does NOT add it as item)
             if (_bagObject != null)
             {
                 Interactable inter = _bagObject.GetComponent<Interactable>();
@@ -601,13 +788,32 @@ namespace Nemuri.Scenes
                     inter.enabled = false;
                 }
                 Destroy(_bagObject);
+                // reveal the hotbar canvas now that the bag has been obtained.
+                // use HotbarUI.CanvasObject which is set during HotbarUI.Start() — always the correct reference.
+                if (HotbarUI.CanvasObject != null)
+                {
+                    HotbarUI.CanvasObject.SetActive(true);
+                }
+            }
+
+            // unlock inventory so items picked up from here onwards register
+            SetInventoryLocked(false);
+
+            // unlock all characters now so the player can swap freely during exploration
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.SetCharacterUnlocked(0, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(1, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(2, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(3, true);
+                CharacterSwapManager.Instance.SetCharacterUnlocked(4, true);
             }
 
             if (DialogueManager.Instance != null)
             {
                 // Transition to the next node which will display "Explore The Circadian Isle" objective
                 DialogueManager.Instance.ResumeConversation();
-                _isWaitingForExplore = true;
+                _currentStage = IntroStage.ExploreCircadianIsle;
 
                 // Smoothly spawn/reveal first bridge
                 if (_firstBridgeGo != null)
@@ -651,13 +857,15 @@ namespace Nemuri.Scenes
 
         private void StartIsland1Dialogue()
         {
-            _island1DialogueTriggered = true;
-            _isWaitingForExplore = false;
+            _triggerLocked = true;
+            _currentStage = IntroStage.NearClockTower;
 
-            // Lock movement, disable other interactables, lock inventory systems for second cutscene
+            // Lock movement and disable inventory
             SetPlayerMovementEnabled(false);
             SetInventoryLocked(true);
-            DisableAllOtherInteractables();
+
+            // Teleport NPCs dynamically to form a circle facing Kael
+            TeleportNPCsToActivePlayer();
 
             List<DialogueNode> islandNodes = new List<DialogueNode>
             {
@@ -682,6 +890,511 @@ namespace Nemuri.Scenes
             {
                 DialogueManager.Instance.StartConversation(islandNodes);
             }
+        }
+
+        private void StartAlarmClockDialogue()
+        {
+            _triggerLocked = true;
+            _currentStage = IntroStage.CollectAlarmClock;
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> nodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Murial", text = "An alarm clock?" },
+                new DialogueNode { speaker = "Keiko", text = "I don’t know but i can feel a strong resonance through that alarm clock" },
+                new DialogueNode { speaker = "Kael", text = "It’s my alarm clock…" },
+                new DialogueNode { speaker = "Kael", text = "How did it get here?" },
+                new DialogueNode { speaker = "Objective", text = "Collect the alarm clock" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+
+            // Unlock ONLY the alarm clock for interaction (it was always visible, just non-interactable)
+            DisableAllOtherInteractablesExcept(_alarmClockGo);
+        }
+
+        private void OnAlarmClockPickedUp()
+        {
+            StartCoroutine(AlarmClockVisionAndDialogueRoutine());
+        }
+
+        private IEnumerator AlarmClockVisionAndDialogueRoutine()
+        {
+            _hasPickedUpClock = true;
+
+            Sprite clockSprite = GetVisionSpriteFromItem(_alarmClockGo);
+
+            if (_alarmClockGo != null)
+            {
+                AddItemToInventory(_alarmClockGo);
+                Interactable inter = _alarmClockGo.GetComponent<Interactable>();
+                if (inter == null) inter = _alarmClockGo.GetComponentInChildren<Interactable>();
+                if (inter != null) inter.DismissInteraction();
+                Destroy(_alarmClockGo);
+            }
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+
+            yield return StartCoroutine(FadeBackdropIn());
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.sprite = clockSprite;
+                _customVisionImageUI.gameObject.SetActive(true);
+            }
+
+            List<DialogueNode> visionNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Narrator", text = "The ringing of the alarm clocks no longer mattered." },
+                new DialogueNode { speaker = "Narrator", text = "Nights blurred into mornings." },
+                new DialogueNode { speaker = "Narrator", text = "Kael barely noticed the difference anymore." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(visionNodes);
+            }
+
+            yield return WaitForConversation();
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.gameObject.SetActive(false);
+            }
+
+            yield return StartCoroutine(FadeBackdropOut());
+
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> dialogNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Keiko", text = "I think these objects means deeper than it looked" },
+                new DialogueNode { speaker = "Kael", text = "I really did ignore the alarms…" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(dialogNodes);
+            }
+
+            // Transition stage dynamically based on inventory group collection
+            CheckGroupCollectionProgress();
+        }
+
+        private void CheckGroupCollectionProgress()
+        {
+            // check if all three items belonging to the group (Group1) are collected in inventory
+            if (HotbarInventory.Instance != null && HotbarInventory.Instance.IsGroupFullyCollected(ItemGroup.Group1))
+            {
+                Debug.Log("[IntroController] Group 1 is fully collected! Unlocking puzzle / memory reconstruction.");
+                _currentStage = IntroStage.ReconstructMemoryPuzzle;
+                DisableAllOtherInteractablesExcept(_reconstructTriggerGo);
+            }
+            else
+            {
+                // Decide which stage to wait for based on what is still missing from the player's inventory
+                // This allows collecting items in any sequence/order
+                if (!_hasPickedUpClock)
+                {
+                    _currentStage = IntroStage.NearClockTower;
+                }
+                else if (!_hasPickedUpLamp)
+                {
+                    _currentStage = IntroStage.NearDeskLamp;
+                }
+                else if (!_hasPickedUpFiles)
+                {
+                    _currentStage = IntroStage.NearFiles;
+                }
+            }
+        }
+
+        private void StartDeskLampDialogue()
+        {
+            _triggerLocked = true;
+            _currentStage = IntroStage.CollectDeskLamp;
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> nodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Kael", text = "My desk lamp…" },
+                new DialogueNode { speaker = "Rona", text = "What does it mean to you?" },
+                new DialogueNode { speaker = "Kael", text = "I just use it for work" },
+                new DialogueNode { speaker = "Murial", text = "Then why is it even here?" },
+                new DialogueNode { speaker = "Kael", text = "I guess we gotta find out" },
+                new DialogueNode { speaker = "Objective", text = "Collect the desk lamp" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+
+            DisableAllOtherInteractablesExcept(_deskLampGo);
+        }
+
+        private void OnDeskLampPickedUp()
+        {
+            StartCoroutine(DeskLampVisionAndDialogueRoutine());
+        }
+
+        private IEnumerator DeskLampVisionAndDialogueRoutine()
+        {
+            _hasPickedUpLamp = true;
+
+            Sprite lampSprite = GetVisionSpriteFromItem(_deskLampGo);
+
+            if (_deskLampGo != null)
+            {
+                AddItemToInventory(_deskLampGo);
+                Interactable inter = _deskLampGo.GetComponent<Interactable>();
+                if (inter == null) inter = _deskLampGo.GetComponentInChildren<Interactable>();
+                if (inter != null) inter.DismissInteraction();
+                Destroy(_deskLampGo);
+            }
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+
+            yield return StartCoroutine(FadeBackdropIn());
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.sprite = lampSprite;
+                _customVisionImageUI.gameObject.SetActive(true);
+            }
+
+            List<DialogueNode> visionNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Narrator", text = "The light that stayed by your side through countless sleepless nights." },
+                new DialogueNode { speaker = "Narrator", text = "Yet even it deserves to rest... just like you, Kael." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(visionNodes);
+            }
+
+            yield return WaitForConversation();
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.gameObject.SetActive(false);
+            }
+
+            yield return StartCoroutine(FadeBackdropOut());
+
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> dialogNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Feanor", text = "These objects... They aren't random." },
+                new DialogueNode { speaker = "Murial", text = "They're fragments of the same memory." },
+                new DialogueNode { speaker = "Kael", text = "...I remember this night." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(dialogNodes);
+            }
+
+            CheckGroupCollectionProgress();
+        }
+
+        private void StartFilesDialogue()
+        {
+            _triggerLocked = true;
+            _currentStage = IntroStage.CollectFiles;
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> nodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Kael", text = "These files..." },
+                new DialogueNode { speaker = "Murial", text = "They seem important." },
+                new DialogueNode { speaker = "Kael", text = "I remember spending countless nights working on them." },
+                new DialogueNode { speaker = "Rona", text = "Were they really worth losing your sleep for?" },
+                new DialogueNode { speaker = "Kael", text = "...At that time, I thought they were." },
+                new DialogueNode { speaker = "Objective", text = "Collect the scattered files" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nodes);
+            }
+
+            // Unlock ONLY the files for interaction (always visible, just non-interactable)
+            DisableAllOtherInteractablesExcept(_filesGo);
+        }
+
+        private void OnFilesPickedUp()
+        {
+            StartCoroutine(FilesVisionAndDialogueRoutine());
+        }
+
+        private IEnumerator FilesVisionAndDialogueRoutine()
+        {
+            _hasPickedUpFiles = true;
+
+            Sprite filesSprite = GetVisionSpriteFromItem(_filesGo);
+
+            if (_filesGo != null)
+            {
+                AddItemToInventory(_filesGo);
+                Interactable inter = _filesGo.GetComponent<Interactable>();
+                if (inter == null) inter = _filesGo.GetComponentInChildren<Interactable>();
+                if (inter != null) inter.DismissInteraction();
+                Destroy(_filesGo);
+            }
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+
+            yield return StartCoroutine(FadeBackdropIn());
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.sprite = filesSprite;
+                _customVisionImageUI.gameObject.SetActive(true);
+            }
+
+            List<DialogueNode> visionNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Narrator", text = "Piles of unfinished work covered the desk, every page carried another deadline." },
+                new DialogueNode { speaker = "Narrator", text = "No matter how many were completed... More always seemed to take their place." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(visionNodes);
+            }
+
+            yield return WaitForConversation();
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.gameObject.SetActive(false);
+            }
+
+            yield return StartCoroutine(FadeBackdropOut());
+
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> dialogNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Rona", text = "They weren't just papers..." },
+                new DialogueNode { speaker = "Feanor", text = "They became a burden you carried every night." },
+                new DialogueNode { speaker = "Kael", text = "…" },
+                new DialogueNode { speaker = "Murial", text = "What can these fragments of things do?" },
+                new DialogueNode { speaker = "Keiko", text = "I feel it’s telling us something." },
+                new DialogueNode { speaker = "Feanor", text = "If we piece these fragments, it tells us a story…" },
+                new DialogueNode { speaker = "Kael", text = "I understand now…" },
+                new DialogueNode { speaker = "Objective", text = "Reconstruct memory" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(dialogNodes);
+            }
+
+            _currentStage = IntroStage.ReconstructMemoryPuzzle;
+            CheckGroupCollectionProgress();
+        }
+
+        public void OnMemoryReconstructed()
+        {
+            StartCoroutine(MemoryReconstructedVisionAndDialogueRoutine());
+        }
+
+        private IEnumerator MemoryReconstructedVisionAndDialogueRoutine()
+        {
+            _hasReconstructedMemory = true;
+
+            Sprite puzzleSprite = null;
+#if UNITY_EDITOR
+            puzzleSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Maps/CHAPT2/full.PNG");
+#endif
+            if (puzzleSprite == null)
+            {
+                puzzleSprite = Resources.Load<Sprite>("full");
+            }
+
+            if (_reconstructTriggerGo != null)
+            {
+                Interactable inter = _reconstructTriggerGo.GetComponent<Interactable>();
+                if (inter == null) inter = _reconstructTriggerGo.GetComponentInChildren<Interactable>();
+                if (inter != null) inter.DismissInteraction();
+                Destroy(_reconstructTriggerGo);
+            }
+
+            SetPlayerMovementEnabled(false);
+            SetInventoryLocked(true);
+
+            yield return StartCoroutine(FadeBackdropIn());
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.sprite = puzzleSprite;
+                _customVisionImageUI.color = Color.white;
+                _customVisionImageUI.gameObject.SetActive(true);
+            }
+
+            List<DialogueNode> visionNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Narrator", text = "Beneath the dim glow of the desk lamp, Kael lay awake with his phone in hand." },
+                new DialogueNode { speaker = "Narrator", text = "The alarm clock rang again and again, but he never reached for it." },
+                new DialogueNode { speaker = "Narrator", text = "Unfinished files piled up around the room." },
+                new DialogueNode { speaker = "Narrator", text = "Night after night, sleep slipped further away." },
+                new DialogueNode { speaker = "Narrator", text = "Before he realized it, staying awake had become his normal." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(visionNodes);
+            }
+
+            yield return WaitForConversation();
+
+            if (_customVisionImageUI != null)
+            {
+                _customVisionImageUI.gameObject.SetActive(false);
+            }
+
+            yield return StartCoroutine(FadeBackdropOut());
+
+            TeleportNPCsToActivePlayer();
+
+            List<DialogueNode> dialogNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Kael", text = "... I never realized it was that bad…" },
+                new DialogueNode { speaker = "Keiko", text = "When you stop caring for yourself Kael, your own mind starts crumbling little by little…" },
+                new DialogueNode { speaker = "Murial", text = "You may have not felt it, but we felt it Kael, and it has been a nightmare" },
+                new DialogueNode { speaker = "Keiko", text = "It’s good that you understand now Kael" },
+                new DialogueNode { speaker = "Kael", text = "I understand now." },
+                new DialogueNode { speaker = "Narrator", text = "SFX World shaking" },
+                new DialogueNode { speaker = "Rona", text = "We have little time now, let’s head to the next island." }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(dialogNodes);
+            }
+        }
+
+        private void AddItemToInventory(GameObject itemGo)
+        {
+            if (itemGo == null) return;
+            PickupItem pickup = itemGo.GetComponent<PickupItem>();
+            if (pickup == null) pickup = itemGo.GetComponentInChildren<PickupItem>();
+            
+            if (pickup != null && HotbarInventory.Instance != null)
+            {
+                HotbarInventory.Instance.AddItem(
+                    pickup.DisplayName,
+                    pickup.ItemIcon,
+                    pickup.Description,
+                    pickup.Group,
+                    pickup.ItemId
+                );
+            }
+        }
+
+        private Sprite GetVisionSpriteFromItem(GameObject go)
+        {
+            if (go == null) return null;
+            PickupItem pickup = go.GetComponent<PickupItem>();
+            if (pickup == null) pickup = go.GetComponentInChildren<PickupItem>();
+            if (pickup != null)
+            {
+                var field = typeof(PickupItem).GetField("_visionSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null)
+                {
+                    return field.GetValue(pickup) as Sprite;
+                }
+            }
+            return null;
+        }
+
+        private void BuildVisionBackdrop()
+        {
+            GameObject canvasObj = new GameObject("Vision Backdrop Canvas");
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 848; // above VisionManager (400), below dialogue (900)
+            canvasObj.AddComponent<CanvasScaler>();
+            canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+            DontDestroyOnLoad(canvasObj);
+
+            GameObject imgObj = new GameObject("Vision Backdrop");
+            imgObj.transform.SetParent(canvasObj.transform, false);
+            _visionBackdrop = imgObj.AddComponent<Image>();
+            _visionBackdrop.color = new Color(0f, 0f, 0f, 0f);
+            
+            // Adjust size to be 80% instead of fullscreen
+            RectTransform rt = imgObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.1f, 0.1f);
+            rt.anchorMax = new Vector2(0.9f, 0.9f);
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+            imgObj.SetActive(false);
+        }
+
+        private IEnumerator FadeBackdropIn()
+        {
+            if (_visionBackdrop == null) yield break;
+            _visionBackdrop.gameObject.SetActive(true);
+            float elapsed = 0f;
+            const float duration = 0.4f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                _visionBackdrop.color = new Color(0f, 0f, 0f, Mathf.Clamp01(elapsed / duration));
+                yield return null;
+            }
+            _visionBackdrop.color = new Color(0f, 0f, 0f, 1f);
+        }
+
+        private IEnumerator FadeBackdropOut()
+        {
+            if (_visionBackdrop == null) yield break;
+            float elapsed = 0f;
+            const float duration = 0.4f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                _visionBackdrop.color = new Color(0f, 0f, 0f, 1f - Mathf.Clamp01(elapsed / duration));
+                yield return null;
+            }
+            _visionBackdrop.color = new Color(0f, 0f, 0f, 0f);
+            _visionBackdrop.gameObject.SetActive(false);
+        }
+
+        private IEnumerator WaitForConversation()
+        {
+            _conversationEnded = false;
+            DialogueManager.OnConversationEnd += OnConversationEnded;
+            while (!_conversationEnded)
+            {
+                yield return null;
+            }
+            DialogueManager.OnConversationEnd -= OnConversationEnded;
+        }
+
+        private void OnConversationEnded()
+        {
+            _conversationEnded = true;
         }
 
         private IEnumerator SilentLookAroundRoutine()
@@ -744,6 +1457,32 @@ namespace Nemuri.Scenes
             {
                 DialogueManager.Instance.canProceed = true;
             }
+
+            // Immediately switch stage and activate the Alarm Clock sequence trigger
+            _currentStage = IntroStage.NearClockTower;
+        }
+
+        private IEnumerator ScreenShakeRoutine(float duration, float magnitude)
+        {
+            Vector3 originalPos = Camera.main.transform.position;
+            float elapsed = 0.0f;
+
+            var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
+            bool brainEnabled = brain != null && brain.enabled;
+            if (brain != null) brain.enabled = false;
+
+            while (elapsed < duration)
+            {
+                float x = Random.Range(-1f, 1f) * magnitude;
+                float y = Random.Range(-1f, 1f) * magnitude;
+
+                Camera.main.transform.position = originalPos + new Vector3(x, y, 0f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            Camera.main.transform.position = originalPos;
+            if (brain != null) brain.enabled = brainEnabled;
         }
 
         private void RotateGroupToCenterSmooth(float duration)
@@ -797,6 +1536,29 @@ namespace Nemuri.Scenes
 
             go.transform.rotation = targetRot;
             if (cc != null) cc.enabled = ccWasEnabled;
+        }
+
+        private void TeleportNPCsToActivePlayer()
+        {
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer == null) return;
+
+            // Teleport Keiko, Rona, Murial, and Feanor to dynamic circle positions facing Kael
+            TeleportAndOrientNPC(_keikoNpc, activePlayer.position + new Vector3(-1.8f, 0f, 1.8f), activePlayer);
+            TeleportAndOrientNPC(_ronaNpc, activePlayer.position + new Vector3(1.8f, 0f, 1.8f), activePlayer);
+            TeleportAndOrientNPC(_murialNpc, activePlayer.position + new Vector3(-1.8f, 0f, -1.8f), activePlayer);
+            TeleportAndOrientNPC(_feanorNpc, activePlayer.position + new Vector3(1.8f, 0f, -1.8f), activePlayer);
+        }
+
+        private void TeleportAndOrientNPC(GameObject npc, Vector3 position, Transform lookTarget)
+        {
+            if (npc == null) return;
+            Vector3 snappedPos = GetSnappedPosition(position);
+            Vector3 dir = (lookTarget.position - snappedPos);
+            dir.y = 0f;
+            Quaternion rot = dir != Vector3.zero ? Quaternion.LookRotation(dir, Vector3.up) : npc.transform.rotation;
+
+            TeleportObject(npc, snappedPos, rot);
         }
 
         private void TeleportAndFaceFerry(GameObject npc, Transform point)
@@ -960,16 +1722,42 @@ namespace Nemuri.Scenes
         {
             _disabledInteractables.Clear();
             Interactable[] allInteractables = FindObjectsByType<Interactable>(FindObjectsInactive.Include);
-            Interactable bagInter = _bagObject != null ? _bagObject.GetComponent<Interactable>() : null;
-            if (bagInter == null && _bagObject != null) bagInter = _bagObject.GetComponentInChildren<Interactable>();
+            
+            // Set of target objects we want to manage/lock
+            HashSet<GameObject> targetObjects = new HashSet<GameObject>();
+            if (_bagObject != null) targetObjects.Add(_bagObject);
+            if (_alarmClockGo != null) targetObjects.Add(_alarmClockGo);
+            if (_deskLampGo != null) targetObjects.Add(_deskLampGo);
+            if (_filesGo != null) targetObjects.Add(_filesGo);
+            if (_reconstructTriggerGo != null) targetObjects.Add(_reconstructTriggerGo);
 
             foreach (var inter in allInteractables)
             {
-                if (inter != null && inter != bagInter && inter.enabled)
+                if (inter != null && inter.enabled)
                 {
-                    inter.enabled = false;
-                    _disabledInteractables.Add(inter);
+                    // Disable if it matches our special items (they will be unlocked explicitly when active)
+                    if (targetObjects.Contains(inter.gameObject) || targetObjects.Contains(inter.transform.parent != null ? inter.transform.parent.gameObject : null))
+                    {
+                        inter.enabled = false;
+                        _disabledInteractables.Add(inter);
+                    }
                 }
+            }
+        }
+
+        private void DisableAllOtherInteractablesExcept(GameObject activeTarget)
+        {
+            if (activeTarget == null) return;
+
+            // Re-lock all managed interactables
+            DisableAllOtherInteractables();
+
+            // Explicitly enable ONLY the current objective target
+            Interactable inter = activeTarget.GetComponent<Interactable>();
+            if (inter == null) inter = activeTarget.GetComponentInChildren<Interactable>();
+            if (inter != null)
+            {
+                inter.enabled = true;
             }
         }
 
@@ -983,6 +1771,23 @@ namespace Nemuri.Scenes
                 }
             }
             _disabledInteractables.Clear();
+        }
+
+        private void SetAllAnimatorsSpeed(float speed)
+        {
+            Animator[] animators = FindObjectsByType<Animator>(FindObjectsInactive.Include);
+            foreach (var anim in animators)
+            {
+                if (anim != null)
+                {
+                    // Do not alter Ferry's standard animation speed
+                    if (_ferryNpc != null && (anim.gameObject == _ferryNpc || anim.transform.IsChildOf(_ferryNpc.transform)))
+                    {
+                        continue;
+                    }
+                    anim.speed = speed;
+                }
+            }
         }
     }
 }

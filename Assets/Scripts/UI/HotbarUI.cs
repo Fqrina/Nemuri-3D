@@ -18,6 +18,10 @@ namespace Nemuri.UI
         private Image _highlightBorder;
         private Text _itemNameLabel;
 
+        // static reference so external scripts (e.g. HippocampusIntroController) can
+        // show/hide the hotbar canvas without relying on GameObject.Find
+        public static GameObject CanvasObject { get; private set; }
+
         private void Start()
         {
             // automatically ensure the inspect script is attached
@@ -29,6 +33,11 @@ namespace Nemuri.UI
             if (GetComponent<VisionManager>() == null)
             {
                 gameObject.AddComponent<VisionManager>();
+            }
+            // automatically ensure the vision puzzle manager is attached
+            if (GetComponent<VisionPuzzleManager>() == null)
+            {
+                gameObject.AddComponent<VisionPuzzleManager>();
             }
 
             InitializeUI();
@@ -72,6 +81,12 @@ namespace Nemuri.UI
             {
                 _canvas = canvasObj.GetComponent<Canvas>();
             }
+
+            // hidden until first item is picked up
+            canvasObj.SetActive(false);
+
+            // expose the canvas reference statically so external scripts don't rely on GameObject.Find
+            CanvasObject = canvasObj;
 
             // create item label text above the hotbar
             GameObject labelObj = new GameObject("SelectedItemLabel");
@@ -141,6 +156,9 @@ namespace Nemuri.UI
                 iconRect.anchorMax = Vector2.one;
                 iconRect.offsetMin = new Vector2(6f, 6f);
                 iconRect.offsetMax = new Vector2(-6f, -6f);
+
+                var dragHandler = slotObj.AddComponent<HotbarSlotDragHandler>();
+                dragHandler.Initialize(i);
             }
 
             // create selection highlight border overlay
@@ -239,11 +257,13 @@ namespace Nemuri.UI
                 return;
             }
 
+            bool hasAnyItem = false;
             for (int i = 0; i < _slotIconImages.Length; i++)
             {
                 var item = HotbarInventory.Instance.GetItemAt(i);
                 if (item != null)
                 {
+                    hasAnyItem = true;
                     if (item.icon != null)
                     {
                         _slotIconImages[i].sprite = item.icon;
@@ -263,8 +283,33 @@ namespace Nemuri.UI
                 }
             }
 
+            // reveal the hotbar the moment the first item is collected
+            if (hasAnyItem && _canvas != null && !_canvas.gameObject.activeSelf)
+            {
+                _canvas.gameObject.SetActive(true);
+            }
+
             // refresh selection text label
             UpdateSelection(HotbarInventory.Instance.SelectedIndex);
+        }
+
+        public void SetSlotIconVisible(int index, bool visible)
+        {
+            if (_slotIconImages != null && index >= 0 && index < _slotIconImages.Length)
+            {
+                if (_slotIconImages[index] != null)
+                {
+                    var item = HotbarInventory.Instance.GetItemAt(index);
+                    if (item != null)
+                    {
+                        _slotIconImages[index].color = visible ? Color.white : Color.clear;
+                    }
+                    else
+                    {
+                        _slotIconImages[index].color = Color.clear;
+                    }
+                }
+            }
         }
     }
 }

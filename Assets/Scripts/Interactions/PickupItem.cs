@@ -15,6 +15,16 @@ namespace Nemuri.Interactions
         [SerializeField] private Sprite _visionSprite;
         [SerializeField] private TextAsset _visionDialogueJson;
 
+        [Header("Group Settings")]
+        [SerializeField] private ItemGroup _group;
+        [SerializeField] [Range(1, 3)] private int _itemId = 1;
+
+        public string DisplayName => _displayName;
+        public Sprite ItemIcon => _itemIcon;
+        public string Description => _description;
+        public ItemGroup Group => _group;
+        public int ItemId => _itemId;
+
         private Interactable _interactable;
 
         private void Awake()
@@ -42,12 +52,11 @@ namespace Nemuri.Interactions
             Debug.Log("[PickupItem] OnPickUp triggered on GameObject: " + gameObject.name);
             if (HotbarInventory.Instance != null)
             {
-                bool added = HotbarInventory.Instance.AddItem(_displayName, _itemIcon, _description);
+                bool added = HotbarInventory.Instance.AddItem(_displayName, _itemIcon, _description, _group, _itemId);
                 if (added)
                 {
                     Debug.Log("[PickupItem] Added " + _displayName + " to inventory. Destroying GameObject.");
-                    
-                    // trigger vision if VisionManager is present
+
                     if (VisionManager.Instance != null)
                     {
                         VisionManager.Instance.PlayVision(_displayName, _visionSprite, _visionDialogueJson);

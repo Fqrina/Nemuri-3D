@@ -15,37 +15,31 @@ namespace Nemuri.Player
         private static readonly int LastMoveYHash = Animator.StringToHash("LastMoveY");
         private static readonly int SkillHash = Animator.StringToHash("Skill");
 
-        public static PlayerMovement Instance { get; private set; }
+        public static PlayerMovement Instance { get; protected set; }
 
         [Header("Movement Settings")]
-        [SerializeField, Min(0f)] private float _moveSpeed = 5f;
-        [SerializeField, Min(0f)] private float _rotationSpeed = 12f;
-        [SerializeField] private string _skillActionName = "Attack";
+        [SerializeField, Min(0f)] protected float _moveSpeed = 5f;
+        [SerializeField, Min(0f)] protected float _rotationSpeed = 12f;
+        [SerializeField] protected string _skillActionName = "Attack";
 
-        private Rigidbody _rb;
-        private Animator _animator;
-        private Vector2 _moveInput;
-        private Vector2 _lastMoveDirection = Vector2.down;
-        private PlayerInput _playerInput;
-        private InputAction _moveAction;
-        private InputAction _skillAction;
-        private bool _canMove = true;
-        private bool _hasSpeedParameter;
-        private bool _hasIsMovingParameter;
-        private bool _hasMoveXParameter;
-        private bool _hasMoveYParameter;
-        private bool _hasLastMoveXParameter;
-        private bool _hasLastMoveYParameter;
-        private bool _hasSkillParameter;
+        protected Rigidbody _rb;
+        protected Animator _animator;
+        protected Vector2 _moveInput;
+        protected Vector2 _lastMoveDirection = Vector2.down;
+        protected PlayerInput _playerInput;
+        protected InputAction _moveAction;
+        protected InputAction _skillAction;
+        protected bool _canMove = true;
+        protected bool _hasSpeedParameter;
+        protected bool _hasIsMovingParameter;
+        protected bool _hasMoveXParameter;
+        protected bool _hasMoveYParameter;
+        protected bool _hasLastMoveXParameter;
+        protected bool _hasLastMoveYParameter;
+        protected bool _hasSkillParameter;
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
             Instance = this;
 
             _rb = GetComponent<Rigidbody>();
@@ -64,6 +58,7 @@ namespace Nemuri.Player
 
         private void OnEnable()
         {
+            Instance = this;
             if (_playerInput == null)
             {
                 return;
@@ -131,7 +126,7 @@ namespace Nemuri.Player
             Move();
         }
 
-        private void Move()
+        protected virtual void Move()
         {
             Vector3 moveDirection = Vector3.ClampMagnitude(new Vector3(_moveInput.x, 0f, _moveInput.y), 1f);
             
