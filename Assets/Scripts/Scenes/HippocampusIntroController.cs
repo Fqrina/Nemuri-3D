@@ -872,9 +872,10 @@ namespace Nemuri.Scenes
             Vector3 startPos = Camera.main.transform.position;
             Quaternion startRot = Camera.main.transform.rotation;
 
-            Vector3 targetPos = target.position + offset;
-            Vector3 lookDir = (target.position - targetPos).normalized;
-            Quaternion targetRot = Quaternion.LookRotation(lookDir, Vector3.up);
+            Vector3 targetPos = offset != Vector3.zero ? target.position + offset : target.position;
+            Quaternion targetRot = offset != Vector3.zero
+                ? (target.position != targetPos ? Quaternion.LookRotation((target.position - targetPos).normalized, Vector3.up) : target.rotation)
+                : target.rotation;
 
             float elapsed = 0f;
             float duration = 2.0f;
@@ -2018,9 +2019,22 @@ namespace Nemuri.Scenes
             _currentStage = IntroStage.MainIslandFerryCutscene;
             SetPlayerMovementEnabled(false);
             SetInventoryLocked(true);
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.LockSwapping = true;
+            }
 
-            // Teleport NPCs to active player on main island
-            TeleportNPCsToActivePlayer();
+            // Teleport 4 NPCs to dynamic positions facing Ferry
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer != null)
+            {
+                Vector3 center = activePlayer.position;
+                Transform lookTarget = _ferryNpc != null ? _ferryNpc.transform : activePlayer;
+                TeleportAndOrientNPC(_keikoNpc, center + new Vector3(-1.8f, 0f, 1.8f), lookTarget);
+                TeleportAndOrientNPC(_ronaNpc, center + new Vector3(1.8f, 0f, 1.8f), lookTarget);
+                TeleportAndOrientNPC(_murialNpc, center + new Vector3(-1.8f, 0f, -1.8f), lookTarget);
+                TeleportAndOrientNPC(_feanorNpc, center + new Vector3(1.8f, 0f, -1.8f), lookTarget);
+            }
 
             List<DialogueNode> part1Nodes = new List<DialogueNode>
             {
@@ -2043,10 +2057,25 @@ namespace Nemuri.Scenes
 
             yield return WaitForConversation();
 
-            // Pan camera to unlit pillars
-            if (_pillarCameraTarget != null)
+            // Pan camera to wide isometric angle (or _pillarCameraTarget if assigned)
+            if (Camera.main != null)
             {
-                yield return StartCoroutine(PanCameraToTargetRoutine(_pillarCameraTarget, Vector3.zero));
+                var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
+                if (brain != null) brain.enabled = false;
+
+                if (_pillarCameraTarget != null)
+                {
+                    yield return StartCoroutine(PanCameraToTargetRoutine(_pillarCameraTarget, Vector3.zero));
+                }
+                else
+                {
+                    Vector3 center = activePlayer != null ? activePlayer.position : Vector3.zero;
+                    Vector3 isoPos = center + new Vector3(0f, 16f, -18f);
+                    Quaternion isoRot = Quaternion.Euler(40f, 0f, 0f);
+                    Camera.main.transform.position = isoPos;
+                    Camera.main.transform.rotation = isoRot;
+                    yield return new WaitForSeconds(1.0f);
+                }
             }
             else
             {
@@ -2069,10 +2098,10 @@ namespace Nemuri.Scenes
 
             yield return WaitForConversation();
 
-            // SFX: The shaking gets stronger!
-            _continuousShakeMagnitude = 0.65f;
-            TriggerWorldShake(3.0f, 0.7f);
-            yield return new WaitForSeconds(1.5f);
+            // SFX: Light subtle shaking starts right here!
+            _continuousShakeMagnitude = 0.18f;
+            TriggerWorldShake(3.0f, 0.3f);
+            yield return new WaitForSeconds(1.0f);
 
             List<DialogueNode> part3Nodes = new List<DialogueNode>
             {
@@ -2100,23 +2129,56 @@ namespace Nemuri.Scenes
             _currentStage = IntroStage.IslandsFallingCutscene;
             SetPlayerMovementEnabled(false);
             SetInventoryLocked(true);
+            if (CharacterSwapManager.Instance != null)
+            {
+                CharacterSwapManager.Instance.LockSwapping = true;
+            }
 
-            // Move camera to high top-down angle looking straight down
-            if (_fallingCameraTarget != null && Camera.main != null)
+            // Keep shake subtle during fall
+            _continuousShakeMagnitude = 0.12f;
+
+            // Disable all KillTrigger/KillZone scripts so player doesn't get teleported back up
+            MonoBehaviour[] allScripts = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            foreach (var s in allScripts)
+            {
+                if (s != null && (s.GetType().Name.Contains("KillTrigger") || s.GetType().Name.Contains("KillZone")))
+                {
+                    s.enabled = false;
+                }
+            }
+
+            // Fixed camera framing (isometric wide shot looking down at island)
+            if (Camera.main != null)
             {
                 var brain = Camera.main.GetComponent<Cinemachine.CinemachineBrain>();
                 if (brain != null) brain.enabled = false;
 
-                Camera.main.transform.position = _fallingCameraTarget.position;
-                Camera.main.transform.rotation = _fallingCameraTarget.rotation;
+                if (_fallingCameraTarget != null)
+                {
+                    Camera.main.transform.position = _fallingCameraTarget.position;
+                    Camera.main.transform.rotation = _fallingCameraTarget.rotation;
+                }
+                else
+                {
+                    Transform playerT = FindActivePlayerTransform();
+                    Vector3 center = playerT != null ? playerT.position : Vector3.zero;
+                    Camera.main.transform.position = center + new Vector3(0f, 16f, -18f);
+                    Camera.main.transform.rotation = Quaternion.Euler(40f, 0f, 0f);
+                }
             }
 
-            // Collect all falling targets (islands, forcefields, Ferry, NPCs, player)
+            // Collect all falling targets (islands, forcefields, Ferry, NPCs, player, Fog)
             List<Transform> targets = new List<Transform>();
             foreach (var go in _fallingObjects)
             {
                 if (go != null) targets.Add(go.transform);
             }
+
+            // Auto-find Fog (2) or Fog if not manually assigned
+            GameObject fogObj = GameObject.Find("Fog (2)");
+            if (fogObj == null) fogObj = GameObject.Find("Fog");
+            if (fogObj != null && !targets.Contains(fogObj.transform)) targets.Add(fogObj.transform);
+
             if (_ferryNpc != null && !targets.Contains(_ferryNpc.transform)) targets.Add(_ferryNpc.transform);
             if (_keikoNpc != null && !targets.Contains(_keikoNpc.transform)) targets.Add(_keikoNpc.transform);
             if (_ronaNpc != null && !targets.Contains(_ronaNpc.transform)) targets.Add(_ronaNpc.transform);
