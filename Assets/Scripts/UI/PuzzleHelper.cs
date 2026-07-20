@@ -5,7 +5,7 @@ namespace Nemuri.UI
     public static class PuzzleHelper
     {
         /// <summary>
-        /// Automatically checks the GameObject for any of the 3 puzzle types (J, H, G) and opens it.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and opens it.
         /// </summary>
         public static void OpenPuzzle(GameObject puzzleGo)
         {
@@ -27,14 +27,22 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.OpenPuzzleUI();
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            {
+                imgUnorderedPuzzle.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
+            {
+                imgRotatablePuzzle.OpenPuzzleUI();
+            }
             else
             {
-                Debug.LogWarning("[PuzzleHelper] No recognized puzzle component (OverlayPinPuzzleUI, OverlayUnorderedPuzzleUI, or OverlayRotatablePuzzleUI) found on " + puzzleGo.name);
+                Debug.LogWarning("[PuzzleHelper] No recognized puzzle component found on " + puzzleGo.name);
             }
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the 3 puzzle types (J, H, G) and closes it.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and closes it.
         /// </summary>
         public static void ClosePuzzle(GameObject puzzleGo)
         {
@@ -52,10 +60,18 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.ClosePuzzleUI();
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            {
+                imgUnorderedPuzzle.ClosePuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
+            {
+                imgRotatablePuzzle.ClosePuzzleUI();
+            }
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the 3 puzzle types (J, H, G) and subscribes to its OnPuzzleSolved callback.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and subscribes to its OnPuzzleSolved callback.
         /// </summary>
         public static void RegisterOnPuzzleSolved(GameObject puzzleGo, System.Action callback)
         {
@@ -73,10 +89,18 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.OnPuzzleSolved += callback;
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            {
+                imgUnorderedPuzzle.OnPuzzleSolved += callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
+            {
+                imgRotatablePuzzle.OnPuzzleSolved += callback;
+            }
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the 3 puzzle types (J, H, G) and unsubscribes from its OnPuzzleSolved callback.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and unsubscribes from its OnPuzzleSolved callback.
         /// </summary>
         public static void UnregisterOnPuzzleSolved(GameObject puzzleGo, System.Action callback)
         {
@@ -93,6 +117,14 @@ namespace Nemuri.UI
             else if (puzzleGo.TryGetComponent<OverlayRotatablePuzzleUI>(out var rotatablePuzzle))
             {
                 rotatablePuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            {
+                imgUnorderedPuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
+            {
+                imgRotatablePuzzle.OnPuzzleSolved -= callback;
             }
         }
     }
