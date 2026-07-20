@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using Nemuri.Dialogue;
 using Nemuri.Player;
 using Nemuri.Core;
@@ -1525,6 +1526,62 @@ namespace Nemuri.Scenes
                     "Aether Shard",
                     _crystal2Icon,
                     "The glowing crystal fragment of Memory Archives."
+                );
+            }
+            OnMemoryReconstructed();
+        }
+
+        private void StartGroup3PuzzleChain()
+        {
+            if (_group3PuzzlesStarted) return;
+            _group3PuzzlesStarted = true;
+            _currentStage = IntroStage.ReconstructMemoryPuzzle3;
+
+            Debug.Log("[IntroController] Group 3 (3 items) collected! Opening Puzzle 7...");
+
+            System.Action onPuzzle7Solved = null;
+            onPuzzle7Solved = () =>
+            {
+                PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle7Go, onPuzzle7Solved);
+                PuzzleHelper.ClosePuzzle(_puzzle7Go);
+                Debug.Log("[IntroController] Puzzle 7 Solved! Opening Puzzle 8...");
+
+                System.Action onPuzzle8Solved = null;
+                onPuzzle8Solved = () =>
+                {
+                    PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle8Go, onPuzzle8Solved);
+                    PuzzleHelper.ClosePuzzle(_puzzle8Go);
+                    Debug.Log("[IntroController] Puzzle 8 Solved! Opening Puzzle 9...");
+
+                    System.Action onPuzzle9Solved = null;
+                    onPuzzle9Solved = () =>
+                    {
+                        PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle9Go, onPuzzle9Solved);
+                        PuzzleHelper.ClosePuzzle(_puzzle9Go);
+                        Debug.Log("[IntroController] Puzzle 9 Solved! Absorbing Group 3 items...");
+
+                        OnGroup3PuzzlesCompleted();
+                    };
+                    PuzzleHelper.RegisterOnPuzzleSolved(_puzzle9Go, onPuzzle9Solved);
+                    PuzzleHelper.OpenPuzzle(_puzzle9Go);
+                };
+                PuzzleHelper.RegisterOnPuzzleSolved(_puzzle8Go, onPuzzle8Solved);
+                PuzzleHelper.OpenPuzzle(_puzzle8Go);
+            };
+
+            PuzzleHelper.RegisterOnPuzzleSolved(_puzzle7Go, onPuzzle7Solved);
+            PuzzleHelper.OpenPuzzle(_puzzle7Go);
+        }
+
+        private void OnGroup3PuzzlesCompleted()
+        {
+            if (HotbarInventory.Instance != null)
+            {
+                HotbarInventory.Instance.AbsorbGroupAndGrantCrystal(
+                    ItemGroup.Group3,
+                    "Dreampearl",
+                    _crystal3Icon,
+                    "The glowing crystal fragment of Anxiety Heights."
                 );
             }
             OnMemoryReconstructed();
