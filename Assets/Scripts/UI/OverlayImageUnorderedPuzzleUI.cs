@@ -160,8 +160,10 @@ namespace Nemuri.UI
         {
             if (_selectedPins.Count != _correctPinIndices.Count) return false;
 
-            foreach (int index in _correctPinIndices)
+            foreach (int rawVal in _correctPinIndices)
             {
+                // Support both 1-based (1..9 -> 0..8) and 0-based (0..8)
+                int index = (rawVal >= 1 && rawVal <= 9) ? rawVal - 1 : rawVal;
                 if (!_selectedPins.Contains(index)) return false;
             }
             return true;
