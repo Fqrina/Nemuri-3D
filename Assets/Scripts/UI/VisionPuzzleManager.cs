@@ -82,62 +82,12 @@ namespace Nemuri.UI
 
         private void Update()
         {
-            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
-            if (_completedGroups.Contains(activeGroup)) return;
-
-            if (HotbarInventory.Instance != null)
+            // Old Vision Puzzle UI (full.png / slots.png) and middle-screen prompt are disabled.
+            if (_promptCanvas != null && _promptCanvas.activeSelf)
             {
-                int currentCollected = HotbarInventory.Instance.GetCollectedCount(activeGroup);
-                if (currentCollected != _lastCollectedCount)
-                {
-                    _lastCollectedCount = currentCollected;
-                    Debug.Log(string.Format("[VisionPuzzleManager] {0} progress: {1}/3 collected.", activeGroup, currentCollected));
-                    if (currentCollected == 3)
-                    {
-                        Debug.Log(string.Format("[VisionPuzzleManager] 3 items of {0} are collected! Press C to reconstruct memory.", activeGroup));
-                    }
-                }
+                _promptCanvas.SetActive(false);
             }
-
-            bool canShowPrompt = IsPuzzleEligible();
-
-            if (canShowPrompt != _wasEligibleLastFrame)
-            {
-                _wasEligibleLastFrame = canShowPrompt;
-            }
-
-            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
-            {
-                Debug.Log("[VisionPuzzleManager] C key pressed. Checking eligibility...");
-                LogEligibilityState();
-
-                if (canShowPrompt)
-                {
-                    if (!_isPuzzleActive)
-                    {
-                        OpenPuzzle();
-                    }
-                    else
-                    {
-                        ClosePuzzle();
-                    }
-                }
-            }
-            
-            if (canShowPrompt && !_isPuzzleActive)
-            {
-                if (!_promptCanvas.activeSelf)
-                {
-                    _promptCanvas.SetActive(true);
-                }
-            }
-            else
-            {
-                if (_promptCanvas.activeSelf)
-                {
-                    _promptCanvas.SetActive(false);
-                }
-            }
+        }
         }
 
         private void LogEligibilityState()
