@@ -92,14 +92,14 @@ public class KaelOrb : MonoBehaviour
             BossFightManager.Instance.CollectOrb();
         }
 
-        // Spawn a green particle ring/flash effect
+        // Spawn a yellow particle ring/flash effect
         GameObject flash = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         flash.transform.position = transform.position;
         flash.transform.localScale = Vector3.zero;
         Destroy(flash.GetComponent<Collider>());
         
         Material flashMat = new Material(Shader.Find("Sprites/Default"));
-        flashMat.color = new Color(0.2f, 1f, 0.4f, 0.5f);
+        flashMat.color = new Color(1f, 0.85f, 0.1f, 0.5f); // Glowing Yellow after-effect
         flash.GetComponent<MeshRenderer>().material = flashMat;
         
         // Simple scale up and destroy animation for the particle

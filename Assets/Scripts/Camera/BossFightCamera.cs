@@ -39,6 +39,12 @@ public class BossFightCamera : MonoBehaviour
     {
         vCam = GetComponent<Cinemachine.CinemachineVirtualCamera>();
         
+        // Exclude CameraDissappear / CameraDisappear layers from physical camera collision
+        int l1 = LayerMask.NameToLayer("CameraDissappear");
+        int l2 = LayerMask.NameToLayer("CameraDisappear");
+        if (l1 != -1) collisionLayers &= ~(1 << l1);
+        if (l2 != -1) collisionLayers &= ~(1 << l2);
+
         // Sanitize lookAtOffset if the user set it as an angle (e.g. 90 degrees) instead of position offset
         if (Mathf.Abs(lookAtOffset.x) > 10f || Mathf.Abs(lookAtOffset.z) > 10f)
         {

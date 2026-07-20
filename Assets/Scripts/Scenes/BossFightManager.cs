@@ -10,7 +10,7 @@ public class BossFightManager : MonoBehaviour
 
     [Header("Settings")]
     public float orbSpawnInterval = 60f;
-    public float kaelDmgMultiplierIncrease = 0.15f;
+    public float kaelDmgMultiplierIncrease = 0.50f;
 
     [Header("State")]
     public float damageMultiplier = 1.0f;
@@ -96,7 +96,66 @@ public class BossFightManager : MonoBehaviour
     private void Start()
     {
         FindEntities();
+        SetupCameraObstructionAndLayers();
         orbSpawnTimer = orbSpawnInterval - 5f; // Spawn the first orb 5 seconds into the fight
+    }
+
+    private void SetupCameraObstructionAndLayers()
+    {
+        // 1. Ensure active Main Camera has CameraObstructionManager component
+        Camera mainCam = Camera.main;
+        if (mainCam != null && mainCam.GetComponent<Nemuri.CameraEffects.CameraObstructionManager>() == null)
+        {
+            mainCam.gameObject.AddComponent<Nemuri.CameraEffects.CameraObstructionManager>();
+            Debug.Log("[BossFightManager] Added CameraObstructionManager to Camera.main.");
+        }
+
+        // 2. Resolve target layer index (CameraDissappear or CameraDisappear)
+        int disappearLayer = LayerMask.NameToLayer("CameraDissappear");
+        if (disappearLayer == -1) disappearLayer = LayerMask.NameToLayer("CameraDisappear");
+
+        if (disappearLayer == -1)
+        {
+            Debug.LogWarning("[BossFightManager] Neither 'CameraDissappear' nor 'CameraDisappear' layer was found in project.");
+            return;
+        }
+
+        // 3. Assign highlighted objects from hierarchy to target layer
+        string[] targetObjectNames = new string[]
+        {
+            "Cube.003",
+            "Cylinder.001", "Cylinder.002", "Cylinder.003",
+            "Cylinder.010", "Cylinder.011", "Cylinder.012", "Cylinder.013",
+            "Cylinder.014", "Cylinder.015", "Cylinder.016",
+            "Sphere"
+        };
+
+        GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj == null || !obj.scene.isLoaded) continue;
+
+            foreach (string targetName in targetObjectNames)
+            {
+                if (obj.name.Equals(targetName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    SetLayerRecursive(obj, disappearLayer);
+                    Debug.Log("[BossFightManager] Configured object '" + obj.name + "' to layer " + LayerMask.LayerToName(disappearLayer));
+                    break;
+                }
+            }
+        }
+
+    }
+
+    private void SetLayerRecursive(GameObject obj, int layer)
+    {
+        if (obj == null) return;
+        obj.layer = layer;
+        foreach (Transform child in obj.transform)
+        {
+            if (child != null) SetLayerRecursive(child.gameObject, layer);
+        }
     }
 
     private void Update()
@@ -243,7 +302,7 @@ public class BossFightManager : MonoBehaviour
         GameObject orb = new GameObject("KaelOrb");
         orb.transform.position = spawnPos;
         orb.AddComponent<KaelOrb>();
-        Debug.Log("[BossFightManager] Green orb spawned at: " + spawnPos + " (Center: " + centerTransform.name + ")");
+        Debug.Log("[BossFightManager] Yellow orb spawned at: " + spawnPos + " (Center: " + centerTransform.name + ")");
     }
 
     // ==========================================
@@ -337,10 +396,11 @@ public class BossFightManager : MonoBehaviour
             Nemuri.Player.PlayerMovement.Instance.SetCanMove(true);
         }
 
-        // Deal damage (max 10 damage)
-        float rawDamage = mashCount * 2.5f;
-        float finalDamage = Mathf.Min(10f, rawDamage * damageMultiplier);
-        Debug.Log("[BossFightManager] Murial Mash Minigame ended! Score: " + mashCount + ". Dealing damage: " + finalDamage);
+        // Deal damage (max 5 base damage without Kael boost, boosted by Kael multiplier)
+        float rawDamage = mashCount * 1.5f;
+        float baseDamage = Mathf.Min(5f, rawDamage);
+        float finalDamage = baseDamage * damageMultiplier;
+        Debug.Log("[BossFightManager] Murial Mash Minigame ended! Score: " + mashCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
 
         // Trigger dynamic visual effect (Rocks smash)
         TriggerMurialRocksVisual(finalDamage);
@@ -799,10 +859,11 @@ public class BossFightManager : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
-        // Deal damage (max 10 damage)
-        float rawDamage = osuHitCount * 1.5f;
-        float finalDamage = Mathf.Min(10f, rawDamage * damageMultiplier);
-        Debug.Log("[BossFightManager] Feanor Osu! Minigame ended. Clicks: " + osuHitCount + ". Damage: " + finalDamage);
+        // Deal damage (max 5 base damage without Kael boost, boosted by Kael multiplier)
+        float rawDamage = osuHitCount * 1.0f;
+        float baseDamage = Mathf.Min(5f, rawDamage);
+        float finalDamage = baseDamage * damageMultiplier;
+        Debug.Log("[BossFightManager] Feanor Osu! Minigame ended. Clicks: " + osuHitCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
 
         // Trigger dynamic visual effect (Blue Wave to head)
         TriggerFeanorWaveVisual(finalDamage);
@@ -1048,7 +1109,7 @@ public class BossFightManager : MonoBehaviour
         lines += "ACTIVE CHARACTER: " + activeCharName + "\n";
         if (activeIdx == 0) // Kael
         {
-            lines += "PASSIVE: ONLY Kael can see and collect glowing Green Orbs.\nABILITY: Cannot attack.";
+            lines += "PASSIVE: ONLY Kael can see and collect glowing Yellow Orbs.\nABILITY: Cannot attack.";
         }
         else if (activeIdx == 1) // Rona
         {
