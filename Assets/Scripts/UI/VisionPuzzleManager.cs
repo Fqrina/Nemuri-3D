@@ -88,7 +88,6 @@ namespace Nemuri.UI
                 _promptCanvas.SetActive(false);
             }
         }
-        }
 
         private void LogEligibilityState()
         {
