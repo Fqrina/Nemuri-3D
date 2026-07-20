@@ -23,6 +23,8 @@ namespace Nemuri.Scenes
             CollectDeskLamp,
             NearFiles,
             CollectFiles,
+            GoBackToMainIsland1,
+            MakeKeyPromptGroup1,
             ReconstructMemoryPuzzle1,
 
             // Island 2: Memory Archives
@@ -52,6 +54,7 @@ namespace Nemuri.Scenes
 
         [Header("Main Island Climax Configuration")]
         [SerializeField] private Transform _mainIslandFerrySpawn;
+        [SerializeField] private Transform _shrinePillarTarget;
         [SerializeField] private Transform _pillarCameraTarget;
         [SerializeField] private Transform _fallingCameraTarget;
         [SerializeField] private List<GameObject> _fallingObjects = new List<GameObject>();
@@ -489,6 +492,31 @@ namespace Nemuri.Scenes
                     {
                         Debug.Log($"[IntroController] Pill Bottle trigger activated at distance {dist}!");
                         StartPillBottleDialogue();
+                    }
+                    break;
+                }
+
+                case IntroStage.GoBackToMainIsland1:
+                {
+                    Vector3 ferryPos = _mainIslandFerrySpawn != null
+                        ? _mainIslandFerrySpawn.position
+                        : (_ferryNpc != null ? _ferryNpc.transform.position : Vector3.positiveInfinity);
+                    float dist = Vector3.Distance(activePlayer.position, ferryPos);
+
+                    if (dist <= _triggerDistance)
+                    {
+                        Debug.Log($"[IntroController] Player returned to Ferry on main island for Group 1! Starting shrine dialogue.");
+                        StartGroup1MainIslandShrineDialogue();
+                    }
+                    break;
+                }
+
+                case IntroStage.MakeKeyPromptGroup1:
+                {
+                    if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+                    {
+                        Debug.Log("[IntroController] Player pressed C to make Group 1 key! Triggering Puzzle 1-3 chain.");
+                        StartGroup1PuzzleChain();
                     }
                     break;
                 }
@@ -1283,7 +1311,7 @@ namespace Nemuri.Scenes
                     PuzzleHelper.RegisterOnPuzzleSolved(_puzzle3Go, onPuzzle3Solved);
                     PuzzleHelper.OpenPuzzle(_puzzle3Go);
                 };
-                PuzzleHelper.RegisterOnPuzzleSolved(_puzzle2Go, onPuzzle2Solved);
+            PuzzleHelper.RegisterOnPuzzleSolved(_puzzle2Go, onPuzzle2Solved);
                 PuzzleHelper.OpenPuzzle(_puzzle2Go);
             };
 
@@ -1297,12 +1325,153 @@ namespace Nemuri.Scenes
             {
                 HotbarInventory.Instance.AbsorbGroupAndGrantCrystal(
                     ItemGroup.Group1,
-                    "Somnia Seed",
+                    "First Island Key",
                     _crystal1Icon,
-                    "The glowing crystal fragment of Circadian Isle."
+                    "The first island key crafted from Circadian Isle memories."
                 );
             }
-            OnMemoryReconstructed();
+            StartCoroutine(Group1KeyHandoverDialogueRoutine());
+        }
+
+        private void StartGroup1MainIslandShrineDialogue()
+        {
+            StartCoroutine(Group1MainIslandShrineDialogueRoutine());
+        }
+
+        private IEnumerator Group1MainIslandShrineDialogueRoutine()
+        {
+            _currentStage = IntroStage.MakeKeyPromptGroup1;
+            SetPlayerMovementEnabled(false);
+
+            Transform activePlayer = FindActivePlayerTransform();
+            if (activePlayer != null)
+            {
+                Vector3 center = activePlayer.position;
+                Transform lookTarget = _ferryNpc != null ? _ferryNpc.transform : activePlayer;
+                TeleportAndOrientNPC(_keikoNpc, center + new Vector3(-1.8f, 0f, 1.8f), lookTarget);
+                TeleportAndOrientNPC(_ronaNpc, center + new Vector3(1.8f, 0f, 1.8f), lookTarget);
+                TeleportAndOrientNPC(_murialNpc, center + new Vector3(-1.8f, 0f, -1.8f), lookTarget);
+                TeleportAndOrientNPC(_feanorNpc, center + new Vector3(1.8f, 0f, -1.8f), lookTarget);
+            }
+
+            List<DialogueNode> part1Nodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Ferry", text = "I see that you have gotten the objects" },
+                new DialogueNode { speaker = "Rona", text = "Now that we're done, what are we going to do with it?" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part1Nodes);
+            }
+
+            yield return WaitForConversation();
+
+            // Pan camera to Shrine / Pillar
+            Transform shrineTarget = _shrinePillarTarget != null ? _shrinePillarTarget : _pillarCameraTarget;
+            if (shrineTarget == null)
+            {
+                GameObject shrineObj = GameObject.Find("Shrine");
+                if (shrineObj == null) shrineObj = GameObject.Find("Pillar");
+                if (shrineObj == null) shrineObj = GameObject.Find("Nocturne Heart");
+                if (shrineObj != null) shrineTarget = shrineObj.transform;
+            }
+
+            if (shrineTarget != null)
+            {
+                yield return StartCoroutine(PanCameraToTargetRoutine(shrineTarget, Vector3.zero));
+            }
+            else
+            {
+                yield return new WaitForSeconds(1.0f);
+            }
+
+            List<DialogueNode> part2Nodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Ferry", text = "See that pillar with a keyhole in it?" },
+                new DialogueNode { speaker = "Ferry", text = "From those objects that you obtain, you can make a key." },
+                new DialogueNode { speaker = "Ferry", text = "Now, try making a key!" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(part2Nodes);
+            }
+
+            yield return WaitForConversation();
+
+            SetPlayerMovementEnabled(true);
+
+            List<DialogueNode> promptNode = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Objective", text = "Make a key (Press C)" }
+            };
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(promptNode);
+            }
+        }
+
+        private IEnumerator Group1KeyHandoverDialogueRoutine()
+        {
+            SetPlayerMovementEnabled(false);
+
+            List<DialogueNode> handoverNodes = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Kael", text = "Woah..." },
+                new DialogueNode { speaker = "Rona", text = "We did it! The first key is complete." },
+                new DialogueNode { speaker = "Rona", text = "Let's put it in the Nocturne Heart!" },
+                new DialogueNode { speaker = "Ferry", text = "Wait a minute there!" },
+                new DialogueNode { speaker = "Ferry", text = "Give the key to me first." },
+                new DialogueNode { speaker = "Murial", text = "Why?" },
+                new DialogueNode { speaker = "Ferry", text = "Because you can't restore the Nocturne Heart with only one key." },
+                new DialogueNode { speaker = "Feanor", text = "Then what happens if we try?" },
+                new DialogueNode { speaker = "Ferry", text = "It won't work." },
+                new DialogueNode { speaker = "Ferry", text = "You need all three keys before the Nocturne Heart can be restored." },
+                new DialogueNode { speaker = "Murial", text = "And you need to hold onto them?" },
+                new DialogueNode { speaker = "Ferry", text = "Yes." },
+                new DialogueNode { speaker = "Feanor", text = "Why though?" },
+                new DialogueNode { speaker = "Ferry", text = "Trust me on this." },
+                new DialogueNode { speaker = "Kael", text = "Just give it to him." },
+                new DialogueNode { speaker = "Kael", text = "He was the one who guided us here in the first place." },
+                new DialogueNode { speaker = "Kael", text = "I don't think he means any harm." },
+                new DialogueNode { speaker = "Rona", text = "Are you sure, Kael?" },
+                new DialogueNode { speaker = "Kael", text = "He showed us the way when we didn't know where to go." },
+                new DialogueNode { speaker = "Kael", text = "Why would he try to stop us now?" },
+                new DialogueNode { speaker = "Rona", text = "I guess you’re right Kael…" },
+                new DialogueNode { speaker = "Ferry", text = "Great! Now see you!" }
+            };
+
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(handoverNodes);
+            }
+
+            yield return WaitForConversation();
+
+            // Ferry poof disappearance cutscene
+            yield return StartCoroutine(FerryDisappearAndTurnRoutine());
+
+            Debug.Log("[HippocampusIntroController] Activating Bridge 2 to Memory Archives...");
+            SmoothBridgeController sbc = GetComponent<SmoothBridgeController>();
+            if (sbc == null) sbc = FindAnyObjectByType<SmoothBridgeController>();
+            if (sbc != null)
+            {
+                sbc.TriggerBridge2();
+            }
+
+            _currentStage = IntroStage.ExploreMemoryArchives;
+            SetPlayerMovementEnabled(true);
+            SetInventoryLocked(false);
+
+            List<DialogueNode> nextObjective = new List<DialogueNode>
+            {
+                new DialogueNode { speaker = "Objective", text = "Explore Memory Archives" }
+            };
+            if (DialogueManager.Instance != null)
+            {
+                DialogueManager.Instance.StartConversation(nextObjective);
+            }
         }
 
         private void StartGroup2PuzzleChain()
@@ -1353,65 +1522,9 @@ namespace Nemuri.Scenes
             {
                 HotbarInventory.Instance.AbsorbGroupAndGrantCrystal(
                     ItemGroup.Group2,
-                    "Crescent Tear",
+                    "Aether Shard",
                     _crystal2Icon,
                     "The glowing crystal fragment of Memory Archives."
-                );
-            }
-            OnMemoryReconstructed();
-        }
-
-        private void StartGroup3PuzzleChain()
-        {
-            if (_group3PuzzlesStarted) return;
-            _group3PuzzlesStarted = true;
-            _currentStage = IntroStage.ReconstructMemoryPuzzle3;
-
-            Debug.Log("[IntroController] Group 3 (3 items) collected! Opening Puzzle 7...");
-
-            System.Action onPuzzle7Solved = null;
-            onPuzzle7Solved = () =>
-            {
-                PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle7Go, onPuzzle7Solved);
-                PuzzleHelper.ClosePuzzle(_puzzle7Go);
-                Debug.Log("[IntroController] Puzzle 7 Solved! Opening Puzzle 8...");
-
-                System.Action onPuzzle8Solved = null;
-                onPuzzle8Solved = () =>
-                {
-                    PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle8Go, onPuzzle8Solved);
-                    PuzzleHelper.ClosePuzzle(_puzzle8Go);
-                    Debug.Log("[IntroController] Puzzle 8 Solved! Opening Puzzle 9...");
-
-                    System.Action onPuzzle9Solved = null;
-                    onPuzzle9Solved = () =>
-                    {
-                        PuzzleHelper.UnregisterOnPuzzleSolved(_puzzle9Go, onPuzzle9Solved);
-                        PuzzleHelper.ClosePuzzle(_puzzle9Go);
-                        Debug.Log("[IntroController] Puzzle 9 Solved! Absorbing Group 3 items...");
-
-                        OnGroup3PuzzlesCompleted();
-                    };
-                    PuzzleHelper.RegisterOnPuzzleSolved(_puzzle9Go, onPuzzle9Solved);
-                    PuzzleHelper.OpenPuzzle(_puzzle9Go);
-                };
-                PuzzleHelper.RegisterOnPuzzleSolved(_puzzle8Go, onPuzzle8Solved);
-                PuzzleHelper.OpenPuzzle(_puzzle8Go);
-            };
-
-            PuzzleHelper.RegisterOnPuzzleSolved(_puzzle7Go, onPuzzle7Solved);
-            PuzzleHelper.OpenPuzzle(_puzzle7Go);
-        }
-
-        private void OnGroup3PuzzlesCompleted()
-        {
-            if (HotbarInventory.Instance != null)
-            {
-                HotbarInventory.Instance.AbsorbGroupAndGrantCrystal(
-                    ItemGroup.Group3,
-                    "Dreampearl",
-                    _crystal3Icon,
-                    "The glowing crystal fragment of Anxiety Heights."
                 );
             }
             OnMemoryReconstructed();
@@ -1421,8 +1534,36 @@ namespace Nemuri.Scenes
         {
             if (HotbarInventory.Instance != null && HotbarInventory.Instance.IsGroupFullyCollected(ItemGroup.Group1))
             {
-                Debug.Log("[IntroController] Group 1 is fully collected! Triggering Puzzle 1-3 chain.");
-                StartGroup1PuzzleChain();
+                Debug.Log("[IntroController] Group 1 is fully collected! Spawning Ferry on main island and prompting player to return.");
+
+                if (_ferryNpc != null)
+                {
+                    if (_ferryNpc.transform.parent != null)
+                    {
+                        _ferryNpc.transform.parent.gameObject.SetActive(true);
+                    }
+                    _ferryNpc.SetActive(true);
+                    if (_mainIslandFerrySpawn != null)
+                    {
+                        _ferryInitialPos = _mainIslandFerrySpawn.position;
+                        _ferryInitialRot = _mainIslandFerrySpawn.rotation;
+                    }
+                    _ferryNpc.transform.position = _ferryInitialPos;
+                    _ferryNpc.transform.rotation = _ferryInitialRot;
+                    _isFerryActiveInCutscene = true;
+                }
+
+                _currentStage = IntroStage.GoBackToMainIsland1;
+                SetPlayerMovementEnabled(true);
+
+                List<DialogueNode> returnObjective = new List<DialogueNode>
+                {
+                    new DialogueNode { speaker = "Objective", text = "Return to Ferry on the main island" }
+                };
+                if (DialogueManager.Instance != null)
+                {
+                    DialogueManager.Instance.StartConversation(returnObjective);
+                }
             }
             else
             {
