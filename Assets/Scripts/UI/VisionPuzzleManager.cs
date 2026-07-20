@@ -15,7 +15,7 @@ namespace Nemuri.UI
         private bool _isPuzzleActive = false;
         private GameObject _promptCanvas;
         private Text _promptText;
-        private bool _hasCompletedPuzzle = false;
+        private readonly System.Collections.Generic.HashSet<ItemGroup> _completedGroups = new System.Collections.Generic.HashSet<ItemGroup>();
 
         public bool IsPuzzleActive => _isPuzzleActive;
 
@@ -82,18 +82,19 @@ namespace Nemuri.UI
 
         private void Update()
         {
-            if (_hasCompletedPuzzle) return;
+            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
+            if (_completedGroups.Contains(activeGroup)) return;
 
             if (HotbarInventory.Instance != null)
             {
-                int currentCollected = HotbarInventory.Instance.GetCollectedCount(ItemGroup.Group1);
+                int currentCollected = HotbarInventory.Instance.GetCollectedCount(activeGroup);
                 if (currentCollected != _lastCollectedCount)
                 {
                     _lastCollectedCount = currentCollected;
-                    Debug.Log(string.Format("[VisionPuzzleManager] Group 1 progress: {0}/3 collected.", currentCollected));
+                    Debug.Log(string.Format("[VisionPuzzleManager] {0} progress: {1}/3 collected.", activeGroup, currentCollected));
                     if (currentCollected == 3)
                     {
-                        Debug.Log("[VisionPuzzleManager] 3 items of Group1 are collected! Press C to reconstruct memory.");
+                        Debug.Log(string.Format("[VisionPuzzleManager] 3 items of {0} are collected! Press C to reconstruct memory.", activeGroup));
                     }
                 }
             }
@@ -110,9 +111,16 @@ namespace Nemuri.UI
                 Debug.Log("[VisionPuzzleManager] C key pressed. Checking eligibility...");
                 LogEligibilityState();
 
-                if (canShowPrompt && !_isPuzzleActive)
+                if (canShowPrompt)
                 {
-                    OpenPuzzle();
+                    if (!_isPuzzleActive)
+                    {
+                        OpenPuzzle();
+                    }
+                    else
+                    {
+                        ClosePuzzle();
+                    }
                 }
             }
             
@@ -134,17 +142,19 @@ namespace Nemuri.UI
 
         private void LogEligibilityState()
         {
+            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
             bool controllerExists = HippocampusIntroController.Instance != null;
             bool isAtStage = controllerExists && HippocampusIntroController.Instance.IsAtReconstructStage;
             bool inventoryExists = HotbarInventory.Instance != null;
-            bool groupCollected = inventoryExists && HotbarInventory.Instance.IsGroupFullyCollected(ItemGroup.Group1);
+            bool groupCollected = inventoryExists && HotbarInventory.Instance.IsGroupFullyCollected(activeGroup);
             bool dialogueExists = DialogueManager.Instance != null;
             bool dialogueActive = dialogueExists && DialogueManager.Instance.IsConversationActive;
 
-            Debug.Log(string.Format("[VisionPuzzleManager] State - Controller: {0} (Stage ok: {1}), Inventory: {2} (Collected: {3}), Dialogue active: {4}",
+            Debug.Log(string.Format("[VisionPuzzleManager] State - Controller: {0} (Stage ok: {1}), Inventory: {2} (Group {3} Collected: {4}), Dialogue active: {5}",
                 controllerExists ? "Found" : "Null",
                 isAtStage,
                 inventoryExists ? "Found" : "Null",
+                activeGroup,
                 groupCollected,
                 dialogueActive));
         }
@@ -157,8 +167,15 @@ namespace Nemuri.UI
                 return false;
             }
 
-            // check if Group 1 is fully collected
-            if (HotbarInventory.Instance == null || !HotbarInventory.Instance.IsGroupFullyCollected(ItemGroup.Group1))
+            // check if active group is already completed
+            ItemGroup activeGroup = HippocampusIntroController.Instance.CurrentActiveGroup;
+            if (_completedGroups.Contains(activeGroup))
+            {
+                return false;
+            }
+
+            // check if active group is fully collected
+            if (HotbarInventory.Instance == null || !HotbarInventory.Instance.IsGroupFullyCollected(activeGroup))
             {
                 return false;
             }
@@ -250,7 +267,9 @@ namespace Nemuri.UI
             if (!_isPuzzleActive) return;
 
             _isPuzzleActive = false;
-            _hasCompletedPuzzle = true;
+            
+            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
+            _completedGroups.Add(activeGroup);
 
             // lock cursor back
             Cursor.lockState = CursorLockMode.Locked;
@@ -272,11 +291,9 @@ namespace Nemuri.UI
                 }
             }
 
-            // consume the 3 items
-            if (HotbarInventory.Instance != null)
-            {
-                HotbarInventory.Instance.CraftGroup(ItemGroup.Group1);
-            }
+            // Keep the items in the inventory so the player can inspect them later
+            activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
+            Debug.Log("[VisionPuzzleManager] Keep items in inventory for active group: " + activeGroup);
 
             // trigger memory reconstruction cutscene and dialogue
             if (HippocampusIntroController.Instance != null)
