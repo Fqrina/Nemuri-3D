@@ -2019,10 +2019,6 @@ namespace Nemuri.Scenes
             _currentStage = IntroStage.MainIslandFerryCutscene;
             SetPlayerMovementEnabled(false);
             SetInventoryLocked(true);
-            if (CharacterSwapManager.Instance != null)
-            {
-                CharacterSwapManager.Instance.LockSwapping = true;
-            }
 
             // Teleport 4 NPCs to dynamic positions facing Ferry
             Transform activePlayer = FindActivePlayerTransform();
@@ -2129,10 +2125,6 @@ namespace Nemuri.Scenes
             _currentStage = IntroStage.IslandsFallingCutscene;
             SetPlayerMovementEnabled(false);
             SetInventoryLocked(true);
-            if (CharacterSwapManager.Instance != null)
-            {
-                CharacterSwapManager.Instance.LockSwapping = true;
-            }
 
             // Keep shake subtle during fall
             _continuousShakeMagnitude = 0.12f;
