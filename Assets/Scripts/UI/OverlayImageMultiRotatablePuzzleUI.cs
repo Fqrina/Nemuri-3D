@@ -358,6 +358,7 @@ namespace Nemuri.UI
                 DraggableUIItem drag = imgGo.GetComponent<DraggableUIItem>();
                 drag.CanMove = config.CanMove;
                 drag.CanRotate = config.CanRotate;
+                drag.ClampToParent = false;
 
                 _itemDataList.Add(new ListDraggableItemData
                 {
