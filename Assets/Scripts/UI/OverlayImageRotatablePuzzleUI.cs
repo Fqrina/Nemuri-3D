@@ -32,6 +32,10 @@ namespace Nemuri.UI
         [SerializeField] private Vector2 _image2Size = new Vector2(320f, 320f);
         [SerializeField] private UnityEngine.Events.UnityEvent _onPuzzleSolvedEvent;
 
+        [Header("UI Appearance & Background (Optional)")]
+        [Tooltip("Custom 1920x1080 background sprite. Drag any background image file here to change the overlay background easily!")]
+        [SerializeField] private Sprite _customBackgroundImage;
+
         [Header("UI References (Optional - Auto-generated if null)")]
         [SerializeField] private Canvas _puzzleCanvas;
         [SerializeField] private GameObject _overlayContainer;
@@ -264,7 +268,15 @@ namespace Nemuri.UI
             overlayRect.offsetMax = Vector2.zero;
 
             Image bgImage = _overlayContainer.AddComponent<Image>();
-            bgImage.color = new Color(0.08f, 0.08f, 0.08f, 0.92f);
+            if (_customBackgroundImage != null)
+            {
+                bgImage.sprite = _customBackgroundImage;
+                bgImage.color = Color.white;
+            }
+            else
+            {
+                bgImage.color = new Color(0.08f, 0.08f, 0.08f, 0.92f);
+            }
 
             BuildLeftCenterArea(_overlayContainer.transform);
             BuildRightPinPanel(_overlayContainer.transform);

@@ -5075,6 +5075,8 @@ MonoBehaviour:
   _correctPinIndices: 03000000040000000500000009000000
   _image1Sprite: {fileID: 21300000, guid: 9b6977474ef0ede4b9e25f0d27c2b541, type: 3}
   _image2Sprite: {fileID: 21300000, guid: 39cdbc0483311584e86f90d950059066, type: 3}
+  _image1Size: {x: 960, y: 960}
+  _image2Size: {x: 960, y: 960}
   _onPuzzleSolvedEvent:
     m_PersistentCalls:
       m_Calls: []
@@ -15439,39 +15441,54 @@ MonoBehaviour:
   m_GameObject: {fileID: 1057923559}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17968c0e634e237419bfcda81421770f, type: 3}
+  m_Script: {fileID: 11500000, guid: db77480f2b4bbab4f86a7b0b510e619d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayRotatablePuzzleUI
+  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayImageMultiRotatablePuzzleUI
   _sortingOrder: 1400
   _enableKeyboardToggle: 1
-  _canMoveImage1: 0
-  _canRotateImage1: 0
-  _canMoveImage2: 1
-  _canRotateImage2: 1
-  _pinLabels:
-  - A
-  - B
-  - C
-  - D
-  - E
-  - F
-  - G
-  - H
-  - I
-  _correctPins:
-  - A
-  - G
-  _image1Sprite: {fileID: 0}
-  _image2Sprite: {fileID: 0}
+  _overlayImages:
+  - Sprite: {fileID: 21300000, guid: 45b7e0725fdad9241b76244bf961a3b6, type: 3}
+    CanMove: 0
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  - Sprite: {fileID: 21300000, guid: 898a5e0031d019a4bb1edd7156f444ee, type: 3}
+    CanMove: 1
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  - Sprite: {fileID: 21300000, guid: 8b02f474b2cdaa541be8fd1e5eb46dc6, type: 3}
+    CanMove: 1
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  - Sprite: {fileID: 21300000, guid: 9cf93cf598430aa4b8076e25163e546f, type: 3}
+    CanMove: 1
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  _pinSprites:
+  - {fileID: 21300000, guid: 109f4a07067522240a2140ae41859bd6, type: 3}
+  - {fileID: 21300000, guid: 2de47715d20ac8b46965e976692f4aa9, type: 3}
+  - {fileID: 21300000, guid: 50aa7449cece3cb4e818800767f665cd, type: 3}
+  - {fileID: 21300000, guid: 1aa9a3b332e045445b5bf1edb9214e24, type: 3}
+  - {fileID: 21300000, guid: 0a6ccbbb8e1443c42a9fc371f7c7a603, type: 3}
+  - {fileID: 21300000, guid: 63126503c8ab40e43a66ef23885d35f0, type: 3}
+  - {fileID: 21300000, guid: 2b9a7908bc196fb4ebc65af913f56451, type: 3}
+  - {fileID: 21300000, guid: bbb3c5ce6d6c16545ab84b07d55a35b0, type: 3}
+  - {fileID: 21300000, guid: dab182520061846419eebd9c42bb5b6f, type: 3}
+  _correctPinIndices: 010000000200000008000000
   _onPuzzleSolvedEvent:
     m_PersistentCalls:
       m_Calls: []
   _puzzleCanvas: {fileID: 0}
   _overlayContainer: {fileID: 0}
-  _sequenceDisplayText: {fileID: 0}
+  _selectedSequenceContainer: {fileID: 0}
   _statusFeedbackText: {fileID: 0}
-  _draggableImage1Rect: {fileID: 0}
-  _draggableImage2Rect: {fileID: 0}
 --- !u!4 &1059964136 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4848591325366998362, guid: 53083e9d6ba91ba4cad309a95b8c8f20, type: 3}
@@ -22993,34 +23010,32 @@ MonoBehaviour:
   m_GameObject: {fileID: 1663061000}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8aef91d00aa15034b95b75783af67132, type: 3}
+  m_Script: {fileID: 11500000, guid: acc4f878a56d3b341b6414e6d7516f51, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayUnorderedPuzzleUI
+  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayImageUnorderedPuzzleUI
   _sortingOrder: 1400
   _enableKeyboardToggle: 1
   _canMoveImage1: 1
   _canMoveImage2: 1
-  _pinLabels:
-  - A
-  - B
-  - C
-  - D
-  - E
-  - F
-  - G
-  - H
-  - I
-  _correctPins:
-  - A
-  - H
-  _image1Sprite: {fileID: 0}
-  _image2Sprite: {fileID: 0}
+  _pinSprites:
+  - {fileID: 21300000, guid: 109f4a07067522240a2140ae41859bd6, type: 3}
+  - {fileID: 21300000, guid: 2de47715d20ac8b46965e976692f4aa9, type: 3}
+  - {fileID: 21300000, guid: 50aa7449cece3cb4e818800767f665cd, type: 3}
+  - {fileID: 21300000, guid: 1aa9a3b332e045445b5bf1edb9214e24, type: 3}
+  - {fileID: 21300000, guid: 0a6ccbbb8e1443c42a9fc371f7c7a603, type: 3}
+  - {fileID: 21300000, guid: 63126503c8ab40e43a66ef23885d35f0, type: 3}
+  - {fileID: 21300000, guid: 2b9a7908bc196fb4ebc65af913f56451, type: 3}
+  - {fileID: 21300000, guid: bbb3c5ce6d6c16545ab84b07d55a35b0, type: 3}
+  - {fileID: 21300000, guid: dab182520061846419eebd9c42bb5b6f, type: 3}
+  _correctPinIndices: 040000000700000009000000
+  _image1Sprite: {fileID: 21300000, guid: 403c37fe73d33934296ddc2d9e1ffcdb, type: 3}
+  _image2Sprite: {fileID: 21300000, guid: d9224180995490644934e9f74dcdfe5a, type: 3}
   _onPuzzleSolvedEvent:
     m_PersistentCalls:
       m_Calls: []
   _puzzleCanvas: {fileID: 0}
   _overlayContainer: {fileID: 0}
-  _sequenceDisplayText: {fileID: 0}
+  _selectedSequenceContainer: {fileID: 0}
   _statusFeedbackText: {fileID: 0}
   _draggableImage1Rect: {fileID: 0}
   _draggableImage2Rect: {fileID: 0}
@@ -26097,38 +26112,48 @@ MonoBehaviour:
   m_GameObject: {fileID: 1862303097}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9a2301b9b9a76d45953ddc66854338d, type: 3}
+  m_Script: {fileID: 11500000, guid: db77480f2b4bbab4f86a7b0b510e619d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayPinPuzzleUI
+  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayImageMultiRotatablePuzzleUI
   _sortingOrder: 1400
   _enableKeyboardToggle: 1
-  _canMoveImage1: 1
-  _canMoveImage2: 1
-  _pinLabels:
-  - A
-  - B
-  - C
-  - D
-  - E
-  - F
-  - G
-  - H
-  - I
-  _correctSequence:
-  - A
-  - B
-  - C
-  _image1Sprite: {fileID: 0}
-  _image2Sprite: {fileID: 0}
+  _overlayImages:
+  - Sprite: {fileID: 21300000, guid: f9513263f6149db41a1e675bb34a3358, type: 3}
+    CanMove: 0
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  - Sprite: {fileID: 21300000, guid: cad3d419dce2ceb4c9f42016f83b3c36, type: 3}
+    CanMove: 1
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  - Sprite: {fileID: 21300000, guid: 178626de1c535304dba8da0068e62a2b, type: 3}
+    CanMove: 1
+    CanRotate: 0
+    SpawnPosition: {x: 0, y: 0}
+    SizeDelta: {x: 0, y: 0}
+    SpawnRotationAngle: 0
+  _pinSprites:
+  - {fileID: 21300000, guid: 109f4a07067522240a2140ae41859bd6, type: 3}
+  - {fileID: 21300000, guid: 2de47715d20ac8b46965e976692f4aa9, type: 3}
+  - {fileID: 21300000, guid: 50aa7449cece3cb4e818800767f665cd, type: 3}
+  - {fileID: 21300000, guid: 1aa9a3b332e045445b5bf1edb9214e24, type: 3}
+  - {fileID: 21300000, guid: 0a6ccbbb8e1443c42a9fc371f7c7a603, type: 3}
+  - {fileID: 21300000, guid: 63126503c8ab40e43a66ef23885d35f0, type: 3}
+  - {fileID: 21300000, guid: 2b9a7908bc196fb4ebc65af913f56451, type: 3}
+  - {fileID: 21300000, guid: bbb3c5ce6d6c16545ab84b07d55a35b0, type: 3}
+  - {fileID: 21300000, guid: dab182520061846419eebd9c42bb5b6f, type: 3}
+  _correctPinIndices: 0200000009000000
   _onPuzzleSolvedEvent:
     m_PersistentCalls:
       m_Calls: []
   _puzzleCanvas: {fileID: 0}
   _overlayContainer: {fileID: 0}
-  _sequenceDisplayText: {fileID: 0}
+  _selectedSequenceContainer: {fileID: 0}
   _statusFeedbackText: {fileID: 0}
-  _draggableImage1Rect: {fileID: 0}
-  _draggableImage2Rect: {fileID: 0}
 --- !u!1001 &1867631006
 PrefabInstance:
   m_ObjectHideFlags: 0
