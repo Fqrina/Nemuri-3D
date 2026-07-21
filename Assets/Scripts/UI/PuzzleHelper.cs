@@ -5,7 +5,7 @@ namespace Nemuri.UI
     public static class PuzzleHelper
     {
         /// <summary>
-        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and opens it.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F, B) and opens it.
         /// </summary>
         public static void OpenPuzzle(GameObject puzzleGo)
         {
@@ -35,6 +35,10 @@ namespace Nemuri.UI
             {
                 imgRotatablePuzzle.OpenPuzzleUI();
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
+            {
+                imgMultiRotatablePuzzle.OpenPuzzleUI();
+            }
             else
             {
                 Debug.LogWarning("[PuzzleHelper] No recognized puzzle component found on " + puzzleGo.name);
@@ -42,7 +46,7 @@ namespace Nemuri.UI
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and closes it.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F, B) and closes it.
         /// </summary>
         public static void ClosePuzzle(GameObject puzzleGo)
         {
@@ -68,10 +72,14 @@ namespace Nemuri.UI
             {
                 imgRotatablePuzzle.ClosePuzzleUI();
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
+            {
+                imgMultiRotatablePuzzle.ClosePuzzleUI();
+            }
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and subscribes to its OnPuzzleSolved callback.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F, B) and subscribes to its OnPuzzleSolved callback.
         /// </summary>
         public static void RegisterOnPuzzleSolved(GameObject puzzleGo, System.Action callback)
         {
@@ -97,10 +105,14 @@ namespace Nemuri.UI
             {
                 imgRotatablePuzzle.OnPuzzleSolved += callback;
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
+            {
+                imgMultiRotatablePuzzle.OnPuzzleSolved += callback;
+            }
         }
 
         /// <summary>
-        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F) and unsubscribes from its OnPuzzleSolved callback.
+        /// Automatically checks the GameObject for any of the puzzle types (J, H, G, L, F, B) and unsubscribes from its OnPuzzleSolved callback.
         /// </summary>
         public static void UnregisterOnPuzzleSolved(GameObject puzzleGo, System.Action callback)
         {
@@ -125,6 +137,10 @@ namespace Nemuri.UI
             else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
             {
                 imgRotatablePuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
+            {
+                imgMultiRotatablePuzzle.OnPuzzleSolved -= callback;
             }
         }
     }
