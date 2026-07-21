@@ -334,6 +334,7 @@ namespace Nemuri.UI
         {
             GameObject rightPanel = new GameObject("RightPinPanel", typeof(RectTransform));
             rightPanel.transform.SetParent(parent, false);
+            rightPanel.transform.SetAsLastSibling();
 
             RectTransform panelRect = rightPanel.GetComponent<RectTransform>();
             panelRect.anchorMin = new Vector2(0.68f, 0f);

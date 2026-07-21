@@ -15,33 +15,46 @@ namespace Nemuri.UI
                 return;
             }
 
-            if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
-            {
-                pinPuzzle.OpenPuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayUnorderedPuzzleUI>(out var unorderedPuzzle))
-            {
-                unorderedPuzzle.OpenPuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayRotatablePuzzleUI>(out var rotatablePuzzle))
-            {
-                rotatablePuzzle.OpenPuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
-            {
-                imgUnorderedPuzzle.OpenPuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
-            {
-                imgRotatablePuzzle.OpenPuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
+            if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle) && imgMultiRotatablePuzzle.enabled)
             {
                 imgMultiRotatablePuzzle.OpenPuzzleUI();
             }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle) && imgRotatablePuzzle.enabled)
+            {
+                imgRotatablePuzzle.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle) && imgUnorderedPuzzle.enabled)
+            {
+                imgUnorderedPuzzle.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle) && pinPuzzle.enabled)
+            {
+                pinPuzzle.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayUnorderedPuzzleUI>(out var unorderedPuzzle) && unorderedPuzzle.enabled)
+            {
+                unorderedPuzzle.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayRotatablePuzzleUI>(out var rotatablePuzzle) && rotatablePuzzle.enabled)
+            {
+                rotatablePuzzle.OpenPuzzleUI();
+            }
+            // Fallback for components that might not be explicitly enabled
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var fallbackB))
+            {
+                fallbackB.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var fallbackF))
+            {
+                fallbackF.OpenPuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var fallbackL))
+            {
+                fallbackL.OpenPuzzleUI();
+            }
             else
             {
-                Debug.LogWarning("[PuzzleHelper] No recognized puzzle component found on " + puzzleGo.name);
+                Debug.LogWarning("[PuzzleHelper] No recognized active puzzle component found on " + puzzleGo.name);
             }
         }
 
@@ -52,7 +65,19 @@ namespace Nemuri.UI
         {
             if (puzzleGo == null) return;
 
-            if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
+            if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle) && imgMultiRotatablePuzzle.enabled)
+            {
+                imgMultiRotatablePuzzle.ClosePuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle) && imgRotatablePuzzle.enabled)
+            {
+                imgRotatablePuzzle.ClosePuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle) && imgUnorderedPuzzle.enabled)
+            {
+                imgUnorderedPuzzle.ClosePuzzleUI();
+            }
+            else if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
             {
                 pinPuzzle.ClosePuzzleUI();
             }
@@ -64,17 +89,9 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.ClosePuzzleUI();
             }
-            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var fallbackB))
             {
-                imgUnorderedPuzzle.ClosePuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
-            {
-                imgRotatablePuzzle.ClosePuzzleUI();
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
-            {
-                imgMultiRotatablePuzzle.ClosePuzzleUI();
+                fallbackB.ClosePuzzleUI();
             }
         }
 
@@ -85,7 +102,19 @@ namespace Nemuri.UI
         {
             if (puzzleGo == null || callback == null) return;
 
-            if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
+            if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle) && imgMultiRotatablePuzzle.enabled)
+            {
+                imgMultiRotatablePuzzle.OnPuzzleSolved += callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle) && imgRotatablePuzzle.enabled)
+            {
+                imgRotatablePuzzle.OnPuzzleSolved += callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle) && imgUnorderedPuzzle.enabled)
+            {
+                imgUnorderedPuzzle.OnPuzzleSolved += callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
             {
                 pinPuzzle.OnPuzzleSolved += callback;
             }
@@ -97,17 +126,9 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.OnPuzzleSolved += callback;
             }
-            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var fallbackB))
             {
-                imgUnorderedPuzzle.OnPuzzleSolved += callback;
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
-            {
-                imgRotatablePuzzle.OnPuzzleSolved += callback;
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
-            {
-                imgMultiRotatablePuzzle.OnPuzzleSolved += callback;
+                fallbackB.OnPuzzleSolved += callback;
             }
         }
 
@@ -118,7 +139,19 @@ namespace Nemuri.UI
         {
             if (puzzleGo == null || callback == null) return;
 
-            if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
+            if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle) && imgMultiRotatablePuzzle.enabled)
+            {
+                imgMultiRotatablePuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle) && imgRotatablePuzzle.enabled)
+            {
+                imgRotatablePuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle) && imgUnorderedPuzzle.enabled)
+            {
+                imgUnorderedPuzzle.OnPuzzleSolved -= callback;
+            }
+            else if (puzzleGo.TryGetComponent<OverlayPinPuzzleUI>(out var pinPuzzle))
             {
                 pinPuzzle.OnPuzzleSolved -= callback;
             }
@@ -130,17 +163,9 @@ namespace Nemuri.UI
             {
                 rotatablePuzzle.OnPuzzleSolved -= callback;
             }
-            else if (puzzleGo.TryGetComponent<OverlayImageUnorderedPuzzleUI>(out var imgUnorderedPuzzle))
+            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var fallbackB))
             {
-                imgUnorderedPuzzle.OnPuzzleSolved -= callback;
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageRotatablePuzzleUI>(out var imgRotatablePuzzle))
-            {
-                imgRotatablePuzzle.OnPuzzleSolved -= callback;
-            }
-            else if (puzzleGo.TryGetComponent<OverlayImageMultiRotatablePuzzleUI>(out var imgMultiRotatablePuzzle))
-            {
-                imgMultiRotatablePuzzle.OnPuzzleSolved -= callback;
+                fallbackB.OnPuzzleSolved -= callback;
             }
         }
     }
