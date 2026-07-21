@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
@@ -9,19 +10,62 @@ namespace Nemuri.UI
         public bool CanMove = true;
         public bool CanRotate = false;
         public float RotationSpeed = 15f;
+        public bool ClampToParent = true;
+        public float AlphaHitThreshold = 0.1f;
 
         private RectTransform _rectTransform;
+        private RectTransform _parentContainerRect;
         private Canvas _canvas;
+        private Image _image;
         private Vector2 _originalPosition;
         private Quaternion _originalRotation;
+        private bool _isOriginalPositionSet = false;
 
         private void Awake()
         {
             _rectTransform = GetComponent<RectTransform>();
             _canvas = GetComponentInParent<Canvas>();
+            _image = GetComponent<Image>();
+
             if (_rectTransform != null)
             {
                 _originalRotation = _rectTransform.localRotation;
+                if (!_isOriginalPositionSet)
+                {
+                    _originalPosition = _rectTransform.anchoredPosition;
+                    _isOriginalPositionSet = true;
+                }
+            }
+
+            ApplyAlphaThreshold();
+            CacheParentContainer();
+        }
+
+        private void Start()
+        {
+            ApplyAlphaThreshold();
+        }
+
+        private void ApplyAlphaThreshold()
+        {
+            if (_image != null)
+            {
+                try
+                {
+                    _image.alphaHitTestMinimumThreshold = AlphaHitThreshold;
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"[DraggableUIItem] Could not set alphaHitTestMinimumThreshold on {_image.name}: {ex.Message}. Make sure 'Read/Write Enabled' is checked in Texture Import Settings.");
+                }
+            }
+        }
+
+        private void CacheParentContainer()
+        {
+            if (_parentContainerRect == null && transform.parent != null)
+            {
+                _parentContainerRect = transform.parent.GetComponent<RectTransform>();
             }
         }
 
@@ -46,9 +90,11 @@ namespace Nemuri.UI
             {
                 _canvas = GetComponentInParent<Canvas>();
             }
-            if (_rectTransform != null)
+            CacheParentContainer();
+            if (_rectTransform != null && !_isOriginalPositionSet)
             {
                 _originalPosition = _rectTransform.anchoredPosition;
+                _isOriginalPositionSet = true;
             }
         }
 
@@ -60,12 +106,45 @@ namespace Nemuri.UI
             {
                 Vector2 delta = eventData.delta / _canvas.scaleFactor;
                 _rectTransform.anchoredPosition += delta;
+
+                if (ClampToParent)
+                {
+                    ClampPositionToContainer();
+                }
             }
             else if (eventData.button == PointerEventData.InputButton.Right && CanRotate)
             {
                 float rotationDelta = -eventData.delta.x * 0.5f;
                 _rectTransform.Rotate(0f, 0f, rotationDelta);
             }
+        }
+
+        private void ClampPositionToContainer()
+        {
+            CacheParentContainer();
+            if (_parentContainerRect == null || _rectTransform == null) return;
+
+            Vector2 parentSize = _parentContainerRect.rect.size;
+            Vector2 itemSize = _rectTransform.rect.size;
+
+            float halfParentW = parentSize.x * 0.5f;
+            float halfParentH = parentSize.y * 0.5f;
+
+            float halfItemW = itemSize.x * 0.5f;
+            float halfItemH = itemSize.y * 0.5f;
+
+            float minX = -halfParentW + halfItemW;
+            float maxX = halfParentW - halfItemW;
+            float minY = -halfParentH + halfItemH;
+            float maxY = halfParentH - halfItemH;
+
+            if (minX > maxX) { minX = 0f; maxX = 0f; }
+            if (minY > maxY) { minY = 0f; maxY = 0f; }
+
+            Vector2 pos = _rectTransform.anchoredPosition;
+            pos.x = Mathf.Clamp(pos.x, minX, maxX);
+            pos.y = Mathf.Clamp(pos.y, minY, maxY);
+            _rectTransform.anchoredPosition = pos;
         }
 
         public void OnEndDrag(PointerEventData eventData)
