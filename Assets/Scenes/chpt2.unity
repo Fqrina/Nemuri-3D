@@ -5021,7 +5021,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 423996994}
-  - component: {fileID: 423996995}
+  - component: {fileID: 423996996}
   m_Layer: 0
   m_Name: Puzzle1
   m_TagString: Untagged
@@ -5044,7 +5044,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 726720387}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &423996995
+--- !u!114 &423996996
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5053,34 +5053,34 @@ MonoBehaviour:
   m_GameObject: {fileID: 423996993}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8aef91d00aa15034b95b75783af67132, type: 3}
+  m_Script: {fileID: 11500000, guid: e75c524dfc5a908498244b8f06d2c171, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayUnorderedPuzzleUI
+  m_EditorClassIdentifier: Assembly-CSharp::Nemuri.UI.OverlayImageRotatablePuzzleUI
   _sortingOrder: 1400
   _enableKeyboardToggle: 1
-  _canMoveImage1: 1
+  _canMoveImage1: 0
+  _canRotateImage1: 0
   _canMoveImage2: 1
-  _pinLabels:
-  - A
-  - B
-  - C
-  - D
-  - E
-  - F
-  - G
-  - H
-  - I
-  _correctPins:
-  - A
-  - H
-  _image1Sprite: {fileID: 0}
-  _image2Sprite: {fileID: 0}
+  _canRotateImage2: 1
+  _pinSprites:
+  - {fileID: 21300000, guid: 109f4a07067522240a2140ae41859bd6, type: 3}
+  - {fileID: 21300000, guid: 2de47715d20ac8b46965e976692f4aa9, type: 3}
+  - {fileID: 21300000, guid: 50aa7449cece3cb4e818800767f665cd, type: 3}
+  - {fileID: 21300000, guid: 1aa9a3b332e045445b5bf1edb9214e24, type: 3}
+  - {fileID: 21300000, guid: 0a6ccbbb8e1443c42a9fc371f7c7a603, type: 3}
+  - {fileID: 21300000, guid: 63126503c8ab40e43a66ef23885d35f0, type: 3}
+  - {fileID: 21300000, guid: 2b9a7908bc196fb4ebc65af913f56451, type: 3}
+  - {fileID: 21300000, guid: bbb3c5ce6d6c16545ab84b07d55a35b0, type: 3}
+  - {fileID: 21300000, guid: dab182520061846419eebd9c42bb5b6f, type: 3}
+  _correctPinIndices: 03000000040000000500000009000000
+  _image1Sprite: {fileID: 21300000, guid: 9b6977474ef0ede4b9e25f0d27c2b541, type: 3}
+  _image2Sprite: {fileID: 21300000, guid: 39cdbc0483311584e86f90d950059066, type: 3}
   _onPuzzleSolvedEvent:
     m_PersistentCalls:
       m_Calls: []
   _puzzleCanvas: {fileID: 0}
   _overlayContainer: {fileID: 0}
-  _sequenceDisplayText: {fileID: 0}
+  _selectedSequenceContainer: {fileID: 0}
   _statusFeedbackText: {fileID: 0}
   _draggableImage1Rect: {fileID: 0}
   _draggableImage2Rect: {fileID: 0}
@@ -12606,8 +12606,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Nemuri.Scenes.HippocampusIntroController
   _mainIslandFerrySpawn: {fileID: 0}
-  _pillarCameraTarget: {fileID: 0}
-  _fallingCameraTarget: {fileID: 0}
+  _shrinePillarTarget: {fileID: 1168431858}
+  _pillarCameraTarget: {fileID: 1168431858}
+  _fallingCameraTarget: {fileID: 1936071447}
   _fallingObjects: []
   _nextSceneName: chpt3
   _keikoNpc: {fileID: 886433022}

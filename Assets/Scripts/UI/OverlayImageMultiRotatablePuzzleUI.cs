@@ -56,7 +56,7 @@ namespace Nemuri.UI
         private readonly Dictionary<int, GameObject> _pinButtonObjects = new Dictionary<int, GameObject>();
         private readonly List<GameObject> _spawnedSequenceIcons = new List<GameObject>();
         private readonly List<RectTransform> _spawnedDraggableRects = new List<RectTransform>();
-        private readonly List<DraggableUIItem> _spawnedDraggableItems = new List<ListDraggableItemData>();
+        private readonly List<DraggableUIItem> _spawnedDraggableItems = new List<DraggableUIItem>();
         
         private struct ListDraggableItemData
         {
