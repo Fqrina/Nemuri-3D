@@ -10,7 +10,7 @@ namespace Nemuri.UI
         public bool CanMove = true;
         public bool CanRotate = false;
         public float RotationSpeed = 15f;
-        public bool ClampToParent = true;
+        public bool ClampToParent = false;
         public float AlphaHitThreshold = 0.1f;
 
         private RectTransform _rectTransform;
@@ -125,25 +125,13 @@ namespace Nemuri.UI
             if (_parentContainerRect == null || _rectTransform == null) return;
 
             Vector2 parentSize = _parentContainerRect.rect.size;
-            Vector2 itemSize = _rectTransform.rect.size;
-
             float halfParentW = parentSize.x * 0.5f;
             float halfParentH = parentSize.y * 0.5f;
 
-            float halfItemW = itemSize.x * 0.5f;
-            float halfItemH = itemSize.y * 0.5f;
-
-            float minX = -halfParentW + halfItemW;
-            float maxX = halfParentW - halfItemW;
-            float minY = -halfParentH + halfItemH;
-            float maxY = halfParentH - halfItemH;
-
-            if (minX > maxX) { minX = 0f; maxX = 0f; }
-            if (minY > maxY) { minY = 0f; maxY = 0f; }
-
+            // Clamp the center/pivot of the item within parent bounds
             Vector2 pos = _rectTransform.anchoredPosition;
-            pos.x = Mathf.Clamp(pos.x, minX, maxX);
-            pos.y = Mathf.Clamp(pos.y, minY, maxY);
+            pos.x = Mathf.Clamp(pos.x, -halfParentW, halfParentW);
+            pos.y = Mathf.Clamp(pos.y, -halfParentH, halfParentH);
             _rectTransform.anchoredPosition = pos;
         }
 
