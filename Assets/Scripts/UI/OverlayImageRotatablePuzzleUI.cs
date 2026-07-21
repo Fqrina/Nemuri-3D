@@ -26,6 +26,10 @@ namespace Nemuri.UI
         [SerializeField] private List<int> _correctPinIndices = new List<int> { 0, 6 };
         [SerializeField] private Sprite _image1Sprite;
         [SerializeField] private Sprite _image2Sprite;
+        [Tooltip("Custom size (width, height) for Image 1. Defaults to (320, 320) if (0, 0).")]
+        [SerializeField] private Vector2 _image1Size = new Vector2(320f, 320f);
+        [Tooltip("Custom size (width, height) for Image 2. Defaults to (320, 320) if (0, 0).")]
+        [SerializeField] private Vector2 _image2Size = new Vector2(320f, 320f);
         [SerializeField] private UnityEngine.Events.UnityEvent _onPuzzleSolvedEvent;
 
         [Header("UI References (Optional - Auto-generated if null)")]
@@ -283,7 +287,8 @@ namespace Nemuri.UI
             GameObject img1Go = new GameObject("DraggableImage_Bottom", typeof(RectTransform), typeof(Image), typeof(DraggableUIItem));
             img1Go.transform.SetParent(leftContainer.transform, false);
             _draggableImage1Rect = img1Go.GetComponent<RectTransform>();
-            _draggableImage1Rect.sizeDelta = new Vector2(320f, 320f);
+            Vector2 size1 = _image1Size == Vector2.zero ? new Vector2(320f, 320f) : _image1Size;
+            _draggableImage1Rect.sizeDelta = size1;
             _draggableImage1Rect.anchoredPosition = new Vector2(-80f, 20f);
 
             Image img1 = img1Go.GetComponent<Image>();
@@ -300,7 +305,8 @@ namespace Nemuri.UI
             GameObject img2Go = new GameObject("DraggableImage_Top", typeof(RectTransform), typeof(Image), typeof(DraggableUIItem));
             img2Go.transform.SetParent(leftContainer.transform, false);
             _draggableImage2Rect = img2Go.GetComponent<RectTransform>();
-            _draggableImage2Rect.sizeDelta = new Vector2(320f, 320f);
+            Vector2 size2 = _image2Size == Vector2.zero ? new Vector2(320f, 320f) : _image2Size;
+            _draggableImage2Rect.sizeDelta = size2;
             _draggableImage2Rect.anchoredPosition = new Vector2(60f, -30f);
 
             Image img2 = img2Go.GetComponent<Image>();
