@@ -1,0 +1,395 @@
+
+N: Kael and the Energeons are pulled into a mysterious world, where forgotten memories slowly begin to take shape.
+D Kael: What is this place...?
+D Keiko: I can feel something here... but I've never been here before.
+D Rona: Wait... look over there. There are three islands.
+D Ferry: Hey fellas!
+(Ferry suddenly appears)
+D Murial: Gosh... why does he always appear out of nowhere?
+D Ferry: Welcome to Hippocampus!
+D Feanor: Hippocampus... a realm where memories are stored, reconstructed, and understood.
+D Ferry: Exactly!
+D Rona: But what does this place have to do with restoring the Nocturne Heart?
+D Ferry: The answer is not something you can simply be told.
+D Ferry: It is something you must discover yourself...
+(Camera focuses on Kael)
+D Ferry: Because the key to restoring the Nocturne Heart lies within your own memories, Kael.
+D Kael: My memories...?
+D Ferry: Three fragments await you.
+(Camera panel to Circadian Isle)
+D Ferry: The memories of your habits...
+(Camera panel to Memory Archive)
+D Ferry: The memories of what you have forgotten...
+(Camera panel to Anxiety Heights)
+D Ferry: And the memories of what you fear.
+D Ferry: Only by understanding them can you uncover the truth.
+Cutscene Ferry poof begone
+D Murial: Huh, can we really trust a rabbit that can suddenly disappear like that…
+D Feanor: I don’t know, but it seems we don't really have a choice here
+D Rona: I think he left something
+D Kael: It’s a bag
+T Obtain the bag
+
+T Explore The Circadian Isle
+(Getting into Circadian Isle) 
+N: At the center of the island stands a massive clock tower, towering over the endless night..
+D Keiko: This place... feels unsettling.
+D Feanor: An endless night... It feels like this island is trapped in a cycle.
+D Rona: A cycle...?
+D Feanor: Yeah. Like it's waiting for something... but morning never comes.
+(Kael stays silent, looking around the island.)
+D Murial: Kael... this place seems familiar to you, doesn't it?
+D Kael: ...
+D Kael: I don't know. But somehow... it feels like I've been here before.
+D Keiko: Wait... I feel something nearby.
+D Rona: You do? Where?
+D Keiko: I’m not sure... but something is pulling us there.
+D Kael: Then let's follow it.
+D Kael: Lead the way, Keiko.
+
+────────────────────────────────
+WHEN YOU FIND THE BROKEN ALARM CLOCK
+────────────────────────────────
+
+D Murial: An alarm clock?
+D Keiko: I don’t know but i can feel a strong resonance through that alarm clock
+D Kael: It’s my alarm clock… 
+D Kael: How did it get here?
+
+T Collect the alarm clock
+
+Cutscene > Vision Kael’s Clock
+N The ringing of the alarm clocks no longer mattered. 
+N Nights blurred into mornings.
+N Kael barely noticed the difference anymore
+.
+
+D Keiko: I think these objects means deeper than it looked
+D Kael: I really did ignore the alarms…
+
+───────────────────────
+WHEN YOU FIND THE DESK LAMP
+───────────────────────
+
+D Kael: My desk lamp…
+D Rona: What does it mean to you?
+D Kael: I just use it for work
+D Murial: Then why is it even here?
+D Kael: I guess we gotta find out
+
+T Collect the desk lamp
+
+Cutscene > Kael’s desk lamp
+N The light that stayed by your side through countless sleepless nights.
+N Yet even it deserves to rest... just like you, Kael.
+
+D Feanor: These objects... They aren't random.
+D Murial: They're fragments of the same memory.
+D Kael: ...I remember this night.
+
+
+──────────────────────────────
+WHEN YOU FIND THE SCATTERED FILES
+──────────────────────────────
+
+D Kael: These files...
+D Murial: They seem important.
+D Kael: I remember spending countless nights working on them.
+D Rona: Were they really worth losing your sleep for?
+D Kael: ...At that time, I thought they were.
+
+T Collect the scattered files
+
+Cutscene > Complete Vision
+N Piles of unfinished work covered the desk, every page carried another deadline.
+N No matter how many were completed... More always seemed to take their place.
+
+D Rona: They weren't just papers...
+D Feanor:: They became a burden you carried every night.
+D Kael: …
+
+D Murial: What can these fragments of things do?
+D Keiko: I feel it’s telling us something.
+D Feanor: If we piece these fragments, it tells us a story…
+D Kael: I understand now…
+
+T Reconstruct memory (game puzzle)
+Cutscene > Complete Memory
+
+N Beneath the dim glow of the desk lamp, Kael lay awake with his phone in hand.
+N The alarm clock rang again and again, but he never reached for it.
+N Unfinished files piled up around the room.
+N Night after night, sleep slipped further away.
+N Before he realized it, staying awake had become his normal.
+
+D Kael:... I never realized it was that bad…
+D Keiko: When you stop caring for yourself Kael, your own mind starts crumbling little by little…
+D Murial: (mad) You may have not felt it, but we felt it Kael, and it has been a nightmare
+D Keiko:: It’s good that you understand now Kael
+D Kael: I understand now.
+SFX World shaking
+D Rona: We have little time now, let’s head to the next island.
+
+T Cue When you come to Memory Archives
+D Murial: A big bookshelf?
+D Kael: What could a bookshelf possibly be connected to my memories?
+D Rona: I guess we better find out for ourselves
+
+──────────────────────────────
+WHEN YOU FIND THE FADED FAMILY PHOTOGRAPH
+──────────────────────────────
+
+D Kael: My family...
+D Keiko: The photograph is fading.
+D Kael: I don't remember it looking like this.
+
+T Collect the faded photograph
+
+Cutscene > Vision Family Photograph
+
+N Some memories don't disappear overnight.
+N They slowly fade... when they're no longer revisited.
+
+D Kael: I haven't looked at this photo in a long time…
+D Kael: I miss them so much…
+D Keiko: (sad) Kael is making me sad 
+D Rona: Kael, even if they are not here anymore, they are still watching you
+D Murial: You say you miss them, but you’re slowly forgetting everything they gave you.
+D Murial: Do you really think they would be proud of the way you're living now?
+D Kael: Sorry…
+
+─────────────────────
+WHEN YOU FIND THE NOVEL
+─────────────────────
+D Kael: My favorite novel...
+D Feanor: You used to read this often?
+D Kael: Yeah…
+
+T Collect the novel
+
+Cutscene > Vision Novel
+
+N Kael used to love reading novels.
+N They were his favorite way to spend time, lost in worlds beyond his own.
+N But as insomnia consumed his nights, he slowly forgot the joy those stories once gave him.
+
+D Feanor: I remember this one.
+D Kael: Wait... you actually read it?
+D Feanor: Of course. It was a good novel.
+D Feanor: I enjoyed reading it as much as you did.
+D Rona: (Laughs) hahaha i remembered Feanor being so into it when you start reading novels
+D Murial: He actually had a personality for once
+D Feanor: Whatever
+
+──────────────────────────────
+WHEN YOU FIND THE CASSETTE TAPE
+──────────────────────────────
+
+D Kael: This cassette...
+D Murial: It looks well used.
+D Kael: It was my favorite playlist.
+
+T Collect the cassette tape
+
+Cutscene > Complete Vision
+N Kael had a favorite cassette tape, a playlist that always brought him comfort.
+N It was part of his little routines and moments of peace.
+N Even the things he loved began to feel meaningless.
+
+D Keiko: This memory feels... warm.
+D Kael: I almost forgot what it felt like.
+D Keiko: I really loved the songs Kael
+D Murial: Keiko have really lost touch of her muse when you stopped
+D Keiko: Don’t say that Murial, you’d make him feel bad!
+
+T Reconstruct memory (game puzzle)
+Cutscene > Complete Memory
+
+N Soft music filled the room.
+N A novel rested in Kael's hands while laughter echoed behind him.
+N Familiar faces stood nearby... though their features slowly faded into nothingness.
+N Happiness remained in the memory, even as the people within it slipped away.
+
+
+D Kael: So these are just memories of my past?
+D Rona: No, Kael. They are pieces of who you are.
+D Keiko: The things you love... the moments you cared about... they're still part of you.
+D Kael: ...
+D Kael: You’re right, I shouldn't have lost myself to this insomnia.
+D Murial: Good thing you realized it, now let’s hurry up to the last Island!
+
+Cue: Masuk ke Anxiety Heights
+D Keiko: This place feels different...
+D Feanor: The other islands showed his memories.
+D Murial: But this one...
+D Murial: It feels like we're inside his thoughts.
+D Kael: ...
+D Kael: So this is what kept me awake all this time.
+
+─────────────────────────
+WHEN YOU FIND THE COFFEE MUG
+─────────────────────────
+
+D Kael: My coffee mug...
+D Murial: It looks like you've used it a lot.
+D Kael: I did.
+D Kael: I drank coffee every night just to stay awake.
+
+T Collect the coffee mug
+
+Cutscene > Vision Coffee Mug
+
+D Rona: So this was what you did every night...
+D Kael: I thought it was the only way to keep up.
+D Rona: But you were only making yourself more tired.
+D Rona: The more you forced yourself to stay awake, the harder everything became.
+D Kael: ...
+D Kael: It wasn't that big of a deal.
+
+──────────────────────────────
+WHEN YOU FIND THE PLUSH RABBIT
+──────────────────────────────
+
+D Rona: A bunny plushie...
+D Keiko: It feels familiar.
+D Kael: That’s Ferry…
+D Murial: It’s your sister's plushie isn’t it?
+D Kael: Yeah, I kept it after she was gone.
+
+T Collect the plush rabbit
+
+Cutscene > Vision Plush Rabbit
+N The plushie became something Kael held onto after losing his sister.
+N It was a reminder of the memories they shared together.
+N Even after all this time, Kael was still afraid of letting go.
+
+D Keiko: You kept this because you missed her.
+D Kael: ...
+D Kael: It's just a plush rabbit.
+D Keiko: Kael...
+D Kael: I'm fine.
+D Murial: If it was really just a plush rabbit, why did you keep it all these years?
+D Kael: ...
+D Murial: You know it meant something to you.
+D Kael: It doesn't matter.
+D Murial: Then why are you trying so hard to convince us?
+D Kael: Just stop.
+(SFX: World shaking)
+D Rona: Murial, that's enough.
+D Rona: You're pushing him too hard.
+D Rona: But Kael...
+D Rona: This reaction proves that this memory still affects you.
+D Rona: And if it affects you, it affects this world too.
+
+
+
+──────────────────────────────
+WHEN YOU FIND THE PILL BOTTLE
+──────────────────────────────
+
+D Kael: ...
+D Rona: Kael?
+D Kael: I remember this.
+D Murial: What is it?
+D Kael: Something I took when I couldn't sleep.
+D Murial: You took those?
+D Kael: It wasn't a big deal.
+D Murial: Of course you would say that.
+D Kael: ...
+D Murial: You always make everything sound like it doesn't matter.
+
+T Collect the pill bottle
+
+Cutscene > Complete Vision
+
+N When sleep became impossible, Kael searched for anything that could help him rest.
+N But even after the nights became easier to endure
+N The exhaustion never truly disappeared.
+
+D Murial: So this is what you did every night?
+D Kael: ...
+D Murial: Drinking coffee to stay awake.
+D Murial: Taking pills just to sleep.
+D Murial: And you still think everything was fine?
+D Kael: Stop acting like you understand.
+D Murial: I don't.
+D Murial: That's the problem.
+D Murial: I know what you did, but I don't understand why you kept letting yourself fall apart.
+
+T Reconstruct Memory
+Cutscene
+N: Night after night, the same cycle repeated.
+N: Coffee kept Kael awake when his body begged for rest.
+N: Sleeping pills became his way to force the night to end.
+N: The little rabbit stayed beside him, holding the memories he refused to let go.
+N: Day after day, Kael continued the same routine... until exhaustion became something he accepted as normal.
+
+D Kael: ...
+D Kael: I didn't realize I was doing that every day.
+D Keiko: Kael...
+D Keiko: You were stuck in the same cycle for so long.
+D Kael: It was just a phase.
+D Murial: You couldn't sleep. You relied on coffee. You needed pills just to rest.
+D Murial: And you still call it a phase?
+D Kael: Because it was.
+D Murial: No, it wasn't.
+D Kael: You don't understand.
+D Murial: Then explain it.
+D Kael: ...
+D Murial: Explain why you kept hurting yourself and pretending nothing was wrong.
+D Kael: I wasn't hurting myself.
+D Murial: Then what do you call this?
+D Kael: I was trying to move forward.
+D Murial: No.
+D Murial: You were running away.
+D Kael: Shut up.
+D Murial: You're still doing it.
+D Kael: Doing what?
+D Murial: Refusing to admit that something was wrong.
+D Kael: ...
+D Rona: Murial, stop.
+D Murial: No.
+D Murial: He needs to understand.
+D Kael: You think you know everything about me?
+D Murial: No.
+D Murial: That's the problem.
+D Murial: We know what you did, Kael.
+D Murial: But you won't even admit why you did it.
+(SFX: World shaking)
+D Keiko: The island...
+D Feanor: The memory is destabilizing.
+D Rona: Kael, we need to go.
+D Murial: You found the truth.
+D Murial: But you still chose to deny it.
+
+T Go back to the main island (World tetep shaking)
+
+CUE sampai ke main island
+
+D Kael: Ferry? You’re back?
+D Ferry:I’m sorry…
+D Ferry: You were so close. Kael…
+D Rona: What do you mean?
+D Feanor: One of the pillars…
+D Feanor: It’s not lighten up
+D Murial: It’s because of you Kael!
+D Kael: What does it have to do with me?
+D Murial: You found the memory.
+D Murial: But you still refused to accept it.
+
+CAMERA PANEL Islands dropping down
+
+D Feanor: The balance is breaking.
+D Rona: Kael, stay calm.
+D Rona: You're losing control.
+D Kael: I can't…
+D Keiko: Kael, don't let your fear consume you.
+(SFX: The shaking gets stronger)
+D Murial: This is exactly what happened.
+D Murial: You keep running from it.
+D Kael: …
+D Ferry: I’m sorry, I can't hold it in anymore.
+D Ferry: Kael... don't lose yourself.
+D Ferry: Face it.
+
+Island jatuh
