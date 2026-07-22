@@ -43,6 +43,16 @@ namespace Nemuri.Core
             return null;
         }
 
+        public string GetActiveCharacterName()
+        {
+            if (_activeCharacterIndex >= 0 && _activeCharacterIndex < _characters.Count)
+            {
+                string name = _characters[_activeCharacterIndex].characterName;
+                return name.Replace("CHARA", "").Replace("chara", "").Trim();
+            }
+            return "PLAYER";
+        }
+
         [Header("Camera Configurations")]
         [SerializeField] private FixedWorldOffsetCamera _followCamera;
 
@@ -84,6 +94,13 @@ namespace Nemuri.Core
 
         private void Start()
         {
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+            {
+                for (int i = 0; i < _unlockedCharacters.Length; i++)
+                {
+                    _unlockedCharacters[i] = true;
+                }
+            }
             InitializeCharacters();
             EnsureUIInitialized();
         }
@@ -348,7 +365,13 @@ namespace Nemuri.Core
 
         private bool CanSwapToIndex(int index)
         {
-            // Hippocampus scene has no NocturneIntroController; allow swaps freely here
+            // Chapter 3 bypasses the intro controller checks
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+            {
+                return true;
+            }
+
+            // Hippocampus (Chapter 2) scene has no NocturneIntroController; allow swaps freely here
             // since the canSwap gate in Update already enforces dialogue/vision blocks.
             if (Nemuri.Scenes.HippocampusIntroController.Instance != null)
             {
