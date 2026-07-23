@@ -2917,8 +2917,8 @@ MonoBehaviour:
   laserBeamYOffset: 17
   chargeSound: {fileID: 8300000, guid: 9ab475e28cb8ad94bb47c50216f45645, type: 3}
   fireSound: {fileID: 8300000, guid: 3c549ccd0bf9b9e4680b549992aa6366, type: 3}
-  chargeVolume: 2
-  fireVolume: 3
+  chargeVolume: 3
+  fireVolume: 4
 --- !u!114 &1291593722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3014,13 +3014,6 @@ MonoBehaviour:
   kaelDmgMultiplierIncrease: 0.5
   damageMultiplier: 1
   orbsCollected: 0
-  murialBgSprite: {fileID: 21300000, guid: d21f073f0b398e847a3ded409f29b383, type: 3}
-  feanorBgSprite: {fileID: 21300000, guid: 145948ea926853241bc937f42dffefc7, type: 3}
-  murialBgSize: {x: 750, y: 300}
-  feanorBgSize: {x: 750, y: 550}
-  murialProgressBarSize: {x: 300, y: 25}
-  murialProgressBarOffset: {x: 30, y: 0}
-  feanorTargetCircleDiameter: 65
   murialCrashSound: {fileID: 8300000, guid: 720689087f0ce6949adc2a94a1844217, type: 3}
   keikoHealSound: {fileID: 8300000, guid: e331fc3c6ed2a0e4a9b35f69891a198f, type: 3}
   kaelOrbHitSound: {fileID: 8300000, guid: 3b72787c5bab2954b8deba6b67181368, type: 3}
@@ -3031,12 +3024,12 @@ MonoBehaviour:
   - {fileID: 8300000, guid: b2b978d48e2b7b241afb5a0a037c1f12, type: 3}
   - {fileID: 8300000, guid: e9807169fc23b804798489ec9f22b6e7, type: 3}
   - {fileID: 8300000, guid: 1aa72d682a946dc4db493ed7c3b7c9a4, type: 3}
-  murialCrashVolume: 1
+  murialCrashVolume: 3
   keikoHealVolume: 1
   kaelOrbHitVolume: 0.5
   feanorChargeVolume: 5
-  feanorReleaseVolume: 1
-  rhythmHitVolume: 0.5
+  feanorReleaseVolume: 2
+  rhythmHitVolume: 1
 --- !u!114 &1291593726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3053,7 +3046,7 @@ MonoBehaviour:
   maxHealth: 100
   triggerDistance: 45
   bossMusic: {fileID: 8300000, guid: bc9bdc3020375d04f963cea26d8238a9, type: 3}
-  musicVolume: 0.05
+  musicVolume: 0.1
 --- !u!1 &1415537075 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9bd9023cda3e10047bde01852d0f6a79, type: 3}

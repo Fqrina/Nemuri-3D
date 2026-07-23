@@ -11,7 +11,7 @@ public class BossFightManager : MonoBehaviour
 
     [Header("Settings")]
     public float orbSpawnInterval = 60f;
-    public float kaelDmgMultiplierIncrease = 0.50f;
+    public float kaelDmgMultiplierIncrease = 0.20f; // 20% multiplier increase per orb
 
     [Header("State")]
     public float damageMultiplier = 1.0f;
@@ -52,6 +52,21 @@ public class BossFightManager : MonoBehaviour
     private GameObject osuPanel;
     private GameObject currentOsuTarget;
 
+    [Header("Minigame Background Sprites")]
+    [SerializeField] public Sprite murialBgSprite;
+    [SerializeField] public Sprite feanorBgSprite;
+
+    [Header("Minigame Background Sizes")]
+    [SerializeField] public Vector2 murialBgSize = new Vector2(900f, 450f);
+    [SerializeField] public Vector2 feanorBgSize = new Vector2(900f, 700f);
+
+    [Header("Murial Progress Bar Settings")]
+    [SerializeField] public Vector2 murialProgressBarSize = new Vector2(300f, 25f);
+    [SerializeField] public Vector2 murialProgressBarOffset = new Vector2(30f, 0f);
+
+    [Header("Feanor Target Circle Settings")]
+    [SerializeField] public float feanorTargetCircleDiameter = 90f;
+
     [Header("Character Ability SFX Clips")]
     [SerializeField] public AudioClip murialCrashSound;
     [SerializeField] public AudioClip keikoHealSound;
@@ -79,6 +94,11 @@ public class BossFightManager : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
+        if (murialBgSprite == null)
+            murialBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/MurialBg.PNG");
+        if (feanorBgSprite == null)
+            feanorBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/FeanorBg.PNG");
+
         if (murialCrashSound == null)
             murialCrashSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/MurialCrash.wav");
         if (keikoHealSound == null)
@@ -102,6 +122,11 @@ public class BossFightManager : MonoBehaviour
     private void EnsureAbilityAudioLoaded()
     {
 #if UNITY_EDITOR
+        if (murialBgSprite == null)
+            murialBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/MurialBg.PNG");
+        if (feanorBgSprite == null)
+            feanorBgSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Resources/FeanorBg.PNG");
+
         if (murialCrashSound == null)
             murialCrashSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/MurialCrash.wav");
         if (keikoHealSound == null)
@@ -120,6 +145,9 @@ public class BossFightManager : MonoBehaviour
                 rhythmHitSounds[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/Sounds/RhythmHit{i + 1}.mp3");
         }
 #endif
+        if (murialBgSprite == null) murialBgSprite = Resources.Load<Sprite>("MurialBg");
+        if (feanorBgSprite == null) feanorBgSprite = Resources.Load<Sprite>("FeanorBg");
+
         if (murialCrashSound == null) murialCrashSound = Resources.Load<AudioClip>("MurialCrash");
         if (keikoHealSound == null) keikoHealSound = Resources.Load<AudioClip>("Heal");
         if (kaelOrbHitSound == null) kaelOrbHitSound = Resources.Load<AudioClip>("KaelOrbHit");
@@ -1069,8 +1097,11 @@ public class BossFightManager : MonoBehaviour
         targetGo.transform.SetParent(osuPanel.transform, false);
         currentOsuTarget = targetGo;
 
+        float targetSize = feanorTargetCircleDiameter > 10f ? feanorTargetCircleDiameter : 90f;
+        float startRingSize = targetSize * 2.2f;
+
         RectTransform rect = targetGo.AddComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(50f, 50f);
+        rect.sizeDelta = new Vector2(targetSize, targetSize);
         rect.localScale = Vector3.one;
         
         // Random position relative to center of screen
@@ -1078,14 +1109,19 @@ public class BossFightManager : MonoBehaviour
 
         Image img = targetGo.AddComponent<Image>();
         img.sprite = GetOrCreateCircleSprite(); // Use circular sprite!
-        img.color = new Color(0.2f, 0.6f, 1f, 0.8f); // Blue aim circle
+        img.color = new Color(0.02f, 0.12f, 0.35f, 0.95f); // Darker blue aim circle
         img.raycastTarget = true; // Button itself must be clickable!
+
+        // Add bright outline around the dark target circle
+        UnityEngine.UI.Outline outline = targetGo.AddComponent<UnityEngine.UI.Outline>();
+        outline.effectColor = new Color(0.2f, 0.8f, 1.0f, 1.0f); // Bright cyan outline
+        outline.effectDistance = new Vector2(3f, -3f);
 
         // Add visual ring
         GameObject ring = new GameObject("Ring");
         ring.transform.SetParent(targetGo.transform, false);
         RectTransform ringRect = ring.AddComponent<RectTransform>();
-        ringRect.sizeDelta = new Vector2(120f, 120f);
+        ringRect.sizeDelta = new Vector2(startRingSize, startRingSize);
         ringRect.localScale = Vector3.one;
         ringRect.anchoredPosition = Vector2.zero;
         Image ringImg = ring.AddComponent<Image>();
@@ -1094,30 +1130,30 @@ public class BossFightManager : MonoBehaviour
         ringImg.raycastTarget = false; // MUST be false so it does not block mouse clicks on the button!
         
         OsuRingShrinker shrinker = ring.AddComponent<OsuRingShrinker>(); // Shrinks ring to indicate perfect time
+        shrinker.targetDiameter = targetSize;
 
         Button btn = targetGo.AddComponent<Button>();
         btn.onClick.AddListener(() => {
             PlayRandomRhythmHitSound(); // Play non-consecutive random RhythmHit SFX
             if (shrinker != null)
             {
-                float el = shrinker.GetElapsed();
+                float diff = shrinker.GetDiff();
                 string rating = "";
                 Color ratingColor = Color.white;
-                float diff = Mathf.Lerp(120f, 50f, el / 1.0f) - 50f;
 
-                if (diff <= 8f)
+                if (diff <= 14f)
                 {
                     rating = "PERFECT!";
                     ratingColor = new Color(1f, 0.85f, 0f); // Gold
                     osuHitCount += 2;
                 }
-                else if (diff <= 20f)
+                else if (diff <= 35f)
                 {
                     rating = "GREAT!";
                     ratingColor = new Color(0.1f, 1f, 0.4f); // Green
                     osuHitCount++;
                 }
-                else if (diff <= 45f)
+                else if (diff <= 75f)
                 {
                     rating = "GOOD";
                     ratingColor = new Color(0.1f, 0.7f, 1f); // Blue
@@ -1161,9 +1197,9 @@ public class BossFightManager : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
-        // Deal damage (max 15 base damage without Kael boost, boosted by Kael multiplier)
+        // Deal damage (max 10 base damage without Kael boost, boosted by Kael multiplier)
         float rawDamage = osuHitCount * 1.0f;
-        float baseDamage = Mathf.Min(15f, rawDamage);
+        float baseDamage = Mathf.Min(10f, rawDamage);
         float finalDamage = baseDamage * damageMultiplier;
         Debug.Log("[BossFightManager] Feanor Osu! Minigame ended. Clicks/Score: " + osuHitCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
 
@@ -1473,6 +1509,23 @@ public class BossFightManager : MonoBehaviour
         }
     }
 
+    private Sprite GetSpriteFromResource(Sprite assigned, string resourceName)
+    {
+        if (assigned != null) return assigned;
+
+        Sprite spr = Resources.Load<Sprite>(resourceName);
+        if (spr != null) return spr;
+
+        // Fallback: If imported as Texture2D, convert to Sprite on the fly
+        Texture2D tex = Resources.Load<Texture2D>(resourceName);
+        if (tex != null)
+        {
+            return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+        }
+
+        return null;
+    }
+
     private void CreateMashPanel()
     {
         if (canvas == null) return;
@@ -1485,41 +1538,31 @@ public class BossFightManager : MonoBehaviour
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = new Vector2(0f, 60f);
-        rect.sizeDelta = new Vector2(350f, 80f);
+        rect.sizeDelta = murialBgSize;
         rect.localScale = Vector3.one;
 
         Image bg = mashPanel.AddComponent<Image>();
-        bg.color = new Color(0.1f, 0.1f, 0.1f, 0.9f);
+        Sprite mSprite = GetSpriteFromResource(murialBgSprite, "MurialBg");
+        if (mSprite != null)
+        {
+            bg.sprite = mSprite;
+            bg.color = Color.white;
+        }
+        else
+        {
+            bg.color = new Color(0.1f, 0.1f, 0.1f, 0.9f);
+        }
 
-        // Add instructional text
-        GameObject textGo = new GameObject("Instructions");
-        textGo.transform.SetParent(mashPanel.transform, false);
-        RectTransform txtRect = textGo.AddComponent<RectTransform>();
-        txtRect.localScale = Vector3.one;
-        txtRect.anchorMin = new Vector2(0f, 1f);
-        txtRect.anchorMax = new Vector2(1f, 1f);
-        txtRect.pivot = new Vector2(0.5f, 1f);
-        txtRect.anchoredPosition = new Vector2(0f, -5f);
-        txtRect.sizeDelta = new Vector2(0f, 30f);
-
-        Text txt = textGo.AddComponent<Text>();
-        txt.font = GetSpinnenkopFont();
-        txt.text = "MASH [L] KEY TO ATTACK!";
-        txt.fontSize = 16;
-        txt.fontStyle = FontStyle.Bold;
-        txt.alignment = TextAnchor.MiddleCenter;
-        txt.color = Color.white;
-
-        // Progress bar background (dark red)
+        // Progress bar background (dark red) - Independent size & offset
         GameObject barBg = new GameObject("BarBg");
         barBg.transform.SetParent(mashPanel.transform, false);
         RectTransform barBgRect = barBg.AddComponent<RectTransform>();
         barBgRect.localScale = Vector3.one;
-        barBgRect.anchorMin = new Vector2(0.05f, 0.15f);
-        barBgRect.anchorMax = new Vector2(0.95f, 0.45f);
+        barBgRect.anchorMin = new Vector2(0.5f, 0.5f);
+        barBgRect.anchorMax = new Vector2(0.5f, 0.5f);
         barBgRect.pivot = new Vector2(0.5f, 0.5f);
-        barBgRect.anchoredPosition = Vector2.zero;
-        barBgRect.sizeDelta = Vector2.zero;
+        barBgRect.sizeDelta = murialProgressBarSize;
+        barBgRect.anchoredPosition = murialProgressBarOffset;
 
         Image barBgImg = barBg.AddComponent<Image>();
         barBgImg.color = new Color(0.3f, 0.05f, 0.05f, 1f);
@@ -1551,30 +1594,20 @@ public class BossFightManager : MonoBehaviour
         rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(600f, 400f);
+        rect.sizeDelta = feanorBgSize;
         rect.localScale = Vector3.one;
 
         Image bg = osuPanel.AddComponent<Image>();
-        bg.color = new Color(0.05f, 0.05f, 0.1f, 0.7f); // Transparent dark blue
-
-        // Add instructional text
-        GameObject textGo = new GameObject("Instructions");
-        textGo.transform.SetParent(osuPanel.transform, false);
-        RectTransform txtRect = textGo.AddComponent<RectTransform>();
-        txtRect.localScale = Vector3.one;
-        txtRect.anchorMin = new Vector2(0f, 1f);
-        txtRect.anchorMax = new Vector2(1f, 1f);
-        txtRect.pivot = new Vector2(0.5f, 1f);
-        txtRect.anchoredPosition = new Vector2(0f, -10f);
-        txtRect.sizeDelta = new Vector2(0f, 30f);
-
-        Text txt = textGo.AddComponent<Text>();
-        txt.font = GetSpinnenkopFont();
-        txt.text = "CLICK TARGETS WITH MOUSE!";
-        txt.fontSize = 16;
-        txt.fontStyle = FontStyle.Bold;
-        txt.alignment = TextAnchor.MiddleCenter;
-        txt.color = Color.cyan;
+        Sprite fSprite = GetSpriteFromResource(feanorBgSprite, "FeanorBg");
+        if (fSprite != null)
+        {
+            bg.sprite = fSprite;
+            bg.color = Color.white;
+        }
+        else
+        {
+            bg.color = new Color(0.05f, 0.05f, 0.1f, 0.7f); // Transparent dark blue
+        }
     }
 
     private static T FindFirstObjectByTypeAll<T>() where T : Component
@@ -1604,12 +1637,19 @@ public class HealRingAnimator : MonoBehaviour
 
 public class OsuRingShrinker : MonoBehaviour
 {
+    public float targetDiameter = 90f;
     private RectTransform rect;
     private float elapsed = 0f;
 
     public float GetElapsed()
     {
         return elapsed;
+    }
+
+    public float GetDiff()
+    {
+        float currentSize = Mathf.Lerp(targetDiameter * 2.2f, targetDiameter, elapsed / 1.0f);
+        return currentSize - targetDiameter;
     }
 
     private void Start()
@@ -1622,7 +1662,7 @@ public class OsuRingShrinker : MonoBehaviour
         elapsed += Time.deltaTime;
         if (rect != null)
         {
-            float scale = Mathf.Lerp(120f, 50f, elapsed / 1.0f);
+            float scale = Mathf.Lerp(targetDiameter * 2.2f, targetDiameter, elapsed / 1.0f);
             rect.sizeDelta = new Vector2(scale, scale);
         }
         if (elapsed >= 1.0f)
