@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Nemuri.Inventory;
+using Nemuri.Scenes;
 
 namespace Nemuri.UI
 {
@@ -29,11 +30,22 @@ namespace Nemuri.UI
 
         private readonly List<PlacedItemInfo> _placedItems = new List<PlacedItemInfo>();
 
-        // Coordinates matching (Reference 1920x1080 resolution)
-        private readonly Vector2 _clockTarget = new Vector2(845f, -259f);
-        private readonly Vector2 _lampTarget = new Vector2(-595f, -86f);
-        private readonly Vector2 _papersTarget = new Vector2(-883f, -313f);
-        private const float MatchTolerance = 120f; // maximum distance deviation in board coordinates (approx. 100px)
+        [Header("Target Coordinates - Group 1 (Circadian Isle)")]
+        [SerializeField] private Vector2 _g1Target1 = new Vector2(845f, -259f);  // Clock
+        [SerializeField] private Vector2 _g1Target2 = new Vector2(-595f, -86f);  // Lamp
+        [SerializeField] private Vector2 _g1Target3 = new Vector2(-883f, -313f); // Files
+
+        [Header("Target Coordinates - Group 2 (Memory Archives)")]
+        [SerializeField] private Vector2 _g2Target1 = new Vector2(845f, -259f);  // Photo
+        [SerializeField] private Vector2 _g2Target2 = new Vector2(-595f, -86f);  // Novel
+        [SerializeField] private Vector2 _g2Target3 = new Vector2(-883f, -313f); // Cassette
+
+        [Header("Target Coordinates - Group 3 (Anxiety Heights)")]
+        [SerializeField] private Vector2 _g3Target1 = new Vector2(845f, -259f);  // Coffee
+        [SerializeField] private Vector2 _g3Target2 = new Vector2(-595f, -86f);  // Rabbit
+        [SerializeField] private Vector2 _g3Target3 = new Vector2(-883f, -313f); // Pills
+
+        private const float MatchTolerance = 120f; // maximum distance deviation in board coordinates
 
         private void Awake()
         {
@@ -111,14 +123,14 @@ namespace Nemuri.UI
             }
 
             RectTransform boardRect = _visionBoardImage.GetComponent<RectTransform>();
-            boardRect.anchorMin = new Vector2(0.5f, 0.5f);
-            boardRect.anchorMax = new Vector2(0.5f, 0.5f);
+            boardRect.anchorMin = Vector2.zero;
+            boardRect.anchorMax = Vector2.one;
             boardRect.pivot = new Vector2(0.5f, 0.5f);
-            boardRect.sizeDelta = new Vector2(1920f, 1080f);
-            boardRect.anchoredPosition = new Vector2(0f, 80f);
-            boardRect.localScale = new Vector3(0.8f, 0.8f, 1f);
+            boardRect.offsetMin = Vector2.zero;
+            boardRect.offsetMax = Vector2.zero;
+            boardRect.localScale = Vector3.one;
 
-            // unlock button under vision board (bottom center of board)
+            // unlock button at top center of board (so it's never covered by the hotbar)
             GameObject unlockGo = new GameObject("UnlockButton");
             unlockGo.transform.SetParent(_visionBoardImage.transform, false);
             _unlockButton = unlockGo.AddComponent<Button>();
@@ -126,10 +138,10 @@ namespace Nemuri.UI
             btnImg.color = new Color(0.18f, 0.54f, 0.34f, 1f); // forest green
 
             RectTransform btnRect = unlockGo.GetComponent<RectTransform>();
-            btnRect.anchorMin = new Vector2(0.5f, 0f);
-            btnRect.anchorMax = new Vector2(0.5f, 0f);
+            btnRect.anchorMin = new Vector2(0.5f, 1f);
+            btnRect.anchorMax = new Vector2(0.5f, 1f);
             btnRect.pivot = new Vector2(0.5f, 0.5f);
-            btnRect.anchoredPosition = new Vector2(0f, 60f); // 60 units above bottom edge
+            btnRect.anchoredPosition = new Vector2(0f, -60f); // 60 units below top edge
             btnRect.sizeDelta = new Vector2(180f, 50f);
 
             GameObject textGo = new GameObject("Text");
@@ -192,12 +204,86 @@ namespace Nemuri.UI
             if (visible)
             {
                 ResetPuzzle();
+                LoadTexturesForActiveGroup();
+
                 if (_slotsSprite != null && _visionBoardImage != null)
                 {
                     _visionBoardImage.sprite = _slotsSprite;
                     _visionBoardImage.color = Color.white;
                 }
             }
+        }
+
+        private void LoadTexturesForActiveGroup()
+        {
+            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
+            string slotsPath = "Assets/Maps/CHAPT2/slots.PNG";
+            string fullPath = "Assets/Maps/CHAPT2/full.PNG";
+            string resSlots = "slots";
+            string resFull = "full";
+
+            if (activeGroup == ItemGroup.Group2)
+            {
+                slotsPath = "Assets/Maps/CHAPT2/slots2.PNG";
+                fullPath = "Assets/Maps/CHAPT2/full2.PNG";
+                resSlots = "slots2";
+                resFull = "full2";
+            }
+            else if (activeGroup == ItemGroup.Group3)
+            {
+                slotsPath = "Assets/Maps/CHAPT2/slots3.PNG";
+                fullPath = "Assets/Maps/CHAPT2/full3.PNG";
+                resSlots = "slots3";
+                resFull = "full3";
+            }
+
+#if UNITY_EDITOR
+            _slotsSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(slotsPath);
+            _fullSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(fullPath);
+#endif
+            if (_slotsSprite == null) _slotsSprite = Resources.Load<Sprite>(resSlots);
+            if (_fullSprite == null) _fullSprite = Resources.Load<Sprite>(resFull);
+
+            // Fallback to Group 1 textures if Group 2/3 textures don't exist yet
+            if (_slotsSprite == null)
+            {
+#if UNITY_EDITOR
+                _slotsSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Maps/CHAPT2/slots.PNG");
+#endif
+                if (_slotsSprite == null) _slotsSprite = Resources.Load<Sprite>("slots");
+            }
+            if (_fullSprite == null)
+            {
+#if UNITY_EDITOR
+                _fullSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Maps/CHAPT2/full.PNG");
+#endif
+                if (_fullSprite == null) _fullSprite = Resources.Load<Sprite>("full");
+            }
+
+            Vector2 target1 = _g1Target1;
+            Vector2 target2 = _g1Target2;
+            Vector2 target3 = _g1Target3;
+
+            if (activeGroup == ItemGroup.Group2)
+            {
+                target1 = _g2Target1;
+                target2 = _g2Target2;
+                target3 = _g2Target3;
+            }
+            else if (activeGroup == ItemGroup.Group3)
+            {
+                target1 = _g3Target1;
+                target2 = _g3Target2;
+                target3 = _g3Target3;
+            }
+
+            Debug.Log(string.Format("[VisionPuzzleUI] Opened Puzzle for {0}. Expected asset paths: Slots='{1}', Full='{2}'. Targets: Item1={3}, Item2={4}, Item3={5}",
+                activeGroup,
+                slotsPath,
+                fullPath,
+                target1,
+                target2,
+                target3));
         }
 
         public void OnItemDroppedOnBoard(PointerEventData eventData)
@@ -242,7 +328,7 @@ namespace Nemuri.UI
 
             Image img = cloneObj.AddComponent<Image>();
             img.sprite = item.icon;
-            img.raycastTarget = false; 
+            img.raycastTarget = true; // MUST be true to receive drag events again
 
             RectTransform rt = cloneObj.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0.5f, 0.5f);
@@ -250,6 +336,10 @@ namespace Nemuri.UI
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = localPoint;
             rt.sizeDelta = new Vector2(100f, 100f);
+
+            // Attach drag handler to let player drag it again on the board
+            DroppedPuzzleItemDragHandler boardDrag = cloneObj.AddComponent<DroppedPuzzleItemDragHandler>();
+            boardDrag.Initialize(item.itemId, boardRect);
 
             // Record placement
             _placedItems.Add(new PlacedItemInfo
@@ -260,7 +350,7 @@ namespace Nemuri.UI
                 localPos = localPoint
             });
 
-            Debug.Log(string.Format("[VisionPuzzleUI] Placed {0} at board coords {1}", item.displayName, localPoint));
+            Debug.Log(string.Format("[VisionPuzzleUI] Placed {0} at board coords {1}. DragHandler attached.", item.displayName, localPoint));
 
             dragHandler.OnPlacedInPuzzle();
         }
@@ -312,20 +402,41 @@ namespace Nemuri.UI
         {
             Debug.Log("[VisionPuzzleUI] UNLOCK button pressed!");
             
-            PlacedItemInfo clockItem = FindPlacedItem(1);
-            PlacedItemInfo lampItem = FindPlacedItem(2);
-            PlacedItemInfo filesItem = FindPlacedItem(3);
+            ItemGroup activeGroup = HippocampusIntroController.Instance != null ? HippocampusIntroController.Instance.CurrentActiveGroup : ItemGroup.Group1;
+            int baseId = (int)activeGroup * 3; // Group1: 0, Group2: 3, Group3: 6
 
-            bool clockCorrect = clockItem != null && Vector2.Distance(clockItem.localPos, _clockTarget) <= MatchTolerance;
-            bool lampCorrect = lampItem != null && Vector2.Distance(lampItem.localPos, _lampTarget) <= MatchTolerance;
-            bool filesCorrect = filesItem != null && Vector2.Distance(filesItem.localPos, _papersTarget) <= MatchTolerance;
+            Vector2 target1 = _g1Target1;
+            Vector2 target2 = _g1Target2;
+            Vector2 target3 = _g1Target3;
 
-            Debug.Log(string.Format("[VisionPuzzleUI] Verification - Clock: {0} (dist: {1}), Lamp: {2} (dist: {3}), Papers: {4} (dist: {5})",
-                clockCorrect, clockItem != null ? Vector2.Distance(clockItem.localPos, _clockTarget).ToString("F1") : "Missing",
-                lampCorrect, lampItem != null ? Vector2.Distance(lampItem.localPos, _lampTarget).ToString("F1") : "Missing",
-                filesCorrect, filesItem != null ? Vector2.Distance(filesItem.localPos, _papersTarget).ToString("F1") : "Missing"));
+            if (activeGroup == ItemGroup.Group2)
+            {
+                target1 = _g2Target1;
+                target2 = _g2Target2;
+                target3 = _g2Target3;
+            }
+            else if (activeGroup == ItemGroup.Group3)
+            {
+                target1 = _g3Target1;
+                target2 = _g3Target2;
+                target3 = _g3Target3;
+            }
 
-            if (clockCorrect && lampCorrect && filesCorrect)
+            PlacedItemInfo item1 = FindPlacedItem(baseId + 1);
+            PlacedItemInfo item2 = FindPlacedItem(baseId + 2);
+            PlacedItemInfo item3 = FindPlacedItem(baseId + 3);
+
+            bool item1Correct = item1 != null && Vector2.Distance(item1.localPos, target1) <= MatchTolerance;
+            bool item2Correct = item2 != null && Vector2.Distance(item2.localPos, target2) <= MatchTolerance;
+            bool item3Correct = item3 != null && Vector2.Distance(item3.localPos, target3) <= MatchTolerance;
+
+            Debug.Log(string.Format("[VisionPuzzleUI] Verification ({0}) - Item1: {1} (dist: {2}), Item2: {3} (dist: {4}), Item3: {5} (dist: {6})",
+                activeGroup,
+                item1Correct, item1 != null ? Vector2.Distance(item1.localPos, target1).ToString("F1") : "Missing",
+                item2Correct, item2 != null ? Vector2.Distance(item2.localPos, target2).ToString("F1") : "Missing",
+                item3Correct, item3 != null ? Vector2.Distance(item3.localPos, target3).ToString("F1") : "Missing"));
+
+            if (item1Correct && item2Correct && item3Correct)
             {
                 Debug.Log("[VisionPuzzleUI] UNLOCK SUCCESS - Memory reconstructed!");
                 if (_fullSprite != null)
@@ -333,9 +444,10 @@ namespace Nemuri.UI
                     _visionBoardImage.sprite = _fullSprite;
                 }
 
-                // Hide visual item icons so we only see the completed vision
+                // Restore all hotbar slot icons (since items are kept in inventory rather than consumed)
                 foreach (var placed in _placedItems)
                 {
+                    RestoreHotbarSlotIcon(placed.originalHotbarIndex);
                     if (placed.visualGo != null) placed.visualGo.SetActive(false);
                 }
                 
@@ -350,9 +462,9 @@ namespace Nemuri.UI
                 // return WRONG items to hotbar
                 List<PlacedItemInfo> toRemove = new List<PlacedItemInfo>();
                 
-                if (clockItem != null && !clockCorrect) toRemove.Add(clockItem);
-                if (lampItem != null && !lampCorrect) toRemove.Add(lampItem);
-                if (filesItem != null && !filesCorrect) toRemove.Add(filesItem);
+                if (item1 != null && !item1Correct) toRemove.Add(item1);
+                if (item2 != null && !item2Correct) toRemove.Add(item2);
+                if (item3 != null && !item3Correct) toRemove.Add(item3);
 
                 foreach (var item in toRemove)
                 {
@@ -378,6 +490,19 @@ namespace Nemuri.UI
             if (VisionPuzzleManager.Instance != null)
             {
                 VisionPuzzleManager.Instance.ClosePuzzle();
+            }
+        }
+
+        public void UpdatePlacedItemPosition(int itemId, Vector2 newPos)
+        {
+            foreach (var placed in _placedItems)
+            {
+                if (placed.itemId == itemId)
+                {
+                    placed.localPos = newPos;
+                    Debug.Log(string.Format("[VisionPuzzleUI] Updated item {0} position on board to {1}", itemId, newPos));
+                    break;
+                }
             }
         }
 
