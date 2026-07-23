@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
+[DefaultExecutionOrder(100)] // Run AFTER PlayerMovement (default 0) so speed boost overrides work
 public class BossFightManager : MonoBehaviour
 {
     public static BossFightManager Instance { get; private set; }
@@ -24,6 +25,16 @@ public class BossFightManager : MonoBehaviour
     // UI References
     private Canvas canvas;
     private Text hudText;
+    private Text cooldownCountdownText;
+    private Font spinnenkopFont;
+
+    private Font GetSpinnenkopFont()
+    {
+        if (spinnenkopFont != null) return spinnenkopFont;
+        spinnenkopFont = Resources.Load<Font>("Spinnenkop DEMO");
+        if (spinnenkopFont == null) spinnenkopFont = Font.CreateDynamicFontFromOSFont("Arial", 16);
+        return spinnenkopFont;
+    }
 
     // Minigame states
     private bool isMinigameActive = false;
@@ -41,11 +52,139 @@ public class BossFightManager : MonoBehaviour
     private GameObject osuPanel;
     private GameObject currentOsuTarget;
 
+    [Header("Character Ability SFX Clips")]
+    [SerializeField] public AudioClip murialCrashSound;
+    [SerializeField] public AudioClip keikoHealSound;
+    [SerializeField] public AudioClip kaelOrbHitSound;
+    [SerializeField] public AudioClip feanorChargeSound;
+    [SerializeField] public AudioClip feanorReleaseSound;
+    [SerializeField] public AudioClip[] rhythmHitSounds = new AudioClip[4];
+
+    [Header("Character Ability SFX Volumes (0 to 5 = 0% to 500% Volume)")]
+    [SerializeField, Range(0f, 5f)] public float murialCrashVolume = 1.0f;
+    [SerializeField, Range(0f, 5f)] public float keikoHealVolume = 1.0f;
+    [SerializeField, Range(0f, 5f)] public float kaelOrbHitVolume = 1.0f;
+    [SerializeField, Range(0f, 5f)] public float feanorChargeVolume = 1.0f;
+    [SerializeField, Range(0f, 5f)] public float feanorReleaseVolume = 1.0f;
+    [SerializeField, Range(0f, 5f)] public float rhythmHitVolume = 1.0f;
+
+    private int lastRhythmHitIndex = -1;
+
     // References to Boss and Player
     private Transform bossTransform;
     private Transform playerTransform;
     private Transform mapCenterTransform;
     private AudioSource audioSource;
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (murialCrashSound == null)
+            murialCrashSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/MurialCrash.wav");
+        if (keikoHealSound == null)
+            keikoHealSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/Heal.wav");
+        if (kaelOrbHitSound == null)
+            kaelOrbHitSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/KaelOrbHit.wav");
+        if (feanorChargeSound == null)
+            feanorChargeSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/FeanorCharge.wav");
+        if (feanorReleaseSound == null)
+            feanorReleaseSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/FeanorRelease.wav");
+
+        if (rhythmHitSounds == null || rhythmHitSounds.Length < 4) rhythmHitSounds = new AudioClip[4];
+        for (int i = 0; i < 4; i++)
+        {
+            if (rhythmHitSounds[i] == null)
+                rhythmHitSounds[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/Sounds/RhythmHit{i + 1}.mp3");
+        }
+    }
+#endif
+
+    private void EnsureAbilityAudioLoaded()
+    {
+#if UNITY_EDITOR
+        if (murialCrashSound == null)
+            murialCrashSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/MurialCrash.wav");
+        if (keikoHealSound == null)
+            keikoHealSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/Heal.wav");
+        if (kaelOrbHitSound == null)
+            kaelOrbHitSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/KaelOrbHit.wav");
+        if (feanorChargeSound == null)
+            feanorChargeSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/FeanorCharge.wav");
+        if (feanorReleaseSound == null)
+            feanorReleaseSound = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Sounds/FeanorRelease.wav");
+
+        if (rhythmHitSounds == null || rhythmHitSounds.Length < 4) rhythmHitSounds = new AudioClip[4];
+        for (int i = 0; i < 4; i++)
+        {
+            if (rhythmHitSounds[i] == null)
+                rhythmHitSounds[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/Sounds/RhythmHit{i + 1}.mp3");
+        }
+#endif
+        if (murialCrashSound == null) murialCrashSound = Resources.Load<AudioClip>("MurialCrash");
+        if (keikoHealSound == null) keikoHealSound = Resources.Load<AudioClip>("Heal");
+        if (kaelOrbHitSound == null) kaelOrbHitSound = Resources.Load<AudioClip>("KaelOrbHit");
+        if (feanorChargeSound == null) feanorChargeSound = Resources.Load<AudioClip>("FeanorCharge");
+        if (feanorReleaseSound == null) feanorReleaseSound = Resources.Load<AudioClip>("FeanorRelease");
+
+        if (rhythmHitSounds == null || rhythmHitSounds.Length < 4) rhythmHitSounds = new AudioClip[4];
+        for (int i = 0; i < 4; i++)
+        {
+            if (rhythmHitSounds[i] == null) rhythmHitSounds[i] = Resources.Load<AudioClip>($"RhythmHit{i + 1}");
+        }
+    }
+
+    public void PlaySound(AudioClip clip, float volume = 1.0f)
+    {
+        if (clip == null || volume <= 0f) return;
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f;
+        }
+
+        // Multi-layer acoustic gain boost to bypass standard 1.0 limit up to 5.0 (500%)
+        int fullLayers = Mathf.FloorToInt(volume);
+        float remainder = volume - fullLayers;
+
+        for (int i = 0; i < fullLayers; i++)
+        {
+            audioSource.PlayOneShot(clip, 1.0f);
+        }
+        if (remainder > 0.001f)
+        {
+            audioSource.PlayOneShot(clip, remainder);
+        }
+    }
+
+    public void PlayRandomRhythmHitSound()
+    {
+        if (rhythmHitSounds == null || rhythmHitSounds.Length == 0) return;
+
+        List<int> availableIndices = new List<int>();
+        for (int i = 0; i < rhythmHitSounds.Length; i++)
+        {
+            if (rhythmHitSounds[i] != null && i != lastRhythmHitIndex)
+            {
+                availableIndices.Add(i);
+            }
+        }
+
+        if (availableIndices.Count == 0)
+        {
+            for (int i = 0; i < rhythmHitSounds.Length; i++)
+            {
+                if (rhythmHitSounds[i] != null) availableIndices.Add(i);
+            }
+        }
+
+        if (availableIndices.Count > 0)
+        {
+            int chosenIndex = availableIndices[Random.Range(0, availableIndices.Count)];
+            lastRhythmHitIndex = chosenIndex;
+            PlaySound(rhythmHitSounds[chosenIndex], rhythmHitVolume);
+        }
+    }
 
     private void Awake()
     {
@@ -58,6 +197,7 @@ public class BossFightManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         audioSource = gameObject.AddComponent<AudioSource>();
+        EnsureAbilityAudioLoaded();
         
         // Dynamic EventSystem creation/fix to allow UI clicks to work in Chapter 3
         UnityEngine.EventSystems.EventSystem activeES = FindFirstObjectByTypeAll<UnityEngine.EventSystems.EventSystem>();
@@ -96,8 +236,134 @@ public class BossFightManager : MonoBehaviour
     private void Start()
     {
         FindEntities();
+        EnsureChapter3Movement();
         SetupCameraObstructionAndLayers();
         orbSpawnTimer = orbSpawnInterval - 5f; // Spawn the first orb 5 seconds into the fight
+    }
+
+    // Cached reference for Rona speed/jump handling
+    private Rigidbody _cachedPlayerRb;
+    private GameObject _cachedWalkingPlayer;
+
+    /// <summary>
+    /// Finds the Rigidbody that actually drives player movement.
+    /// In chpt3, the Rigidbody + PlayerMovementChapt1 are on a parent "Walking Player" object,
+    /// while individual character models (KAELCHARA, RONACHARA, etc.) are children.
+    /// CharacterSwapManager.GetActivePlayerObject() returns the child character, not the parent.
+    /// </summary>
+    private Rigidbody FindPlayerRigidbody()
+    {
+        // If cached and still valid, use cached reference
+        if (_cachedPlayerRb != null && _cachedPlayerRb.gameObject.activeInHierarchy)
+            return _cachedPlayerRb;
+
+        // Strategy 1: Get active player from CharacterSwapManager and check self + parent
+        if (Nemuri.Core.CharacterSwapManager.Instance != null)
+        {
+            GameObject activePlayer = Nemuri.Core.CharacterSwapManager.Instance.GetActivePlayerObject();
+            if (activePlayer != null)
+            {
+                Rigidbody rb = activePlayer.GetComponent<Rigidbody>();
+                if (rb != null) { _cachedPlayerRb = rb; _cachedWalkingPlayer = activePlayer; return rb; }
+                
+                // Check parent (Walking Player pattern)
+                if (activePlayer.transform.parent != null)
+                {
+                    rb = activePlayer.transform.parent.GetComponent<Rigidbody>();
+                    if (rb != null) { _cachedPlayerRb = rb; _cachedWalkingPlayer = activePlayer.transform.parent.gameObject; return rb; }
+                }
+            }
+        }
+
+        // Strategy 2: Find by tag
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            Rigidbody rb = playerObj.GetComponent<Rigidbody>();
+            if (rb != null) { _cachedPlayerRb = rb; _cachedWalkingPlayer = playerObj; return rb; }
+        }
+
+        return null;
+    }
+
+    private void EnsureChapter3Movement()
+    {
+        Rigidbody rb = FindPlayerRigidbody();
+        if (rb == null) return;
+
+        // Always ensure gravity is on and Y position is NOT frozen for Chapter 3
+        rb.useGravity = true;
+        // Clear any FreezePositionY constraint but keep FreezeRotation
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+        // Rona-specific: jump (ActiveCharacterIndex 1 = Rona)
+        bool isRona = Nemuri.Core.CharacterSwapManager.Instance != null 
+            && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1;
+        if (isRona)
+        {
+            // Handle Rona jump via Space key
+            if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+            {
+                Transform pos = _cachedWalkingPlayer != null ? _cachedWalkingPlayer.transform : rb.transform;
+                bool grounded = Physics.Raycast(pos.position + Vector3.up * 0.2f, Vector3.down, 2.5f)
+                    || Mathf.Abs(rb.linearVelocity.y) < 0.15f;
+                if (grounded)
+                {
+                    rb.linearVelocity = new Vector3(
+                        rb.linearVelocity.x,
+                        8.5f,
+                        rb.linearVelocity.z);
+                    Debug.Log("[BossFightManager] Rona JUMP triggered! Y velocity set to 8.5");
+                }
+            }
+        }
+    }
+
+    // Called from FixedUpdate to apply Rona's boosted speed AFTER PlayerMovementChapt1 has set velocity
+    private void ApplyRonaSpeedBoost()
+    {
+        if (Nemuri.Core.CharacterSwapManager.Instance == null) return;
+        if (Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex != 1) return; // Only Rona
+
+        Rigidbody rb = _cachedPlayerRb;
+        if (rb == null) rb = FindPlayerRigidbody();
+        if (rb == null) return;
+
+        // Get the current velocity direction on XZ plane
+        Vector3 vel = rb.linearVelocity;
+        Vector3 horizontalVel = new Vector3(vel.x, 0f, vel.z);
+        
+        if (horizontalVel.sqrMagnitude > 0.01f)
+        {
+            // PlayerMovementChapt1 set velocity at _moveSpeed (6). Scale it up to 8 for Rona.
+            Vector3 dir = horizontalVel.normalized;
+            float boostedSpeed = 8.0f;
+            if (BossAttackSleepParalysis.IsDebuffActive)
+            {
+                boostedSpeed *= BossAttackSleepParalysis.ActiveSpeedMultiplier;
+            }
+            rb.linearVelocity = dir * boostedSpeed + new Vector3(0f, vel.y, 0f);
+        }
+    }
+
+    private void ApplySleepParalysisDebuff()
+    {
+        if (!BossAttackSleepParalysis.IsDebuffActive) return;
+        // Rona is handled in ApplyRonaSpeedBoost above
+        if (Nemuri.Core.CharacterSwapManager.Instance != null && Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex == 1) return;
+
+        Rigidbody rb = _cachedPlayerRb;
+        if (rb == null) rb = FindPlayerRigidbody();
+        if (rb == null) return;
+
+        Vector3 vel = rb.linearVelocity;
+        Vector3 horizontalVel = new Vector3(vel.x, 0f, vel.z);
+        if (horizontalVel.sqrMagnitude > 0.01f)
+        {
+            Vector3 dir = horizontalVel.normalized;
+            float slowedSpeed = horizontalVel.magnitude * BossAttackSleepParalysis.ActiveSpeedMultiplier;
+            rb.linearVelocity = dir * slowedSpeed + new Vector3(0f, vel.y, 0f);
+        }
     }
 
     private void SetupCameraObstructionAndLayers()
@@ -161,6 +427,7 @@ public class BossFightManager : MonoBehaviour
     private void Update()
     {
         FindEntities();
+        EnsureChapter3Movement();
 
         // 1. Update cooldown timers
         for (int i = 0; i < cooldownTimers.Length; i++)
@@ -205,6 +472,13 @@ public class BossFightManager : MonoBehaviour
                 UpdateFeanorMinigame();
             }
         }
+    }
+
+    private void FixedUpdate()
+    {
+        // Apply Rona's speed boost & Sleep Paralysis debuff AFTER PlayerMovement.FixedUpdate has set velocity
+        ApplyRonaSpeedBoost();
+        ApplySleepParalysisDebuff();
     }
 
     private void FindEntities()
@@ -287,7 +561,32 @@ public class BossFightManager : MonoBehaviour
     {
         orbsCollected++;
         damageMultiplier += kaelDmgMultiplierIncrease;
+        PlaySound(kaelOrbHitSound, kaelOrbHitVolume);
         Debug.Log("[BossFightManager] Kael collected an orb! Multiplier: " + damageMultiplier.ToString("F2") + "x");
+    }
+
+    private float GetPlaneY(Vector3 pos)
+    {
+        Ray ray = new Ray(new Vector3(pos.x, 300.0f, pos.z), Vector3.down);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 600f, ~0);
+        float highestY = -999f;
+        foreach (var hit in hits)
+        {
+            if (hit.collider == null) continue;
+            if (hit.collider.isTrigger) continue; // Ignore triggers
+
+            string nameLower = hit.collider.gameObject.name.ToLower();
+            if (nameLower.Contains("rabbit") || nameLower.Contains("boss") || hit.collider.gameObject.CompareTag("Enemy")) continue; // Ignore boss
+            if (hit.collider.gameObject.CompareTag("Player") || nameLower.Contains("player") || nameLower.Contains("chara")) continue;
+            
+            if (hit.point.y > highestY)
+            {
+                highestY = hit.point.y;
+            }
+        }
+
+        if (highestY > -900f) return highestY;
+        return pos.y;
     }
 
     private void SpawnGreenOrb()
@@ -295,9 +594,9 @@ public class BossFightManager : MonoBehaviour
         Transform centerTransform = mapCenterTransform != null ? mapCenterTransform : (bossTransform != null ? bossTransform : playerTransform);
         if (centerTransform == null) return;
 
-        float groundY = playerTransform != null ? playerTransform.position.y : centerTransform.position.y;
         Vector3 spawnPos = centerTransform.position + new Vector3(Random.Range(-22f, 22f), 0f, Random.Range(-22f, 22f));
-        spawnPos.y = groundY + 1.8f; // Floating at a slightly higher chest height
+        float localGroundY = GetPlaneY(spawnPos);
+        spawnPos.y = localGroundY + 1.8f; // Floating at a consistent chest height relative to local terrain ground
 
         GameObject orb = new GameObject("KaelOrb");
         orb.transform.position = spawnPos;
@@ -316,9 +615,10 @@ public class BossFightManager : MonoBehaviour
         PlayerHealth ph = playerTransform.GetComponent<PlayerHealth>();
         if (ph != null)
         {
-            ph.Heal(10f);
+            ph.Heal(30f); // Heals 30 HP as requested
             cooldownTimers[3] = 40f; // 40 seconds cooldown
-            Debug.Log("[BossFightManager] Keiko casted Heal! Recalculating HP...");
+            PlaySound(keikoHealSound, keikoHealVolume);
+            Debug.Log("[BossFightManager] Keiko casted Heal (+30 HP)! Recalculating HP...");
 
             // Play green healing ring/burst around player
             GameObject healRing = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -396,16 +696,15 @@ public class BossFightManager : MonoBehaviour
             Nemuri.Player.PlayerMovement.Instance.SetCanMove(true);
         }
 
-        // Deal damage (max 5 base damage without Kael boost, boosted by Kael multiplier)
-        float rawDamage = mashCount * 1.5f;
-        float baseDamage = Mathf.Min(5f, rawDamage);
+        // Deal damage proportionally to mash count (max 5 base damage at 20 mashes, boosted by Kael multiplier)
+        float baseDamage = Mathf.Clamp((mashCount / 20.0f) * 5.0f, 0f, 5.0f);
         float finalDamage = baseDamage * damageMultiplier;
-        Debug.Log("[BossFightManager] Murial Mash Minigame ended! Score: " + mashCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
+        Debug.Log("[BossFightManager] Murial Mash Minigame ended! Score (Mashes): " + mashCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
 
         // Trigger dynamic visual effect (Rocks smash)
         TriggerMurialRocksVisual(finalDamage);
 
-        cooldownTimers[2] = 30f; // 30s cooldown
+        cooldownTimers[2] = 15f; // 15s cooldown as requested
     }
 
     private GameObject CreateRockObject(string name)
@@ -582,6 +881,9 @@ public class BossFightManager : MonoBehaviour
             audioSource.Stop();
         }
 
+        // Play MurialCrash SFX when the two rocks collide and create the crashing visual
+        PlaySound(murialCrashSound, murialCrashVolume);
+
         // Restore original camera offset
         if (cam != null)
         {
@@ -718,8 +1020,7 @@ public class BossFightManager : MonoBehaviour
 
         Text txt = feedbackGo.AddComponent<Text>();
         txt.text = text;
-        txt.font = Font.CreateDynamicFontFromOSFont("Arial", 28);
-        if (txt.font == null) txt.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        txt.font = GetSpinnenkopFont();
         txt.fontSize = 28;
         txt.alignment = TextAnchor.MiddleCenter;
         txt.color = color;
@@ -796,6 +1097,7 @@ public class BossFightManager : MonoBehaviour
 
         Button btn = targetGo.AddComponent<Button>();
         btn.onClick.AddListener(() => {
+            PlayRandomRhythmHitSound(); // Play non-consecutive random RhythmHit SFX
             if (shrinker != null)
             {
                 float el = shrinker.GetElapsed();
@@ -859,11 +1161,11 @@ public class BossFightManager : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
-        // Deal damage (max 5 base damage without Kael boost, boosted by Kael multiplier)
+        // Deal damage (max 15 base damage without Kael boost, boosted by Kael multiplier)
         float rawDamage = osuHitCount * 1.0f;
-        float baseDamage = Mathf.Min(5f, rawDamage);
+        float baseDamage = Mathf.Min(15f, rawDamage);
         float finalDamage = baseDamage * damageMultiplier;
-        Debug.Log("[BossFightManager] Feanor Osu! Minigame ended. Clicks: " + osuHitCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
+        Debug.Log("[BossFightManager] Feanor Osu! Minigame ended. Clicks/Score: " + osuHitCount + ". Base Dmg: " + baseDamage + ", Final Dmg: " + finalDamage);
 
         // Trigger dynamic visual effect (Blue Wave to head)
         TriggerFeanorWaveVisual(finalDamage);
@@ -893,11 +1195,61 @@ public class BossFightManager : MonoBehaviour
         wave.transform.localScale = Vector3.one * 1.5f;
         Destroy(wave.GetComponent<Collider>());
 
-        Material waveMat = new Material(Shader.Find("Sprites/Default"));
-        waveMat.color = new Color(0.1f, 0.6f, 1f, 0.7f); // Blue energy
+        Material waveMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        if (waveMat == null) waveMat = new Material(Shader.Find("Sprites/Default"));
+        waveMat.SetColor("_BaseColor", new Color(0.1f, 0.7f, 1.0f, 0.9f));
+        waveMat.EnableKeyword("_EMISSION");
+        waveMat.SetColor("_EmissionColor", new Color(0.15f, 0.8f, 1.0f) * 8f);
         wave.GetComponent<MeshRenderer>().material = waveMat;
 
+        // Attach blue particles
+        CreateFeanorOrbParticles(wave);
+
         StartCoroutine(FlyWaveRoutine(wave, startPos, targetPos, dmg));
+    }
+
+    private void CreateFeanorOrbParticles(GameObject wave)
+    {
+        GameObject pObj = new GameObject("FeanorOrbParticles");
+        pObj.transform.SetParent(wave.transform, false);
+        pObj.transform.localPosition = Vector3.zero;
+
+        ParticleSystem ps = pObj.AddComponent<ParticleSystem>();
+
+        var main = ps.main;
+        main.startColor = new Color(0.1f, 0.85f, 1.0f, 0.7f); // Bright blue particles
+        main.startSize = new ParticleSystem.MinMaxCurve(0.2f, 0.6f);
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(1.0f, 3.0f);
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.maxParticles = 200;
+
+        var emission = ps.emission;
+        emission.rateOverTime = 40f;
+
+        var shape = ps.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 1.0f;
+
+        var colorModule = ps.colorOverLifetime;
+        colorModule.enabled = true;
+        Gradient grad = new Gradient();
+        grad.SetKeys(
+            new GradientColorKey[] { new GradientColorKey(new Color(0.1f, 0.85f, 1.0f), 0f), new GradientColorKey(new Color(0.5f, 0.95f, 1.0f), 1.0f) },
+            new GradientAlphaKey[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1.0f) }
+        );
+        colorModule.color = new ParticleSystem.MinMaxGradient(grad);
+
+        ParticleSystemRenderer psr = pObj.GetComponent<ParticleSystemRenderer>();
+        if (psr != null)
+        {
+            Material particleMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            if (particleMat == null) particleMat = new Material(Shader.Find("Sprites/Default"));
+            particleMat.SetColor("_BaseColor", new Color(0.1f, 0.85f, 1.0f, 0.7f));
+            psr.sharedMaterial = particleMat;
+        }
+
+        ps.Play();
     }
 
     private IEnumerator FlyWaveRoutine(GameObject wave, Vector3 start, Vector3 end, float dmg)
@@ -935,6 +1287,8 @@ public class BossFightManager : MonoBehaviour
             else if (smoothT >= 0.5f && !hasPaused)
             {
                 hasPaused = true;
+                PlaySound(feanorChargeSound, feanorChargeVolume);
+
                 float pauseTimer = 0f;
 
                 while (pauseTimer < 2.0f)
@@ -959,6 +1313,10 @@ public class BossFightManager : MonoBehaviour
                     }
                     yield return null;
                 }
+
+                // Stop FeanorCharge SFX immediately when charging finishes, then play FeanorRelease SFX
+                if (audioSource != null) audioSource.Stop();
+                PlaySound(feanorReleaseSound, feanorReleaseVolume);
 
                 // Update start position to release from the current head position
                 if (wave != null)
@@ -1062,7 +1420,7 @@ public class BossFightManager : MonoBehaviour
 
     private void CreateHUDUI()
     {
-        // 1. Setup Canvas
+        // Setup Canvas container so minigames & cooldown UI can draw on it
         GameObject canvasGo = new GameObject("BossFightHUDCanvas");
         canvasGo.transform.SetParent(transform, false);
         canvas = canvasGo.AddComponent<Canvas>();
@@ -1070,68 +1428,49 @@ public class BossFightManager : MonoBehaviour
         canvasGo.AddComponent<CanvasScaler>();
         canvasGo.AddComponent<GraphicRaycaster>();
 
-        // 2. Setup HUD text (bottom left corner)
-        GameObject textGo = new GameObject("AbilityHUDText");
-        textGo.transform.SetParent(canvasGo.transform, false);
-        RectTransform rect = textGo.AddComponent<RectTransform>();
-        rect.localScale = Vector3.one;
-        rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(0f, 0f);
-        rect.pivot = new Vector2(0f, 0f);
-        rect.anchoredPosition = new Vector2(40f, 120f); // Positioned above player HP
-        rect.sizeDelta = new Vector2(450f, 90f);
+        // Create per-character Cooldown Countdown Text Display (Spinnenkop DEMO font)
+        GameObject cdGo = new GameObject("CharacterCooldownCountdownText");
+        cdGo.transform.SetParent(canvasGo.transform, false);
+        RectTransform rect = cdGo.AddComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0.22f);
+        rect.anchorMax = new Vector2(0.5f, 0.22f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(500f, 60f);
 
-        hudText = textGo.AddComponent<Text>();
-        hudText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (hudText.font == null) hudText.font = Font.CreateDynamicFontFromOSFont("Arial", 14);
-        hudText.fontSize = 14;
-        hudText.alignment = TextAnchor.MiddleLeft;
-        hudText.color = Color.white;
+        cooldownCountdownText = cdGo.AddComponent<Text>();
+        cooldownCountdownText.font = GetSpinnenkopFont();
+        cooldownCountdownText.fontSize = 32;
+        cooldownCountdownText.alignment = TextAnchor.MiddleCenter;
+        cooldownCountdownText.color = new Color(1.0f, 0.35f, 0.35f, 1.0f);
 
-        // Shadow
-        Shadow textShadow = textGo.AddComponent<Shadow>();
-        textShadow.effectColor = Color.black;
-        textShadow.effectDistance = new Vector2(1f, -1f);
+        Shadow shadow = cdGo.AddComponent<Shadow>();
+        shadow.effectColor = Color.black;
+        shadow.effectDistance = new Vector2(2f, -2f);
+
+        cdGo.SetActive(false);
     }
 
     private void UpdateHUDText()
     {
-        if (hudText == null || Nemuri.Core.CharacterSwapManager.Instance == null) return;
+        if (cooldownCountdownText == null || Nemuri.Core.CharacterSwapManager.Instance == null) return;
 
         int activeIdx = Nemuri.Core.CharacterSwapManager.Instance.ActiveCharacterIndex;
-        string activeCharName = Nemuri.Core.CharacterSwapManager.Instance.GetActiveCharacterName().ToUpper();
 
-        // Construct dynamic text depending on active character
-        string lines = "<b>BOSS FIGHT HUD</b>\n";
-        lines += "KAEL DAMAGE BOOST: +" + ((damageMultiplier - 1f) * 100f).ToString("F0") + "% (" + orbsCollected + " Orbs Collected)\n";
+        // Check if the current active character has a running cooldown
+        if (cooldownTimers != null && activeIdx >= 0 && activeIdx < cooldownTimers.Length && cooldownTimers[activeIdx] > 0f)
+        {
+            if (!cooldownCountdownText.gameObject.activeSelf)
+                cooldownCountdownText.gameObject.SetActive(true);
 
-        // Show ability cooldown status
-        lines += "ACTIVE CHARACTER: " + activeCharName + "\n";
-        if (activeIdx == 0) // Kael
-        {
-            lines += "PASSIVE: ONLY Kael can see and collect glowing Yellow Orbs.\nABILITY: Cannot attack.";
+            float remaining = cooldownTimers[activeIdx];
+            cooldownCountdownText.text = "COOLDOWN: " + remaining.ToString("F1") + "s";
         }
-        else if (activeIdx == 1) // Rona
+        else
         {
-            lines += "PASSIVE: Moves fast and jumps super high with [SPACE].\nABILITY: Dodge boss attacks.";
+            if (cooldownCountdownText.gameObject.activeSelf)
+                cooldownCountdownText.gameObject.SetActive(false);
         }
-        else if (activeIdx == 2) // Murial
-        {
-            string cd = cooldownTimers[2] > 0f ? "COOLDOWN: " + cooldownTimers[2].ToString("F1") + "s" : "READY";
-            lines += "ABILITY: [L] MASH ATTACK (" + cd + ")\nSmash two massive rocks into the boss.";
-        }
-        else if (activeIdx == 3) // Keiko
-        {
-            string cd = cooldownTimers[3] > 0f ? "COOLDOWN: " + cooldownTimers[3].ToString("F1") + "s" : "READY";
-            lines += "ABILITY: [L] HEAL +10 HP (" + cd + ")";
-        }
-        else if (activeIdx == 4) // Feanor
-        {
-            string cd = cooldownTimers[4] > 0f ? "COOLDOWN: " + cooldownTimers[4].ToString("F1") + "s" : "READY";
-            lines += "ABILITY: [L] AIM ATTACK (" + cd + ")\nHit targets with blue signal wave.";
-        }
-
-        hudText.text = lines;
     }
 
     private void CreateMashPanel()
@@ -1164,7 +1503,7 @@ public class BossFightManager : MonoBehaviour
         txtRect.sizeDelta = new Vector2(0f, 30f);
 
         Text txt = textGo.AddComponent<Text>();
-        txt.font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+        txt.font = GetSpinnenkopFont();
         txt.text = "MASH [L] KEY TO ATTACK!";
         txt.fontSize = 16;
         txt.fontStyle = FontStyle.Bold;
@@ -1230,7 +1569,7 @@ public class BossFightManager : MonoBehaviour
         txtRect.sizeDelta = new Vector2(0f, 30f);
 
         Text txt = textGo.AddComponent<Text>();
-        txt.font = Font.CreateDynamicFontFromOSFont("Arial", 16);
+        txt.font = GetSpinnenkopFont();
         txt.text = "CLICK TARGETS WITH MOUSE!";
         txt.fontSize = 16;
         txt.fontStyle = FontStyle.Bold;

@@ -182,11 +182,9 @@ public class PlayerHealthBarUI : MonoBehaviour
         nameRect.sizeDelta = new Vector2(-10f, 20f);
 
         nameText = nameGo.AddComponent<Text>();
-        nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (nameText.font == null)
-        {
-            nameText.font = Font.CreateDynamicFontFromOSFont("Arial", 14);
-        }
+        Font font = Resources.Load<Font>("Spinnenkop DEMO");
+        if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 14);
+        nameText.font = font;
         nameText.text = playerName;
         nameText.fontSize = 14;
         nameText.fontStyle = FontStyle.Bold;
