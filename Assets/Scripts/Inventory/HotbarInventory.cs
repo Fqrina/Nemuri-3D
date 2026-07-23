@@ -89,6 +89,39 @@ namespace Nemuri.Inventory
             OnInventoryUpdated?.Invoke();
         }
 
+        public void AbsorbGroupAndGrantCrystal(ItemGroup group, string crystalName, Sprite crystalIcon, string crystalDesc)
+        {
+            int g = (int)group;
+
+            // Delete / Absorb all 3 items belonging to this group from inventory slots
+            for (int i = 0; i < TotalSlots; i++)
+            {
+                if (_slots[i] != null && _slots[i].group == group)
+                {
+                    _slots[i] = null;
+                }
+            }
+
+            // Grant 1 crystal item into the first empty slot
+            for (int i = 0; i < TotalSlots; i++)
+            {
+                if (_slots[i] == null)
+                {
+                    _slots[i] = new HotbarItem(
+                        displayName: crystalName,
+                        icon: crystalIcon,
+                        description: crystalDesc,
+                        group: group,
+                        itemId: 900 + g
+                    );
+                    Debug.Log(string.Format("[HotbarInventory] Group {0} items absorbed! Granted crystal: {1} at slot {2}", group, crystalName, i));
+                    break;
+                }
+            }
+
+            OnInventoryUpdated?.Invoke();
+        }
+
         public bool IsGroupFullyCollected(ItemGroup group)
         {
             int g = (int)group;

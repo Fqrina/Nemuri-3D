@@ -58,6 +58,12 @@ public class SmoothBridgeController : MonoBehaviour
     public void TriggerBridge1()
     {
         if (_isBridge1Active) return;
+        Debug.Log("[SmoothBridgeController] Triggering Bridge 1 transition...");
+        if (bridge1 == null)
+        {
+            Debug.LogError("[SmoothBridgeController] Cannot transition Bridge 1: 'bridge1' GameObject is NULL / unassigned in the Inspector!");
+            return;
+        }
         _isBridge1Active = true;
         StartCoroutine(TransitionBridgeRoutine(bridge1, bridge1Target));
     }
@@ -65,6 +71,12 @@ public class SmoothBridgeController : MonoBehaviour
     public void TriggerBridge2()
     {
         if (_isBridge2Active) return;
+        Debug.Log("[SmoothBridgeController] Triggering Bridge 2 transition...");
+        if (bridge2 == null)
+        {
+            Debug.LogError("[SmoothBridgeController] Cannot transition Bridge 2: 'bridge2' GameObject is NULL / unassigned in the Inspector!");
+            return;
+        }
         _isBridge2Active = true;
         StartCoroutine(TransitionBridgeRoutine(bridge2, bridge2Target));
     }
@@ -72,6 +84,12 @@ public class SmoothBridgeController : MonoBehaviour
     public void TriggerBridge3()
     {
         if (_isBridge3Active) return;
+        Debug.Log("[SmoothBridgeController] Triggering Bridge 3 transition...");
+        if (bridge3 == null)
+        {
+            Debug.LogError("[SmoothBridgeController] Cannot transition Bridge 3: 'bridge3' GameObject is NULL / unassigned in the Inspector!");
+            return;
+        }
         _isBridge3Active = true;
         StartCoroutine(TransitionBridgeRoutine(bridge3, bridge3Target));
     }
@@ -81,6 +99,13 @@ public class SmoothBridgeController : MonoBehaviour
         if (index == 1) TriggerBridge1();
         else if (index == 2) TriggerBridge2();
         else if (index == 3) TriggerBridge3();
+    }
+
+    private string GetColorPropertyName(Material mat)
+    {
+        if (mat.HasProperty("_BaseColor")) return "_BaseColor";
+        if (mat.HasProperty("_Color")) return "_Color";
+        return null;
     }
 
     private IEnumerator TransitionBridgeRoutine(GameObject bridge, Vector3 targetPos)
@@ -99,44 +124,8 @@ public class SmoothBridgeController : MonoBehaviour
         }
 
         Vector3 startPos = bridge.transform.position;
-        List<RendererMatInfo> matInfos = new List<RendererMatInfo>();
-        Renderer[] renderers = bridge.GetComponentsInChildren<Renderer>(true);
-
-        foreach (var r in renderers)
-        {
-            if (r == null) continue;
-            foreach (var mat in r.materials)
-            {
-                if (mat == null) continue;
-
-                Color origColor = mat.HasProperty("_Color") ? mat.color : Color.white;
-
-                mat.SetFloat("_Surface", 1f);
-                mat.SetFloat("_Blend", 0f);
-                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                mat.SetInt("_ZWrite", 0);
-                mat.DisableKeyword("_ALPHATEST_ON");
-                mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-
-                if (mat.HasProperty("_Color"))
-                {
-                    Color c = origColor;
-                    c.a = 0f;
-                    mat.color = c;
-                }
-
-                matInfos.Add(new RendererMatInfo
-                {
-                    renderer = r,
-                    material = mat,
-                    originalColor = origColor
-                });
-            }
-        }
-
         float elapsed = 0f;
+
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -144,41 +133,10 @@ public class SmoothBridgeController : MonoBehaviour
             float tSmooth = Mathf.SmoothStep(0f, 1f, t);
 
             bridge.transform.position = Vector3.Lerp(startPos, targetPos, tSmooth);
-
-            foreach (var info in matInfos)
-            {
-                if (info.material != null && info.material.HasProperty("_Color"))
-                {
-                    Color c = info.originalColor;
-                    c.a = Mathf.Lerp(0f, 1f, tSmooth);
-                    info.material.color = c;
-                }
-            }
-
             yield return null;
         }
 
         bridge.transform.position = targetPos;
-
-        foreach (var info in matInfos)
-        {
-            if (info.material != null)
-            {
-                if (info.material.HasProperty("_Color"))
-                {
-                    Color c = info.originalColor;
-                    c.a = 1f;
-                    info.material.color = c;
-                }
-
-                info.material.SetFloat("_Surface", 0f);
-                info.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                info.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                info.material.SetInt("_ZWrite", 1);
-                info.material.DisableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                info.material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
-            }
-        }
 
         foreach (var col in colliders)
         {
