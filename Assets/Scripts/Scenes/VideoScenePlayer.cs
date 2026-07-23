@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -46,6 +47,20 @@ namespace Nemuri.Scenes
             }
 
             _videoPlayer.Play();
+        }
+
+        public IEnumerator PrepareRoutine()
+        {
+            if (_videoPlayer == null)
+            {
+                yield break;
+            }
+
+            _videoPlayer.Prepare();
+            while (!_videoPlayer.isPrepared)
+            {
+                yield return null;
+            }
         }
 
         public void Stop()
