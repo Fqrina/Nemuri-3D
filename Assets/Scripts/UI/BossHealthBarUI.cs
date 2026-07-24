@@ -174,11 +174,9 @@ public class BossHealthBarUI : MonoBehaviour
         nameRect.sizeDelta = new Vector2(600f, 25f);
 
         nameText = nameGo.AddComponent<Text>();
-        nameText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        if (nameText.font == null)
-        {
-            nameText.font = Font.CreateDynamicFontFromOSFont("Arial", 18);
-        }
+        Font font = Resources.Load<Font>("Spinnenkop DEMO");
+        if (font == null) font = Font.CreateDynamicFontFromOSFont("Arial", 18);
+        nameText.font = font;
         nameText.text = bossName;
         nameText.fontSize = 18;
         nameText.fontStyle = FontStyle.Bold;

@@ -44,22 +44,20 @@ namespace Nemuri.Scenes
             }
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
+            yield return _videoPlayer.PrepareRoutine();
+
             if (SceneTransitionState.FadeInOnLoad)
             {
-                StartCoroutine(FadeInThenPlayRoutine());
+                _videoPlayer.Play();
+                yield return ScreenFader.Instance.FadeToClear(SceneTransitionState.FadeInDuration);
                 SceneTransitionState.FadeInOnLoad = false;
-                return;
             }
-
-            _videoPlayer.Play();
-        }
-
-        private IEnumerator FadeInThenPlayRoutine()
-        {
-            yield return ScreenFader.Instance.FadeToClear(SceneTransitionState.FadeInDuration);
-            _videoPlayer.Play();
+            else
+            {
+                _videoPlayer.Play();
+            }
         }
 
         private void OnVideoFinished(VideoPlayer source)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -48,6 +49,20 @@ namespace Nemuri.Scenes
             _videoPlayer.Play();
         }
 
+        public IEnumerator PrepareRoutine()
+        {
+            if (_videoPlayer == null)
+            {
+                yield break;
+            }
+
+            _videoPlayer.Prepare();
+            while (!_videoPlayer.isPrepared)
+            {
+                yield return null;
+            }
+        }
+
         public void Stop()
         {
             if (_videoPlayer == null)
@@ -60,38 +75,27 @@ namespace Nemuri.Scenes
 
         private void SetupUi()
         {
-            Canvas canvas = FindAnyObjectByType<Canvas>();
-            if (canvas == null)
-            {
-                GameObject canvasGo = new GameObject("Video Canvas");
-                canvas = canvasGo.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 0;
+            GameObject canvasGo = new GameObject("Dedicated Video Canvas");
+            canvasGo.transform.SetParent(transform, false);
 
-                CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(1920f, 1080f);
-                canvasGo.AddComponent<GraphicRaycaster>();
-            }
+            Canvas canvas = canvasGo.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 9500; // Render above all gameplay/dialogue UI, below ScreenFader (9999)
 
-            Transform existingDisplay = canvas.transform.Find("Video Display");
-            if (existingDisplay != null)
-            {
-                _videoDisplay = existingDisplay.GetComponent<RawImage>();
-            }
-            else
-            {
-                GameObject displayGo = new GameObject("Video Display");
-                displayGo.transform.SetParent(canvas.transform, false);
-                _videoDisplay = displayGo.AddComponent<RawImage>();
-                _videoDisplay.color = Color.white;
+            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-                RectTransform rect = _videoDisplay.rectTransform;
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-            }
+            GameObject displayGo = new GameObject("Video Display");
+            displayGo.transform.SetParent(canvas.transform, false);
+            _videoDisplay = displayGo.AddComponent<RawImage>();
+            _videoDisplay.color = Color.white;
+
+            RectTransform rect = _videoDisplay.rectTransform;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
         private void SetupVideoPlayer()

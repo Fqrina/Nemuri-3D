@@ -72,9 +72,10 @@ namespace Nemuri.Scenes
             SetupMusic();
         }
 
-        private void Start()
+        private IEnumerator Start()
         {
             ScreenFader.Instance.SetAlphaImmediate(0f);
+            yield return _videoPlayer.PrepareRoutine();
             _videoPlayer.Play();
             PlayMenuMusic();
         }

@@ -408,6 +408,10 @@ MonoBehaviour:
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: -20
 --- !u!1001 &87367545
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -971,6 +975,10 @@ MonoBehaviour:
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: -20
 --- !u!64 &199519836
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1515,6 +1523,10 @@ MonoBehaviour:
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: -20
 --- !u!1 &464741301
 GameObject:
   m_ObjectHideFlags: 0
@@ -2850,6 +2862,10 @@ MonoBehaviour:
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: -20
 --- !u!23 &705284778
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -3503,10 +3519,14 @@ MonoBehaviour:
   _interactionRange: 12
   _holdSeconds: 0
   _interactionPoint: {fileID: 889589313}
-  _promptText: Hold E to take
+  _promptText: Press E to take
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: 0
 --- !u!1 &912096143
 GameObject:
   m_ObjectHideFlags: 0
@@ -4767,6 +4787,10 @@ MonoBehaviour:
   OnInteract:
     m_PersistentCalls:
       m_Calls: []
+  _uiImageSize: {x: 750, y: 275.13}
+  _uiImagePosition: {x: 0, y: 0}
+  _uiFontSize: 64
+  _uiFontYOffset: 0
 --- !u!1 &1618316097
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,0 +1,118 @@
+{
+  "nodes": [
+    {
+      "speaker": "Rona",
+      "text": "No, no, NO!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "It’s all ruined!",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "It’s because of you Kael!",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Why are you blaming me?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "And why can’t you just stop running away and ruining yourself?",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "(Cry) Please don’t fight…",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "Look at the Nocturne Heart.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Feanor",
+      "text": "It’s still there, we can still save it.",
+      "portraitName": "Feanor",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "I can feel the resonance… It’s so faint…",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Please let’s do everything we can, we can still save this.",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "Okay.",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Rona",
+      "text": "Kael?",
+      "portraitName": "Rona",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Alright.",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Kael",
+      "text": "Ferry?",
+      "portraitName": "Kael",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Murial",
+      "text": "We shouldn’t have trusted him!",
+      "portraitName": "Murial",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Keiko",
+      "text": "That’s not the Ferry we know…",
+      "portraitName": "Keiko",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Kael... you spent so many nights forcing yourself to keep going.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "And now look at what it became.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    },
+    {
+      "speaker": "Ferry",
+      "text": "Now, you have to pay the price.",
+      "portraitName": "Ferry",
+      "typingSpeed": 0.05
+    }
+  ]
+}

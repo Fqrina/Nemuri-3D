@@ -1,6 +1,9 @@
 using UnityEngine;
+using UnityEngine.Video;
 using System.Collections;
+using System.Collections.Generic;
 using Nemuri.Dialogue;
+using Nemuri.Scenes;
 using Nemuri.UI;
 
 namespace Nemuri.Interactions
@@ -19,7 +22,8 @@ namespace Nemuri.Interactions
         }
 
         [Header("Scene Transition")]
-        [SerializeField] private string _nextSceneName = "chpt2";
+        [SerializeField] private string _nextSceneName = "chpt1";
+        [SerializeField] private VideoClip _transitionVideo;
 
         [Header("Intro Settings")]
         [SerializeField] private TextAsset _introDialogueJson;
@@ -38,6 +42,13 @@ namespace Nemuri.Interactions
         [SerializeField] private float _postAnimationRotationY = 90f;
         [SerializeField] private float _postAnimationOffsetZ = 1f;
 
+        [Header("Background Music")]
+        [SerializeField] private AudioClip _bgMusic;
+        [SerializeField, Range(0f, 1f)] private float _bgMusicVolume = 1.0f;
+        [SerializeField, Range(1, 5)] private int _audioAmplificationLayers = 3;
+
+        private AudioSource[] _musicSources;
+
         public WalkingObjective CurrentObjective => _currentObjective;
 
         private void Awake()
@@ -48,6 +59,7 @@ namespace Nemuri.Interactions
                 return;
             }
             Instance = this;
+            SetupMusic();
         }
 
         private void Start()
@@ -59,6 +71,7 @@ namespace Nemuri.Interactions
             }
 
             _currentObjective = WalkingObjective.None;
+            PlayMusic();
             StartCoroutine(IntroSequenceRoutine());
         }
 
@@ -303,18 +316,76 @@ namespace Nemuri.Interactions
 
         private IEnumerator FinishIntroRoutine()
         {
+            StopMusic();
+
             if (Nemuri.Player.PlayerMovement.Instance != null)
             {
                 Nemuri.Player.PlayerMovement.Instance.SetCanMove(false);
             }
 
-            SceneTransitionState.FadeInOnLoad = true;
-            SceneTransitionState.FadeInDuration = 2f;
-
             if (ScreenFader.Instance != null)
             {
                 yield return ScreenFader.Instance.FadeToBlack(2f);
             }
+
+            // Set 3D cameras to cull Nothing (0 draw calls) during video playback to free CPU/GPU resources
+            Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+            Dictionary<Camera, int> originalCullingMasks = new Dictionary<Camera, int>();
+            foreach (Camera cam in allCameras)
+            {
+                if (cam != null && cam.enabled)
+                {
+                    originalCullingMasks[cam] = cam.cullingMask;
+                    cam.cullingMask = 0; // 0 = Nothing (renders 0 3D objects/draw calls)
+                }
+            }
+
+            // Play video cutscene if available
+            if (_transitionVideo != null)
+            {
+                VideoScenePlayer videoPlayer = GetComponent<VideoScenePlayer>();
+                if (videoPlayer == null)
+                {
+                    videoPlayer = gameObject.AddComponent<VideoScenePlayer>();
+                }
+
+                bool isVideoFinished = false;
+                videoPlayer.Initialize(_transitionVideo, loop: false);
+
+                // Buffer video stream into GPU memory while screen is still black
+                yield return videoPlayer.PrepareRoutine();
+
+                if (videoPlayer.Player != null)
+                {
+                    videoPlayer.Player.isLooping = false;
+                    videoPlayer.Player.loopPointReached += (source) => isVideoFinished = true;
+                }
+
+                videoPlayer.Play();
+
+                // Fade in from black to display video once buffered
+                if (ScreenFader.Instance != null)
+                {
+                    yield return ScreenFader.Instance.FadeToClear(1f);
+                }
+
+                // Wait for video playback completion
+                while (!isVideoFinished)
+                {
+                    yield return null;
+                }
+
+                // Fade out to black after video finishes
+                if (ScreenFader.Instance != null)
+                {
+                    yield return ScreenFader.Instance.FadeToBlack(1.5f);
+                }
+
+                videoPlayer.Stop();
+            }
+
+            SceneTransitionState.FadeInOnLoad = true;
+            SceneTransitionState.FadeInDuration = 2f;
 
             if (string.IsNullOrWhiteSpace(_nextSceneName))
             {
@@ -324,5 +395,72 @@ namespace Nemuri.Interactions
 
             UnityEngine.SceneManagement.SceneManager.LoadScene(_nextSceneName);
         }
+
+        private void SetupMusic()
+        {
+            if (_bgMusic == null) return;
+            AudioSource[] existingSources = GetComponents<AudioSource>();
+            _musicSources = new AudioSource[_audioAmplificationLayers];
+
+            for (int i = 0; i < _audioAmplificationLayers; i++)
+            {
+                AudioSource src = (i < existingSources.Length) ? existingSources[i] : gameObject.AddComponent<AudioSource>();
+                src.clip = _bgMusic;
+                src.loop = true;
+                src.playOnAwake = false;
+                src.volume = _bgMusicVolume;
+                _musicSources[i] = src;
+            }
+        }
+
+        private void PlayMusic()
+        {
+            if (_musicSources == null || _bgMusic == null) return;
+            foreach (var src in _musicSources)
+            {
+                if (src != null)
+                {
+                    src.volume = _bgMusicVolume;
+                    if (!src.isPlaying) src.Play();
+                }
+            }
+        }
+
+        private void StopMusic()
+        {
+            if (_musicSources == null) return;
+            foreach (var src in _musicSources)
+            {
+                if (src != null && src.isPlaying)
+                {
+                    src.Stop();
+                }
+            }
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (_transitionVideo == null)
+            {
+                _transitionVideo = UnityEditor.AssetDatabase.LoadAssetAtPath<VideoClip>(
+                    "Assets/Videos/MindlitToPineal.mov");
+            }
+
+            if (_bgMusic == null)
+            {
+                _bgMusic = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(
+                    "Assets/Sounds/MindlitBg.mp3");
+            }
+
+            if (_musicSources != null)
+            {
+                foreach (var src in _musicSources)
+                {
+                    if (src != null) src.volume = _bgMusicVolume;
+                }
+            }
+        }
+#endif
     }
 }
