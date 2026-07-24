@@ -7,6 +7,7 @@ public class BossFightTester : MonoBehaviour
     public string bossName = "EVIL RABBIT";
     public float maxHealth = 100f;
     public float triggerDistance = 45f;
+    public bool manualStartOnly = false;
 
     [Header("Boss Music Settings (0 to 5 = 0% to 500% Volume)")]
     [SerializeField] public AudioClip bossMusic;
@@ -37,6 +38,12 @@ public class BossFightTester : MonoBehaviour
         currentHealth = maxHealth;
         FindPlayer();
 
+        // If in chpt3 scene with Chapter3IntroController, set manualStartOnly = true
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "chpt3")
+        {
+            manualStartOnly = true;
+        }
+
         // Dynamically instantiate BossFightManager if not already present
         if (BossFightManager.Instance == null)
         {
@@ -49,7 +56,7 @@ public class BossFightTester : MonoBehaviour
     {
         if (defeated) return;
 
-        if (!fightStarted)
+        if (!fightStarted && !manualStartOnly)
         {
             FindPlayer();
             if (player != null)
@@ -61,6 +68,12 @@ public class BossFightTester : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void StartFightFromCutscene()
+    {
+        manualStartOnly = false;
+        StartFight();
     }
 
     private void FindPlayer()
@@ -89,6 +102,17 @@ public class BossFightTester : MonoBehaviour
     {
         fightStarted = true;
         Debug.Log("[BossFightTester] Boss fight started! Press O to deal damage.");
+
+        if (BossFightManager.Instance != null)
+        {
+            BossFightManager.Instance.isBossFightActive = true;
+        }
+
+        if (PlayerHealthBarUI.Instance != null && player != null)
+        {
+            PlayerHealthBarUI.Instance.ShowPlayerHealthBar(player.gameObject.name, 100f);
+        }
+
         BossHealthBarUI.Instance.ShowBossHealthBar(bossName, maxHealth);
 
         PlayBossMusic();

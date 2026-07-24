@@ -63,6 +63,7 @@ namespace Nemuri.Interactions
 
         private Sprite[] _noteSprites = new Sprite[4];
         private Sprite _targetSprite;
+        private AudioClip[] _rhythmHitClips = new AudioClip[4];
 
         private List<NoteSchedule> _notesSchedule = new List<NoteSchedule>();
         private List<NoteInstance> _activeNotes = new List<NoteInstance>();
@@ -111,8 +112,22 @@ namespace Nemuri.Interactions
             }
 
             InitializeSprites();
+            InitializeAudioClips();
             CreateUI();
             UpdateScoreText();
+        }
+
+        private void InitializeAudioClips()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                string clipName = "RhythmHit" + (i + 1);
+                _rhythmHitClips[i] = Resources.Load<AudioClip>(clipName);
+                if (_rhythmHitClips[i] == null)
+                {
+                    Debug.LogWarning("[VinesMinigame] Could not load audio clip from Resources: " + clipName);
+                }
+            }
         }
 
         private void InitializeSprites()
@@ -306,11 +321,14 @@ namespace Nemuri.Interactions
                 _activeNotes.Remove(closestNote);
                 UpdateScoreText();
 
-                string clipName = "RhythmHit" + (lane + 1);
-                AudioClip clip = Resources.Load<AudioClip>(clipName);
+                AudioClip clip = (_rhythmHitClips != null && lane >= 0 && lane < _rhythmHitClips.Length) ? _rhythmHitClips[lane] : null;
+                if (clip == null)
+                {
+                    clip = Resources.Load<AudioClip>("RhythmHit" + (lane + 1));
+                }
                 if (clip != null)
                 {
-                    AudioSource.PlayClipAtPoint(clip, Camera.main.transform.position, _rhythmVolume);
+                    AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : Vector3.zero, _rhythmVolume);
                 }
             }
         }

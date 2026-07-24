@@ -378,7 +378,12 @@ namespace Nemuri.Interactions
                     label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 }
 
-                label.fontSize = 64; // enlarged font size for large bubble
+                label.fontSize = 64; // default font size for bubble
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = 14;
+                label.resizeTextMaxSize = 64;
+                label.horizontalOverflow = HorizontalWrapMode.Wrap;
+                label.verticalOverflow = VerticalWrapMode.Truncate;
 
                 RectTransform labelRect = labelObject.GetComponent<RectTransform>();
                 labelRect.anchorMin = new Vector2(0f, 0f); // fill completely
@@ -455,8 +460,13 @@ namespace Nemuri.Interactions
                     _panelImage.color = new Color(0f, 0f, 0f, 0.72f);
                 }
 
-                // Set dynamic font size
+                // Set dynamic font size and auto-fit parameters
                 _label.fontSize = fontSize;
+                _label.resizeTextMaxSize = fontSize;
+                _label.resizeTextMinSize = 14;
+                _label.resizeTextForBestFit = true;
+                _label.horizontalOverflow = HorizontalWrapMode.Wrap;
+                _label.verticalOverflow = VerticalWrapMode.Truncate;
 
                 // Adjust positioning of label and center vertically based on whether progress bar is needed
                 if (owner.HoldSeconds > 0f)
@@ -472,14 +482,16 @@ namespace Nemuri.Interactions
 
                 if (isHoldEPrompt && promptBg != null && promptBg.name == "Ebutton")
                 {
-                    _label.rectTransform.offsetMin = new Vector2(180f, 0f); // Offset to the right to clear the big "E" icon
-                    _label.rectTransform.offsetMax = new Vector2(-40f, 0f);
+                    _label.rectTransform.offsetMin = new Vector2(285f, 0f); // Shifted further to the right to leave clear spacing after the "E" icon box
+                    _label.rectTransform.offsetMax = new Vector2(-30f, 0f);
                 }
                 else
                 {
-                    _label.rectTransform.offsetMin = new Vector2(40f, 0f); // Centered horizontally
-                    _label.rectTransform.offsetMax = new Vector2(-40f, 0f);
+                    _label.rectTransform.offsetMin = new Vector2(160f, 0f); // Shifted further towards the right
+                    _label.rectTransform.offsetMax = new Vector2(-30f, 0f);
                 }
+
+                _label.alignment = TextAnchor.MiddleLeft;
 
                 // Apply custom Y offset for font centering
                 _label.rectTransform.anchoredPosition = new Vector2(_label.rectTransform.anchoredPosition.x, fontYOffset);
@@ -494,7 +506,7 @@ namespace Nemuri.Interactions
                     _barBackRect.gameObject.SetActive(owner.HoldSeconds > 0f);
                 }
 
-                // Clean instructions to fit with the visual E button icon
+                // Preserve inserted instructions cleanly to fit the prompt image
                 string processedText = text;
                 
                 // Auto-shorten "You must use [Name] as player to interact" -> "Use [Name]"
@@ -506,15 +518,6 @@ namespace Nemuri.Interactions
                 else
                 {
                     processedText = processedText.Replace("(E)", "").Replace("(e)", "").Trim();
-                    processedText = System.Text.RegularExpressions.Regex.Replace(processedText, @"^(Hold\s+E\s+to\s+|Press\s+E\s+to\s+|E\s+to\s+|Hold\s+E\s+|Press\s+E\s+)", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-                    if (isHoldEPrompt)
-                    {
-                        if (!processedText.StartsWith("to ", System.StringComparison.OrdinalIgnoreCase))
-                        {
-                            processedText = "to " + processedText;
-                        }
-                    }
                 }
 
                 _label.text = processedText;

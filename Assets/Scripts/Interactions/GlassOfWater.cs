@@ -19,7 +19,7 @@ namespace Nemuri.Interactions
             if (_interactable != null)
             {
                 _interactable.OnInteract.AddListener(TakeGlass);
-                _interactable.PromptText = "E to take glass of water";
+                _interactable.PromptText = "Press E to take";
                 _interactable.HoldSeconds = 0f; // Instant interaction
             }
         }

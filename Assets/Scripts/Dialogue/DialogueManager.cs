@@ -39,6 +39,15 @@ namespace Nemuri.Dialogue
             public Vector2 SizeDelta = new Vector2(250f, 50f);
         }
 
+        [System.Serializable]
+        public class CharacterSplashArtSettings
+        {
+            public Sprite SplashSprite;
+            public Vector2 AnchoredPosition = new Vector2(0f, 0f);
+            public Vector2 SizeDelta = new Vector2(800f, 1000f);
+            public bool RenderBehindPanel = true;
+        }
+
         private const string PlayerTag = "Player";
         private const string DialogueCanvasName = "Dialogue Canvas";
 
@@ -57,6 +66,39 @@ namespace Nemuri.Dialogue
         [SerializeField] private Text _dialogueText;
         [SerializeField] private Image _portraitImage;
         [SerializeField] private Text _skipPromptText;
+        [SerializeField] private Image _splashArtImage;
+
+        [Header("Character Splash Art Settings")]
+        [SerializeField] protected CharacterSplashArtSettings _kaelSplashArtSettings = new CharacterSplashArtSettings
+        {
+            AnchoredPosition = new Vector2(350f, -100f),
+            SizeDelta = new Vector2(800f, 1000f),
+            RenderBehindPanel = true
+        };
+        [SerializeField] protected CharacterSplashArtSettings _feanorSplashArtSettings = new CharacterSplashArtSettings
+        {
+            AnchoredPosition = new Vector2(400f, 0f),
+            SizeDelta = new Vector2(1000f, 1200f),
+            RenderBehindPanel = true
+        };
+        [SerializeField] protected CharacterSplashArtSettings _keikoSplashArtSettings = new CharacterSplashArtSettings
+        {
+            AnchoredPosition = new Vector2(400f, 0f),
+            SizeDelta = new Vector2(1000f, 1200f),
+            RenderBehindPanel = true
+        };
+        [SerializeField] protected CharacterSplashArtSettings _murialSplashArtSettings = new CharacterSplashArtSettings
+        {
+            AnchoredPosition = new Vector2(400f, 0f),
+            SizeDelta = new Vector2(1000f, 1200f),
+            RenderBehindPanel = true
+        };
+        [SerializeField] protected CharacterSplashArtSettings _ronaSplashArtSettings = new CharacterSplashArtSettings
+        {
+            AnchoredPosition = new Vector2(400f, 0f),
+            SizeDelta = new Vector2(1000f, 1200f),
+            RenderBehindPanel = true
+        };
 
         [Header("Settings")]
         [SerializeField, Min(0f)] protected float _defaultTypingSpeed = 0.01f;
@@ -70,56 +112,56 @@ namespace Nemuri.Dialogue
         [Header("Panel Size & Position")]
         [SerializeField] protected PanelLayoutSettings _dialoguePanelLayout = new PanelLayoutSettings
         {
-            AnchoredPosition = new Vector2(0f, 60f),
-            SizeDelta = new Vector2(1100f, 220f)
+            AnchoredPosition = new Vector2(0f, -50f),
+            SizeDelta = new Vector2(2150f, 1300f)
         };
         [SerializeField] protected PanelLayoutSettings _narrationPanelLayout = new PanelLayoutSettings
         {
-            AnchoredPosition = new Vector2(0f, 60f),
-            SizeDelta = new Vector2(1100f, 220f)
+            AnchoredPosition = new Vector2(0f, 760f),
+            SizeDelta = new Vector2(1920f, 1080f)
         };
         [SerializeField] protected PanelLayoutSettings _objectivePanelLayout = new PanelLayoutSettings
         {
             AnchoredPosition = new Vector2(0f, 60f),
-            SizeDelta = new Vector2(1100f, 220f)
+            SizeDelta = new Vector2(1920f, 1080f)
         };
 
         [Header("Dialogue Audio")]
         [SerializeField] protected AudioClip _playerDialogueClip;
         [SerializeField] protected AudioClip _animalDialogueClip;
         [SerializeField] protected AudioClip _thirdDialogueClip;
-        [SerializeField, Min(0f)] protected float _audioVolume = 1f;
+        [SerializeField, Min(0f)] protected float _audioVolume = 10f;
 
         [Header("Text Layout Settings")]
-        [SerializeField] protected Vector2 _dialogueTextSize = new Vector2(900f, 120f);
-        [SerializeField] protected Vector2 _dialogueTextPosition = new Vector2(0f, -15f);
-        [SerializeField] protected Vector2 _narrationTextSize = new Vector2(900f, 120f);
-        [SerializeField] protected Vector2 _narrationTextPosition = new Vector2(0f, -15f);
-        [SerializeField] protected Vector2 _objectiveTextSize = new Vector2(900f, 120f);
-        [SerializeField] protected Vector2 _objectiveTextPosition = new Vector2(0f, -15f);
+        [SerializeField] protected Vector2 _dialogueTextSize = new Vector2(1400f, 600f);
+        [SerializeField] protected Vector2 _dialogueTextPosition = new Vector2(20f, -475f);
+        [SerializeField] protected Vector2 _narrationTextSize = new Vector2(1700f, 600f);
+        [SerializeField] protected Vector2 _narrationTextPosition = new Vector2(30f, -530f);
+        [SerializeField] protected Vector2 _objectiveTextSize = new Vector2(1350f, 600f);
+        [SerializeField] protected Vector2 _objectiveTextPosition = new Vector2(-100f, 220f);
 
         [Header("Name Text Layout")]
         [SerializeField] protected NameTextLayoutSettings _dialogueNameTextLayout = new NameTextLayoutSettings
         {
-            AnchoredPosition = new Vector2(90f, -22f),
-            SizeDelta = new Vector2(250f, 50f)
+            AnchoredPosition = new Vector2(530f, -700f),
+            SizeDelta = new Vector2(850f, 500f)
         };
         [SerializeField] protected NameTextLayoutSettings _narrationNameTextLayout = new NameTextLayoutSettings
         {
             AnchoredPosition = new Vector2(90f, -22f),
-            SizeDelta = new Vector2(250f, 50f)
+            SizeDelta = new Vector2(650f, 350f)
         };
         [SerializeField] protected NameTextLayoutSettings _objectiveNameTextLayout = new NameTextLayoutSettings
         {
-            AnchoredPosition = new Vector2(90f, -22f),
-            SizeDelta = new Vector2(250f, 50f)
+            AnchoredPosition = new Vector2(90f, 0f),
+            SizeDelta = new Vector2(650f, 350f)
         };
 
         [Header("Skip Prompt")]
         [SerializeField] protected string _skipPromptLabel = "Hold E to skip";
-        [SerializeField] protected Vector2 _skipPromptAnchoredPosition = new Vector2(-140f, 25f);
-        [SerializeField] protected Vector2 _skipPromptSizeDelta = new Vector2(220f, 40f);
-        [SerializeField, Min(8)] protected int _skipPromptFontSize = 18;
+        [SerializeField] protected Vector2 _skipPromptAnchoredPosition = new Vector2(-120f, -80f);
+        [SerializeField] protected Vector2 _skipPromptSizeDelta = new Vector2(400f, 300f);
+        [SerializeField, Min(8)] protected int _skipPromptFontSize = 42;
 
         private PlayerInput _playerInput;
         private InputAction _interactAction;
@@ -188,6 +230,7 @@ namespace Nemuri.Dialogue
             {
                 ApplyPanelLayout(_dialoguePanelLayout);
                 ApplyNameTextLayout("");
+                UpdateSplashArtLayout("");
             }
 
             ApplySkipPromptLayout();
@@ -377,6 +420,69 @@ namespace Nemuri.Dialogue
 
             ApplySkipPromptLayout();
             ApplyNameTextLayout(speaker);
+            UpdateSplashArtLayout(speaker);
+        }
+
+        private CharacterSplashArtSettings GetSplashArtSettingsForSpeaker(string speaker)
+        {
+            if (string.IsNullOrEmpty(speaker)) return null;
+
+            if (string.Equals(speaker, "Kael", System.StringComparison.OrdinalIgnoreCase))
+                return _kaelSplashArtSettings;
+            if (string.Equals(speaker, "Feanor", System.StringComparison.OrdinalIgnoreCase))
+                return _feanorSplashArtSettings;
+            if (string.Equals(speaker, "Keiko", System.StringComparison.OrdinalIgnoreCase))
+                return _keikoSplashArtSettings;
+            if (string.Equals(speaker, "Murial", System.StringComparison.OrdinalIgnoreCase))
+                return _murialSplashArtSettings;
+            if (string.Equals(speaker, "Rona", System.StringComparison.OrdinalIgnoreCase))
+                return _ronaSplashArtSettings;
+
+            return null;
+        }
+
+        private void UpdateSplashArtLayout(string speaker)
+        {
+            if (_splashArtImage == null) return;
+
+            CharacterSplashArtSettings settings = GetSplashArtSettingsForSpeaker(speaker);
+            if (settings != null && settings.SplashSprite != null)
+            {
+                _splashArtImage.sprite = settings.SplashSprite;
+                _splashArtImage.gameObject.SetActive(true);
+
+                RectTransform rect = _splashArtImage.rectTransform;
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = settings.AnchoredPosition;
+                rect.sizeDelta = settings.SizeDelta;
+
+                if (_dialoguePanel != null && _splashArtImage.transform.parent == _dialoguePanel.transform.parent)
+                {
+                    int panelIndex = _dialoguePanel.transform.GetSiblingIndex();
+                    int splashIndex = _splashArtImage.transform.GetSiblingIndex();
+
+                    if (settings.RenderBehindPanel)
+                    {
+                        if (splashIndex > panelIndex)
+                        {
+                            _splashArtImage.transform.SetSiblingIndex(panelIndex);
+                        }
+                    }
+                    else
+                    {
+                        if (splashIndex < panelIndex)
+                        {
+                            _splashArtImage.transform.SetSiblingIndex(panelIndex);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                _splashArtImage.gameObject.SetActive(false);
+            }
         }
 
         private NameTextLayoutSettings GetNameTextLayoutForSpeaker(string speaker)
@@ -753,6 +859,10 @@ namespace Nemuri.Dialogue
             if (!active)
             {
                 SetSkipPromptVisible(false);
+                if (_splashArtImage != null)
+                {
+                    _splashArtImage.gameObject.SetActive(false);
+                }
             }
         }
 
@@ -763,6 +873,30 @@ namespace Nemuri.Dialogue
 
         private void EnsureDialogueUi()
         {
+            LoadUiResources();
+
+            Canvas canvas = GetOrCreateDialogueCanvas();
+
+            if (_splashArtImage == null && canvas != null)
+            {
+                Transform existingSplash = canvas.transform.Find("Splash Art Image") ?? canvas.transform.Find("SplashArtImage");
+                if (existingSplash != null)
+                {
+                    _splashArtImage = existingSplash.GetComponent<Image>();
+                }
+                else
+                {
+                    GameObject splashGo = new GameObject("Splash Art Image");
+                    splashGo.transform.SetParent(canvas.transform, false);
+
+                    _splashArtImage = splashGo.AddComponent<Image>();
+                    _splashArtImage.color = Color.white;
+                    _splashArtImage.preserveAspect = true;
+                    _splashArtImage.raycastTarget = false;
+                    splashGo.SetActive(false);
+                }
+            }
+
             if (_dialoguePanel != null && _nameText != null && _dialogueText != null && _skipPromptText != null)
             {
                 ApplyPanelLayout(_dialoguePanelLayout);
@@ -772,10 +906,6 @@ namespace Nemuri.Dialogue
                 ApplyUiFont(_skipPromptText);
                 return;
             }
-
-            LoadUiResources();
-
-            Canvas canvas = GetOrCreateDialogueCanvas();
 
             if (_dialoguePanel == null)
             {
@@ -949,6 +1079,12 @@ namespace Nemuri.Dialogue
             if (_playerDialogueClip == null) _playerDialogueClip = Resources.Load<AudioClip>("PlayerDialogue");
             if (_animalDialogueClip == null) _animalDialogueClip = Resources.Load<AudioClip>("AnimalDialogue");
             if (_thirdDialogueClip == null) _thirdDialogueClip = Resources.Load<AudioClip>("ThirdDialogue");
+
+            if (_kaelSplashArtSettings.SplashSprite == null) _kaelSplashArtSettings.SplashSprite = LoadUiSprite("KaelSplashArt");
+            if (_feanorSplashArtSettings.SplashSprite == null) _feanorSplashArtSettings.SplashSprite = LoadUiSprite("FeanorSplashArt");
+            if (_keikoSplashArtSettings.SplashSprite == null) _keikoSplashArtSettings.SplashSprite = LoadUiSprite("KeikoSplashArt");
+            if (_murialSplashArtSettings.SplashSprite == null) _murialSplashArtSettings.SplashSprite = LoadUiSprite("MurialSplashArt");
+            if (_ronaSplashArtSettings.SplashSprite == null) _ronaSplashArtSettings.SplashSprite = LoadUiSprite("RonaSplashArt");
 
             if (_dialogueSprite == null)
             {

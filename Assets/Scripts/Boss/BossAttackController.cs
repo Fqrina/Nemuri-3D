@@ -75,9 +75,12 @@ public class BossAttackController : MonoBehaviour
         if (!fightStarted)
         {
             var tester = GetComponent<BossFightTester>();
-            if (tester != null && tester.IsFightStarted)
+            if (tester != null)
             {
-                StartBossAttackLoop();
+                if (tester.IsFightStarted)
+                {
+                    StartBossAttackLoop();
+                }
             }
             else if (playerTargetTransform != null)
             {

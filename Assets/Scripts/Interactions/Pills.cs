@@ -37,7 +37,7 @@ namespace Nemuri.Interactions
         private void Start()
         {
             _interactable.OnInteract.AddListener(EatPills);
-            _interactable.PromptText = "E to eat";
+            _interactable.PromptText = "Press E to eat";
             _interactable.HoldSeconds = 0f; // Ensure instant interaction
         }
 

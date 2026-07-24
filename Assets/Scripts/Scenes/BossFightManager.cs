@@ -14,6 +14,7 @@ public class BossFightManager : MonoBehaviour
     public float kaelDmgMultiplierIncrease = 0.20f; // 20% multiplier increase per orb
 
     [Header("State")]
+    public bool isBossFightActive = false;
     public float damageMultiplier = 1.0f;
     public int orbsCollected = 0;
 
@@ -466,8 +467,8 @@ public class BossFightManager : MonoBehaviour
             }
         }
 
-        // 2. Kael Orb spawning logic (every 60s)
-        if (bossTransform != null || mapCenterTransform != null)
+        // 2. Kael Orb spawning logic (every 60s) - Only when boss fight state is active
+        if (isBossFightActive && (bossTransform != null || mapCenterTransform != null))
         {
             orbSpawnTimer += Time.deltaTime;
             if (orbSpawnTimer >= orbSpawnInterval)
